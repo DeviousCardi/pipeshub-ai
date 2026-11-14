@@ -215,6 +215,35 @@ class GroupPickerPage(NamedTuple):
     cut_off: bool = False
 
 
+# The Jira Data Center releases Atlassian supports, as of 2026-11-14: 10.2 to 11.3 (Atlassian Support End of Life
+# Policy, https://confluence.atlassian.com/support/atlassian-support-end-of-life-policy-201851003.html). Each one's
+# REST API was checked against its own specification (developer.atlassian.com/server/jira/platform/rest/v<NNNNN>/).
+DC_SUPPORTED_VERSIONS: tuple[tuple[int, int], tuple[int, int]] = ((10, 2), (11, 3))
+
+
+class DcRestProfile(NamedTuple):
+    """Where the documented REST APIs of the supported Jira Data Center versions differ. Everything else the connector
+    reads (applicationrole, group/member, the permission scheme and issue security routes, GET issue's 404) reads the
+    same in the specifications of 10.2 to 11.3."""
+
+    supported: bool
+    # GET /rest/api/2/user/list is in the 10.3 specification (from 10.3.13, JRASERVER-78660) and in 11.0 to 11.3,
+    # and not in 10.2 or 10.4 to 10.7, where /user/search is the only listing.
+    user_list: bool
+
+
+def dc_rest_profile(version: tuple[int, ...] | None) -> DcRestProfile:
+    """The profile of a Data Center version (``serverInfo``'s ``versionNumbers``). An unknown version is not supported:
+    the sync then keeps the stored links and links no one new, and tries the user list as before."""
+    if not version or len(version) < 2:
+        return DcRestProfile(supported=False, user_list=True)
+    release, patch = tuple(version[:2]), tuple((*version[:3], 0, 0)[:3])
+    return DcRestProfile(
+        supported=DC_SUPPORTED_VERSIONS[0] <= release <= DC_SUPPORTED_VERSIONS[1],
+        user_list=(10, 3, 13) <= patch < (10, 4, 0) or release >= (11, 0),
+    )
+
+
 class GroupMemberships(NamedTuple):
     """Group id/name -> members for role resolution. None marks a group whose members are unknown.
 
@@ -530,6 +559,9 @@ class JiraDataCenterConnector(BaseConnector):
         # Projects whose checkpoint holds ``people_handed`` after this sync's walk.
         self._handed_projects: set[str] = set()
         self._own_key: str | None = None  # the account the connector authenticates as
+        # The server's version (GET serverInfo) and what its REST API documents; read once per sync.
+        self._dc_version: tuple[int, ...] | None = None
+        self._dc_profile: DcRestProfile = dc_rest_profile(None)
         # Keys of the active members of the application roles' groups (Jira product access);
         # None when they could not all be read.
         self._licensed_keys: set[str] | None = None
@@ -934,6 +966,33 @@ class JiraDataCenterConnector(BaseConnector):
             email.strip() if isinstance(email, str) else None, self._own_key,
         )
 
+    async def _read_server_version(self) -> None:
+        """Read the server's version once per sync. GET /rest/api/2/serverInfo's ServerInfoBean has no documented
+        fields in the 10.2 to 11.3 specifications; Data Center answers ``versionNumbers`` (as Atlassian's own server,
+        jira.atlassian.com, does: ``"versionNumbers": [10, 3, 26]``), with ``version`` as text. Anything else leaves
+        the version unknown, which takes the unsupported path."""
+        version: tuple[int, ...] | None = None
+        try:
+            response = await (await self._get_fresh_datasource()).get_server_info_v2()
+            data = self._safe_json_parse(response, "GET /rest/api/2/serverInfo") \
+                if response and response.status == HttpStatusCode.OK.value else None
+            numbers = (data or {}).get("versionNumbers")
+            text = (data or {}).get("version")
+            if isinstance(numbers, list) and len(numbers) >= 2 and all(type(n) is int for n in numbers):
+                version = tuple(numbers)
+            elif isinstance(text, str) and re.fullmatch(r"\d+(\.\d+)+", text.strip()):
+                version = tuple(int(n) for n in text.strip().split("."))
+        except Exception as e:
+            self.logger.warning("Could not read the Jira Data Center version: %s", e)
+        self._dc_version, self._dc_profile = version, dc_rest_profile(version)
+        if not self._dc_profile.supported:
+            shown = ".".join(map(str, version)) if version else "unknown"
+            low, high = (".".join(map(str, v)) for v in DC_SUPPORTED_VERSIONS)
+            self.logger.warning(
+                "Jira Data Center version %s is not one the connector supports (%s to %s): accounts already linked "
+                "keep their access and no new account is linked", shown, low, high,
+            )
+
     async def run_sync(self) -> None:
         """
         Run sync of Jira projects and issues - only new/updated tickets
@@ -953,6 +1012,7 @@ class JiraDataCenterConnector(BaseConnector):
                     )
 
             await self._register_authenticated_identity()
+            await self._read_server_version()
 
             # Load sync and indexing filters (loaded in run_sync to ensure latest values)
             self.sync_filters, self.indexing_filters = await load_connector_filters(
@@ -1556,6 +1616,7 @@ class JiraDataCenterConnector(BaseConnector):
         with self._keep_sync_state(*self._SYNC_STATE):
             self._kept_unread_access = False
             self._kept_after_refusal = []
+            await self._read_server_version()
             jira_users = await self._eligible_users(await self._fetch_users())
             # Linked here, they are no longer new to the next sync: its re-read of their issues is saved first.
             await self._note_newly_listed(jira_users)
@@ -1693,10 +1754,12 @@ class JiraDataCenterConnector(BaseConnector):
         datasource = await self._get_fresh_datasource()
 
         while True:
+            # Its parameters are `cursor` and `maxResults` only (Jira DC REST 10.3 and 11.2,
+            # https://developer.atlassian.com/server/jira/platform/rest/v11002/api-group-user/); inactive users are
+            # left out by _fetch_users from each row's `active`.
             response = await datasource.get_user_list_v2(
                 cursor=cursor,
                 maxResults=USER_LIST_PAGE_SIZE,
-                includeInactive=False,
             )
 
             if response.status in (
@@ -1889,7 +1952,7 @@ class JiraDataCenterConnector(BaseConnector):
         self._user_bulk_refused = False
         self._user_bulk_incomplete = False
 
-        list_users = await self._fetch_users_via_list()
+        list_users = await self._fetch_users_via_list() if self._dc_profile.user_list else None
         if list_users is not None:
             return list_users
 
@@ -2074,6 +2137,7 @@ class JiraDataCenterConnector(BaseConnector):
                 self._app_roles_unread = True
                 return {}
 
+            defined_roles = 0
             for role in roles_data:
                 role_key = role.get("key") if isinstance(role, dict) else None
                 groups = role.get("groups") if isinstance(role, dict) else None
@@ -2084,6 +2148,12 @@ class JiraDataCenterConnector(BaseConnector):
                     # missing from this mapping are unknown, not "no groups".
                     self._app_roles_unread = True
                     continue
+                if role.get("defined") is False:
+                    # `defined` has no description in ApplicationRoleBean (Jira DC REST 11.2,
+                    # https://developer.atlassian.com/server/jira/platform/rest/v11002/api-group-applicationrole/),
+                    # so a role marked not defined is not taken to grant access.
+                    continue
+                defined_roles += 1
 
                 normalized = _application_role_groups_from_dc_role(role)
                 if normalized:
@@ -2094,8 +2164,9 @@ class JiraDataCenterConnector(BaseConnector):
 
             if self._app_roles_unread:
                 self.logger.warning("⚠️ Application roles response has an entry that is not a readable role")
-            # Only an administrator reads the roles, so a list of readable roles is the whole picture.
-            self._app_roles_read = bool(roles_data) and not self._app_roles_unread
+            # Only an administrator reads the roles ("403 Returned if the current user is not an administrator",
+            # Jira DC REST 11.2 GET /rest/api/2/applicationrole), so a list of readable roles is the whole picture.
+            self._app_roles_read = defined_roles > 0 and not self._app_roles_unread
             self.logger.info(f"🔐 Fetched {len(mapping)} application roles with group mappings")
 
         except Exception as e:
@@ -2448,7 +2519,8 @@ class JiraDataCenterConnector(BaseConnector):
         but the connector's own account, which uses Jira.
         """
         self._app_roles_mapping = await self._fetch_application_roles_to_groups_mapping()
-        self._licensed_keys = await self._read_licensed_keys()
+        # On a version whose REST API was not checked, product access is not taken from it.
+        self._licensed_keys = await self._read_licensed_keys() if self._dc_profile.supported else None
         eligible = self._licensed_keys
         if eligible is None:
             eligible = {u.source_user_id for u in self._stored_app_users} | {self._own_key}
@@ -3420,7 +3492,11 @@ class JiraDataCenterConnector(BaseConnector):
 
             members_status, values = await collect_paged_values(fetch_page)
             if values is None:
-                context.defer_checkpoint = http_status_is_transient(members_status)
+                # This route is not in Data Center's documented REST API (10.3 and 11.2 document only
+                # /issuesecurityschemes, /issuesecurityschemes/{id}, /project/{key}/issuesecuritylevelscheme,
+                # /project/{key}/securitylevel and /securitylevel/{id}; https://developer.atlassian.com/server/jira/platform/rest/v11002/),
+                # so no answer of it is lasting: stored grants are kept and the read is retried.
+                context.defer_checkpoint = True
                 context.read_status = members_status
                 return context  # members_readable stays False: leveled issues are closed
             members = (True, index_members(self._groups_by_name(values)))
@@ -4930,7 +5006,10 @@ class JiraDataCenterConnector(BaseConnector):
         retry, so the story is held and read again rather than filed on a guess."""
         if parent_id not in self._parent_levels:
             response = await self._get_issue_with_retry(parent_id, PARENT_LEVEL_FIELDS)
-            if response.status in (HttpStatusCode.NOT_FOUND.value, HttpStatusCode.FORBIDDEN.value):
+            # 404 is the documented answer for an issue that is missing or hidden from the caller; 403 is not
+            # documented (Jira DC REST 11.2 GET /rest/api/2/issue/{issueIdOrKey},
+            # https://developer.atlassian.com/server/jira/platform/rest/v11002/api-group-issue/), so it is a failed read.
+            if response.status == HttpStatusCode.NOT_FOUND.value:
                 self._parent_levels[parent_id] = None
             elif response.status != HttpStatusCode.OK.value:
                 raise JiraReadError(response.status, f"Failed to read the level of parent issue {parent_id}")
