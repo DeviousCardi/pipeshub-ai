@@ -118,6 +118,9 @@ def test_a_load_still_at_the_cap_is_interrupted_again() -> None:
     assert calls.count == 3
 
 
+_swallowed: list[str] = []
+
+
 def _swallowing_extract(_data: bytes) -> wm.WorkbookModel:
     """Swallows the first two interrupts, as openpyxl's descriptors do (a bare ``except:`` turned into TypeError)."""
     deadline = time.monotonic() + 20
@@ -125,8 +128,8 @@ def _swallowing_extract(_data: bytes) -> wm.WorkbookModel:
         try:
             while time.monotonic() < deadline:
                 sum(range(1000))
-        except BaseException:  # the swallowing under test
-            pass
+        except BaseException as interrupt:  # the swallowing under test
+            _swallowed.append(type(interrupt).__name__)
     while time.monotonic() < deadline:
         sum(range(1000))
     raise AssertionError("the load was never interrupted")
@@ -136,24 +139,22 @@ def _swallowing_extract(_data: bytes) -> wm.WorkbookModel:
 def test_a_load_that_swallows_the_interrupt_is_still_refused_at_once(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(wm._GrowthWatcher, "_vm_data_kb", staticmethod(lambda: 1 << 40))
     monkeypatch.setattr(wm, "_extract", _swallowing_extract)
+    _swallowed.clear()
     before = signal.getsignal(signal.SIGXCPU)
-    started = time.monotonic()
     with pytest.raises(wm.WorkbookRefused, match="stayed at its"):
         wm.load_workbook_model(workbook_zip(""), LIMIT, LIMIT, None, None)
-    # wall-clock-ok: the interrupts land 0.3 s apart and the regression is a one-shot watcher that runs to the 20 s deadline
-    assert time.monotonic() - started < 10
+    # Counted, not timed: a one-shot watcher interrupted once, then the load ran to its 20 s deadline.
+    assert len(_swallowed) == 2
     assert signal.getsignal(signal.SIGXCPU) == before
 
 
 @pytest.mark.skipif(not hasattr(signal, "SIGXCPU") or wm.resource is None, reason="POSIX only")
 def test_a_load_wedged_in_c_at_the_cap_is_stopped_by_the_pool() -> None:
-    # No signal handler runs inside the C call, so only the pool, outside the worker, can end it.
-    started = time.monotonic()
+    # No signal handler runs inside the C call, so only the pool, outside the worker, can end it. The cause tells
+    # the at-limit stop from the 60 s timeout, which pytest-timeout's 30 s would cut short anyway.
     with pytest.raises(parse_pool.ParseWorkerError) as stopped:
         parse_pool.run_blocking(wedged_at_the_cap, workbook_zip(""), LIMIT, LIMIT, label="wedged", timeout=60)
     assert stopped.value.cause == "at_memory_limit"
-    # wall-clock-ok: the pool stops it about 3 s in; the regression is the CPU limit or pool timeout, about 240 s
-    assert time.monotonic() - started < parse_pool._AT_DATA_LIMIT_SECONDS + 10
 
 
 def test_the_excel_loader_reports_a_worker_stopped_at_its_limit_as_too_large(monkeypatch: pytest.MonkeyPatch) -> None:
