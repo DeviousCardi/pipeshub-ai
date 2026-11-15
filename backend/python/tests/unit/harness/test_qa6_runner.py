@@ -350,8 +350,8 @@ def test_qa6_r10_the_live_variant_is_capped_and_priced() -> None:
 
 
 def test_qa6_r6_the_operator_sees_health_and_no_canary_in_logs() -> None:
-    assert checks._operator(_p(role="operator"), _obs(health=200, log_text="ok"), ["pat-canary-1"]) == []  # noqa: SLF001
-    bad = checks._operator(_p(role="operator"), _obs(health=503, log_text="token pat-canary-1"), ["pat-canary-1"])  # noqa: SLF001
+    assert checks._operator(_p(role="operator"), _obs(health=200, log_text="ok"), ["pat-canary-1"]) == []
+    bad = checks._operator(_p(role="operator"), _obs(health=503, log_text="token pat-canary-1"), ["pat-canary-1"])
     assert len(bad) == 2 and "Node's log" in bad[1]
 
 
@@ -360,8 +360,8 @@ def test_qa6_r3_a_cron_row_waits_for_one_real_slot() -> None:
 
     import driver
 
-    assert driver._next_slot(datetime(2026, 10, 11, 23, 59, 30, tzinfo=UTC)) == "1 0 * * *"  # noqa: SLF001
-    assert driver._next_slot(datetime(2026, 10, 11, 9, 5, tzinfo=UTC)) == "7 9 * * *"  # noqa: SLF001
+    assert driver._next_slot(datetime(2026, 10, 11, 23, 59, 30, tzinfo=UTC)) == "1 0 * * *"
+    assert driver._next_slot(datetime(2026, 10, 11, 9, 5, tzinfo=UTC)) == "7 9 * * *"
 
 
 DEEP = {"mode": "deep", "tool_family": "knowledge"}

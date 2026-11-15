@@ -54,7 +54,7 @@ _ComposeLoader.add_multi_constructor("!", _compose_tag)
 
 
 def _load(path: Path) -> dict[str, Any]:
-    return yaml.load(path.read_text(encoding="utf-8"), Loader=_ComposeLoader)  # noqa: S506 - SafeLoader subclass
+    return yaml.load(path.read_text(encoding="utf-8"), Loader=_ComposeLoader)  # SafeLoader subclass
 
 
 def _services(path: Path = MAIN) -> dict[str, dict[str, Any]]:
@@ -303,13 +303,13 @@ def test_the_app_port_takes_the_bind_address() -> None:
     ("explicit", "public_url", "expected"),
     [
         ("", "", "127.0.0.1"),
-        ("", "https://pipeshub.example.com", "0.0.0.0"),  # noqa: S104 - the installer's documented choice
-        ("", "http://pipeshub.example.com:8080/", "0.0.0.0"),  # noqa: S104
+        ("", "https://pipeshub.example.com", "0.0.0.0"),  # the installer's documented choice
+        ("", "http://pipeshub.example.com:8080/", "0.0.0.0"),
         ("", "http://localhost:3000", "127.0.0.1"),
         ("", "HTTP://LOCALHOST", "127.0.0.1"),
         ("", "http://127.0.0.1:3000", "127.0.0.1"),
         ("", "http://[::1]:3000", "127.0.0.1"),
-        ("", "https://localhost.example.com", "0.0.0.0"),  # noqa: S104 - a real host that starts like localhost
+        ("", "https://localhost.example.com", "0.0.0.0"),  # a real host that starts like localhost
         ("127.0.0.1", "https://pipeshub.example.com", "127.0.0.1"),
         ("10.0.0.5", "", "10.0.0.5"),
     ],
@@ -326,8 +326,8 @@ def test_bind_address_rule(explicit: str, public_url: str, expected: str) -> Non
     ("address", "url", "says", "never"),
     [
         ("127.0.0.1", "", "only this machine can reach it", "plain HTTP"),
-        ("0.0.0.0", "https://p.example.com", "bypass ufw and firewalld", "unencrypted"),  # noqa: S104
-        ("0.0.0.0", "http://p.example.com", "unencrypted", "only this machine"),  # noqa: S104
+        ("0.0.0.0", "https://p.example.com", "bypass ufw and firewalld", "unencrypted"),
+        ("0.0.0.0", "http://p.example.com", "unencrypted", "only this machine"),
     ],
 )
 def test_the_installer_says_what_the_bind_address_means(address: str, url: str, says: str, never: str) -> None:

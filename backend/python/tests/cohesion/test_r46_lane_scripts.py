@@ -22,6 +22,7 @@ from tests.cohesion.compose_files import compose_services
 from tests.cohesion.support import REPO_ROOT
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
 E2E = REPO_ROOT / "deployment" / "e2e"
@@ -49,7 +50,7 @@ def _events(path: Path) -> list[str]:
     return path.read_text(encoding="utf-8").splitlines() if path.exists() else []
 
 
-def _wait_for(predicate, timeout: float) -> bool:  # noqa: ANN001 - a zero-argument callable
+def _wait_for(predicate: Callable[[], bool], timeout: float) -> bool:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if predicate():

@@ -140,7 +140,7 @@ async def test_c6_5_no_engine_authority_no_code_task() -> None:
     await runtime.close()
 
 
-async def _drive(spec: RunSpec, *replies: Reply) -> tuple[Any, ScriptedModelPort]:  # noqa: ANN401
+async def _drive(spec: RunSpec, *replies: Reply) -> tuple[Any, ScriptedModelPort]:
     clock = ManualClock()
     journal = w.pipeshub_journal(clock=clock, lease_ms=30_000)
     journal.admit(

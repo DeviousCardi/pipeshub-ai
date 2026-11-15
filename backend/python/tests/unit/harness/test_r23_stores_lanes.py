@@ -39,7 +39,7 @@ _ComposeLoader.add_constructor("!override", lambda loader, node: ("override", lo
 
 
 def _compose(path: Path) -> dict[str, Any]:
-    return yaml.load(path.read_text(), Loader=_ComposeLoader)  # noqa: S506 - SafeLoader with two constructors
+    return yaml.load(path.read_text(), Loader=_ComposeLoader)  # SafeLoader with two constructors
 
 
 def _env(service: dict[str, Any]) -> dict[str, str]:

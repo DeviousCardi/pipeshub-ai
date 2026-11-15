@@ -272,7 +272,7 @@ class TestTwoEventLoops:
         def in_own_loop(name: str) -> None:
             try:
                 results[name] = asyncio.run(asyncio.wait_for(mgr.get_client(), 8))
-            except BaseException as error:  # noqa: BLE001 - the failure is the assertion below
+            except BaseException as error:  # the failure is the assertion below
                 results[name] = error
 
         with patch.object(mgr, "_create_client", side_effect=slow_create):

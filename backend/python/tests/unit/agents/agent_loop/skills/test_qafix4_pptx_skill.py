@@ -50,7 +50,7 @@ def test_the_guard_refuses_a_literal_backslash_n(value: str, refused: bool, tmp_
     assert match is not None, "the skeleton defines text()"
     program = tmp_path / "guard.ts"
     program.write_text(f"{match.group(0)}\nconsole.log(text({json.dumps(value)}));\n", encoding="utf-8")
-    run = subprocess.run(  # noqa: S603 - a fixed node binary on a file this test wrote
+    run = subprocess.run(  # a fixed node binary on a file this test wrote
         [_node(), "--experimental-strip-types", "--no-warnings", str(program)],
         capture_output=True, text=True, timeout=30, check=False,
     )

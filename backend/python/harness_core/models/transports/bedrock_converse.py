@@ -319,7 +319,7 @@ class BedrockConverseTransport(LLMTransport):
         system_blocks: list[str] | None = None,
         max_output_tokens: int | None = None,
         *,
-        tool_choice: ToolChoice | None = None,  # noqa: ARG002 - Converse's toolChoice has no "none"; the agent drops any call
+        tool_choice: ToolChoice | None = None,  # Converse's toolChoice has no "none"; the agent drops any call
     ) -> ModelResponse:
         resolved = model or self._model
         body = self._body(messages, tools, system, system_blocks, thinking_budget, max_output_tokens)
@@ -364,7 +364,7 @@ class BedrockConverseTransport(LLMTransport):
         system_blocks: list[str] | None = None,
         max_output_tokens: int | None = None,
         *,
-        tool_choice: ToolChoice | None = None,  # noqa: ARG002 - as in complete()
+        tool_choice: ToolChoice | None = None,  # as in complete()
     ) -> AsyncIterator[StreamEvent]:
         resolved = model or self._model
         url = self._url(resolved, "converse-stream")

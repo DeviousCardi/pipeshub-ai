@@ -58,7 +58,7 @@ async def test_sr_13_an_mcp_call_that_failed_after_it_was_sent_is_reported(error
     manager._session = _Session(  # pyright: ignore[reportPrivateUsage]
         runner=SimpleNamespace(client=_Client(error), running=True), stderr_path=None,  # type: ignore[arg-type]
     )
-    with track_sends() as sends, pytest.raises(Exception):  # noqa: B017, PT011 - the report is what is checked
+    with track_sends() as sends, pytest.raises(Exception):  # noqa: B017 - the report is what is checked
         await manager.call_tool_in_session("create_page", {})
     assert sends.ambiguous is reported
 

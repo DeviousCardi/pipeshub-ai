@@ -310,17 +310,17 @@ def test_sg10_the_release_loads_extensions_and_refuses_an_unsigned_one(
     monkeypatch.setattr(release, "packaged", files.get)
     monkeypatch.setattr(release, "extension_resources", lambda: ("vendor_rules.edition.json",))
     monkeypatch.setattr("harness_engines.release_keys.trusted_release_keys", lambda: {KEY_ID: public})
-    release._release.cache_clear()  # noqa: SLF001 - the release is cached per key set
+    release._release.cache_clear()  # the release is cached per key set
     try:
         rules = release.release_vendor_rules()
         assert edition_offering in next(r for r in rules.rules if r.id == "anthropic-api-key-org").offering
-        release._release.cache_clear()  # noqa: SLF001
+        release._release.cache_clear()
         del files["vendor_rules.edition.json.sig"]
         with pytest.raises(VendorRulesInvalid) as refused:
             release.release_vendor_rules()
         assert refused.value.detail == "unsigned"
     finally:
-        release._release.cache_clear()  # noqa: SLF001
+        release._release.cache_clear()
 
 
 def test_sg10_the_pattern_finds_extensions_and_not_the_rules() -> None:

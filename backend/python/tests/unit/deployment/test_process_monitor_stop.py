@@ -49,7 +49,7 @@ def _tree(tmp: Path) -> tuple[Path, Path, Path]:
     return script, log, tmp / "bin"
 
 
-def _wait_for(predicate, timeout: float) -> bool:  # noqa: ANN001
+def _wait_for(predicate, timeout: float) -> bool:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if predicate():

@@ -133,7 +133,7 @@ class InMemoryRecordAccess:
         for name in ("get_user_by_user_id", "get_nodes_by_field_in", "get_selection_nodes"):
             current = getattr(graph, name, None)
             if current is None or (
-                isinstance(current, Mock) and current.side_effect is None and current._mock_return_value is DEFAULT  # noqa: SLF001
+                isinstance(current, Mock) and current.side_effect is None and current._mock_return_value is DEFAULT
             ):
                 setattr(graph, name, getattr(self, name))
         return graph
@@ -186,7 +186,7 @@ class InMemoryRecordAccess:
         for uid in self.users:
             try:
                 doc = await lookup(uid)
-            except Exception:  # noqa: BLE001 - a lookup that cannot answer names nobody
+            except Exception:  # a lookup that cannot answer names nobody
                 continue
             if isinstance(doc, dict) and user_key in (doc.get("_key"), doc.get("id")):
                 return uid

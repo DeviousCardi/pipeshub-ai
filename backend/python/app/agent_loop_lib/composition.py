@@ -140,13 +140,13 @@ class AppLogLines:
         if logger.isEnabledFor(level):
             logger.log(level, event, extra=event_fields(event, fields), stacklevel=3)
 
-    def log_failure(self, logger: logging.Logger, event: str, exc: BaseException, /, **fields: Any) -> None:  # noqa: ANN401
+    def log_failure(self, logger: logging.Logger, event: str, exc: BaseException, /, **fields: Any) -> None:
         from app.utils.error_class import log_failure
 
         # The kernel's caller is the line's `[file:line]`: past this method and `harness_core.log_lines`.
         log_failure(logger, event, exc, stacklevel=3, **fields)
 
-    def log_fields(self, **ids: object) -> Any:  # noqa: ANN401
+    def log_fields(self, **ids: object) -> Any:
         from app.utils.logging_fields import log_fields
 
         return log_fields(**ids)

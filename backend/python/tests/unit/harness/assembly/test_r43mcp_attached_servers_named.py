@@ -97,7 +97,7 @@ async def _chat(*replies: Reply, stored: bool) -> ScriptedModelPort:
     return (await _chat_journal(*replies, stored=stored))[0]
 
 
-async def _chat_journal(*replies: Reply, stored: bool) -> tuple[ScriptedModelPort, Any]:  # noqa: ANN401
+async def _chat_journal(*replies: Reply, stored: bool) -> tuple[ScriptedModelPort, Any]:
     agent = w.agent_doc(mcpServers=[{"instanceId": w.MCP, "name": SERVER, "displayName": SERVER}])
     clock = ManualClock()
     journal = w.pipeshub_journal(clock=clock, lease_ms=30_000)

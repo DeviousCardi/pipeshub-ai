@@ -701,7 +701,7 @@ class TestDropRoot:
         def getuid(self) -> int:
             return self.uid
 
-        def stat(self, path: str):  # noqa: ANN201
+        def stat(self, path: str) -> object:
             self.calls.append(("stat", path))
             return type("St", (), {"st_gid": self.gid})()
 

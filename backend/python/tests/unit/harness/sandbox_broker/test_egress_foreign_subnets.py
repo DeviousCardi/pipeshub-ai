@@ -41,7 +41,7 @@ class FakeApi:
         self.held.add(subnet)
         return {"Id": name}
 
-    def networks(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:  # noqa: ANN401
+    def networks(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         if filters:
             return []
         return [{"Name": f"other-{i}", "IPAM": {"Config": [{"Subnet": s}]}} for i, s in enumerate(sorted(self.held))]
@@ -109,7 +109,7 @@ def test_qa31f_3_a_full_pool_is_still_reported() -> None:
     wiring = _wiring(api)
     try:
         asyncio.run(wiring.prepare("sbx_1", {}))
-    except Exception as exc:  # noqa: BLE001 - the broker's own error type is what is asserted
+    except Exception as exc:  # the broker's own error type is what is asserted
         assert "exhausted" in str(exc)
     else:
         raise AssertionError("a pool every subnet of which is held must be refused")

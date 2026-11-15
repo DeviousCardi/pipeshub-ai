@@ -117,7 +117,7 @@ class FakeConfigurationService:
         self.misses.append(key)
         return default
 
-    async def set_config(  # noqa: ANN401
+    async def set_config(
         self, key: str, value: Any, *, ttl_seconds: int | None = None, keep_in_cache: bool = True,  # noqa: ANN401
     ) -> bool:
         self._nodes[key] = copy.deepcopy(value)

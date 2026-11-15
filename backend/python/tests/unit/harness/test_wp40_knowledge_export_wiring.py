@@ -124,7 +124,7 @@ def test_bw2_ga19_the_export_events_are_the_contracts_and_counts_only() -> None:
         {"taskId": "exp-1", "phase": "started", "records": 10_000, "requested": 10_000, "argsDigest": "sha256:" + "a" * 64}
     )
     assert (event.type, event.critical) == ("x.pipeshub.knowledge.exported", False)
-    with pytest.raises(Exception):  # noqa: B017, PT011 - the contract's own validation error
+    with pytest.raises(Exception):  # noqa: B017 - the contract's own validation error
         _ = exported_event({"taskId": "exp-1", "phase": "started", "records": 1, "requested": 1,
                             "argsDigest": "sha256:" + "a" * 64, "rows": [{"id": "r"}]})
 

@@ -33,7 +33,7 @@ _Compose.add_multi_constructor("!", _plain)
 
 
 def overlay() -> dict:
-    return yaml.load((E2E / "docker-compose.fakegit.yml").read_text(), Loader=_Compose)  # noqa: S506
+    return yaml.load((E2E / "docker-compose.fakegit.yml").read_text(), Loader=_Compose)
 
 
 def test_r32repo_e2e_the_alias_lives_on_the_stacks_network_only() -> None:
