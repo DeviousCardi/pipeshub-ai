@@ -19,6 +19,7 @@
 #                   eks uses values-eks.yaml on a 3-worker cluster, scaled down
 
 #   APP_IMAGE       image to install (default pipeshubai/pipeshub-ai:slim)
+#   SMOKE_HARDENED  1 installs the hardened profile (default 0: the chart's default profile)
 #   KIND_CLUSTER    cluster name (default pipeshub-helm-smoke-<pid>)
 #   SMOKE_PORT      local port for the port-forward (default 13001)
 #   HELM_TIMEOUT    how long helm waits for every pod to be Ready (default 30m)
@@ -30,6 +31,10 @@ set -euo pipefail
 CHART="$(cd "$(dirname "${BASH_SOURCE[0]}")/../pipeshub-ai" && pwd)"
 VARIANT="${SMOKE_VARIANT:-neo4j-kafka}"
 APP_IMAGE="${APP_IMAGE:-pipeshubai/pipeshub-ai:slim}"
+# The hardened profile runs the app on a read-only root, which only an image built from this tree supports; the
+# published image is the last release's, so CI installs the chart's default profile, as a new install gets.
+HARDENED="${SMOKE_HARDENED:-0}"
+HARDENED_VALUE="$([[ "$HARDENED" == 1 ]] && echo true || echo false)"
 CLUSTER="${KIND_CLUSTER:-pipeshub-helm-smoke-$$}"
 PORT="${SMOKE_PORT:-13001}"
 HELM_TIMEOUT="${HELM_TIMEOUT:-30m}"
@@ -40,6 +45,8 @@ RELEASE="pipeshub-ai"
 LOG_PREFIX="kind_smoke"
 
 die() { echo "${LOG_PREFIX}: $*" >&2; exit 1; }
+
+[[ "$HARDENED" == 0 || "$HARDENED" == 1 ]] || die "SMOKE_HARDENED must be 0 or 1 (got ${HARDENED})"
 
 for tool in kind kubectl helm docker curl python3 openssl; do
   command -v "$tool" >/dev/null 2>&1 || die "$tool is required"
@@ -106,7 +113,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "${LOG_PREFIX}: variant=${VARIANT} image=${APP_IMAGE} cluster=${CLUSTER}"
+echo "${LOG_PREFIX}: variant=${VARIANT} image=${APP_IMAGE} hardened=${HARDENED_VALUE} cluster=${CLUSTER}"
 
 if [[ "$KIND_NODES" -gt 1 ]]; then
   {
@@ -130,7 +137,7 @@ echo "${LOG_PREFIX}: installing (helm waits up to ${HELM_TIMEOUT} for every pod 
 if ! helm install "$RELEASE" "$CHART" \
   --namespace "$NAMESPACE" --create-namespace \
   -f "$VALUES_FILE" \
-  --set hardened=true \
+  --set hardened="$HARDENED_VALUE" \
   --set image.repository="${APP_IMAGE%:*}" \
   --set image.tag="${APP_IMAGE##*:}" \
   --set secretKey="$(openssl rand -hex 32)" \
@@ -236,13 +243,14 @@ if params.get("replication_factor") != 2:
     || die "redis replica is not connected"
   kubectl exec -n "$NAMESPACE" "$REDIS_POD" -- redis-cli CONFIG GET maxmemory-policy | grep -q noeviction \
     || die "redis maxmemory-policy is not noeviction"
-  # D1: the daemon is in the sandbox-broker pod; the app pods have none.
-  app_containers="$(kubectl get deploy -n "$NAMESPACE" "$RELEASE" -o jsonpath='{.spec.template.spec.containers[*].name}')"
-  [[ " $app_containers " != *" dind "* ]] || die "the app pod still runs the dind sidecar"
-  [[ " $app_containers " != *" docker-proxy "* ]] || die "the app pod still runs the docker-proxy sidecar"
-  kubectl exec -n "$NAMESPACE" "deploy/${RELEASE}" -- test ! -e /var/run/dind/docker.sock \
-    || die "the app container can see the DinD daemon socket"
-  kubectl exec -i -n "$NAMESPACE" "deploy/${RELEASE}-sandbox-broker" -c sandbox-broker -- python - <<'PY' || die "sandbox run_code via the broker's DinD failed"
+  if [[ "$HARDENED" == 1 ]]; then
+    # D1: the daemon is in the sandbox-broker pod; the app pods have none.
+    app_containers="$(kubectl get deploy -n "$NAMESPACE" "$RELEASE" -o jsonpath='{.spec.template.spec.containers[*].name}')"
+    [[ " $app_containers " != *" dind "* ]] || die "the app pod still runs the dind sidecar"
+    [[ " $app_containers " != *" docker-proxy "* ]] || die "the app pod still runs the docker-proxy sidecar"
+    kubectl exec -n "$NAMESPACE" "deploy/${RELEASE}" -- test ! -e /var/run/dind/docker.sock \
+      || die "the app container can see the DinD daemon socket"
+    kubectl exec -i -n "$NAMESPACE" "deploy/${RELEASE}-sandbox-broker" -c sandbox-broker -- python - <<'PY' || die "sandbox run_code via the broker's DinD failed"
 import os
 os.environ.setdefault("DOCKER_HOST", "unix:///var/run/dind/docker.sock")
 import docker
@@ -255,6 +263,31 @@ if "2" not in text:
     raise SystemExit(text)
 print(text)
 PY
+  else
+    # The default profile's sandbox runs in the app pod's DinD sidecar, reached only through docker-proxy.
+    kubectl exec -i -n "$NAMESPACE" "deploy/${RELEASE}" -- python - <<'PY' || die "sandbox run_code via DinD and docker-proxy failed"
+import os
+os.environ.setdefault("DOCKER_HOST", "tcp://127.0.0.1:2375")
+import docker
+client = docker.from_env()
+image = os.environ["SANDBOX_DOCKER_IMAGE"]
+client.images.pull(image)
+out = client.containers.run(image, ["python", "-c", "print(1+1)"], network_mode="none", remove=True)
+text = out.decode() if isinstance(out, bytes) else str(out)
+if "2" not in text:
+    raise SystemExit(text)
+print(text)
+try:
+    client.containers.create(image, ["true"], privileged=True, network_mode="none")
+except docker.errors.APIError as exc:
+    if exc.status_code != 403:
+        raise
+else:
+    raise SystemExit("docker-proxy admitted a privileged container")
+if os.path.exists("/var/run/dind/docker.sock"):
+    raise SystemExit("the app container can see the DinD daemon socket")
+PY
+  fi
 fi
 
 echo "${LOG_PREFIX}: ok (variant=${VARIANT}, core services healthy, UI 200)"
