@@ -10,6 +10,8 @@
 import 'reflect-metadata'
 import { expect } from 'chai'
 import mongoose, { ClientSession, Types } from 'mongoose'
+import sinon from 'sinon'
+import { AIServiceCommand } from '../../../src/libs/commands/ai_service/ai.service.command'
 import { ChatSession } from '../../../src/modules/enterprise_search/schema/chat.session.schema'
 import { ChatSessionMessage } from '../../../src/modules/enterprise_search/schema/chat.session.message.schema'
 import Citation from '../../../src/modules/enterprise_search/schema/citation.schema'
@@ -40,7 +42,8 @@ registerHarnessModels([Citation, AgentSessionForkModel] as unknown as Array<mong
 
 const URI = process.env.MONGO_IT_URI
 const describeIfMongo = URI ? describe : describe.skip
-const APP_CONFIG = { connectorBackend: 'http://connectors.test' } as never
+// The conversation read asks the query service (aiBackend) whether its reader can still read a cited record.
+const APP_CONFIG = { connectorBackend: 'http://connectors.test', aiBackend: 'http://query.test', jwtSecret: 'forkfix-jwt', scopedJwtSecret: 'forkfix-scoped' } as never
 const AGENT = 'b2b523bb-9a53-407e-a3f6-011ba237feb3'
 const oid = () => new Types.ObjectId()
 
@@ -81,7 +84,19 @@ describeIfMongo('FORKFIX: forked conversations never ask for another conversatio
     versions: async (scope: { sessionId: string }) => ({ workspaceId: `ws:${scope.sessionId}`, head: 0, versions: [] }),
   } as unknown as WorkspaceService)
 
+  // A conversation read hides an answer whose cited record its reader cannot read now (#5698): the query service's
+  // access check answers here that the seeded record is readable, and records what it was asked.
+  const accessAsked: string[][] = []
+  let access: sinon.SinonStub | undefined
   before(connectHarnessMongo)
+  before(() => {
+    access = sinon.stub(AIServiceCommand.prototype, 'execute').callsFake(function (this: { uri: string; body?: string }) {
+      if (!this.uri.endsWith('/chat/records/access')) return Promise.resolve({ statusCode: 200, data: {}, msg: '' } as never)
+      accessAsked.push((JSON.parse(this.body ?? '{}') as { recordIds?: string[] }).recordIds ?? [])
+      return Promise.resolve({ statusCode: 200, data: { accessible: ['rec-1'], accessibleUrls: [] }, msg: '' } as never)
+    })
+  })
+  after(() => access?.restore())
   after(disconnectHarnessMongo)
 
   const seedRun = (runId: string, sessionId: Types.ObjectId, status = 'completed') =>
@@ -241,7 +256,9 @@ describeIfMongo('FORKFIX: forked conversations never ask for another conversatio
         }).erase(String(orgId), String(source.sessionId))
         expect(await Citation.findById(source.citationId).lean()).to.equal(null)
 
+        accessAsked.length = 0
         const opened = await open(agent, forkId)
+        expect(accessAsked.flat()).to.include('rec-1')
         expect(opened.error).to.equal(undefined)
         const messages = (opened.body!['conversation'] as { messages: Array<{ content: string; citations: Array<{ citationData: { content: string } | null }> }> }).messages
         const answer = messages.find((m) => m.content.startsWith('2 3 5'))!
