@@ -25,7 +25,9 @@ from app.services.messaging.interface.producer import IMessagingProducer
 from app.services.messaging.postgres.consumer import PgMessagingConsumer
 from app.services.messaging.postgres.producer import PgMessagingProducer
 from app.services.messaging.postgres.queue import PgQueue
-from app.services.messaging.redis_streams.broadcast_consumer import RedisStreamsBroadcastConsumer
+from app.services.messaging.redis_streams.broadcast_consumer import (
+    RedisStreamsBroadcastConsumer,
+)
 from app.services.messaging.redis_streams.consumer import RedisStreamsConsumer
 from app.services.messaging.redis_streams.producer import RedisStreamsProducer
 from app.services.redis.config import RedisConnectionConfig

@@ -20,6 +20,7 @@ import observe  # noqa: E402
 import plan  # noqa: E402
 import results  # noqa: E402
 import rotation  # noqa: E402
+
 import scripts  # noqa: E402
 
 FACTORS = json.loads((matrix.DATA / "e2e-factors.json").read_text())["factors"]
@@ -355,8 +356,9 @@ def test_qa6_r6_the_operator_sees_health_and_no_canary_in_logs() -> None:
 
 
 def test_qa6_r3_a_cron_row_waits_for_one_real_slot() -> None:
-    import driver
     from datetime import UTC, datetime
+
+    import driver
 
     assert driver._next_slot(datetime(2026, 10, 11, 23, 59, 30, tzinfo=UTC)) == "1 0 * * *"  # noqa: SLF001
     assert driver._next_slot(datetime(2026, 10, 11, 9, 5, tzinfo=UTC)) == "7 9 * * *"  # noqa: SLF001

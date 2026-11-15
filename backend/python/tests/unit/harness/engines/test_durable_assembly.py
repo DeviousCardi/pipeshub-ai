@@ -208,7 +208,12 @@ def test_r10_rl3_the_attempt_binding_names_a_pinned_account_as_node_mints_it() -
     """Round 10 (found by WP-43's readiness gate on RL-3): a route that pins a model account (a user's own key, A1)
     is ``provider:model@kind:account`` in the token Node mints (``modelRouteId``); the worker's binding left the
     account out, so the Tool Gateway refused every call of such a run (``binding_mismatch``)."""
-    from harness_core.access.types import AccountKind, AccountRef, PinnedRoute, route_digest
+    from harness_core.access.types import (
+        AccountKind,
+        AccountRef,
+        PinnedRoute,
+        route_digest,
+    )
 
     spec = engine_run_spec()
     dumped = spec.model_dump(mode="json", by_alias=True)

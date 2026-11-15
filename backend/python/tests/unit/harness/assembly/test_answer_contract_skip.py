@@ -20,7 +20,16 @@ from app.harness.grounding import (
     grounding_question,
 )
 
-from .test_answer_contract import FAQ, LOG, REQUEST, RUNBOOK, _chat, _context, _prefetch, _run
+from .test_answer_contract import (
+    FAQ,
+    LOG,
+    REQUEST,
+    RUNBOOK,
+    _chat,
+    _context,
+    _prefetch,
+    _run,
+)
 
 _, QUESTION = grounding_question(Grounding("not_found", "SAAS launch", 1, 2, near=("product-faq",)))
 ASKED = str(QUESTION["question"])

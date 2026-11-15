@@ -2,7 +2,12 @@
 coordination ones. Offered them, the scripted sub-agent planned, critiqued and then failed its own ``spawn_agent``
 ("could not find what the agent asked for"), and a job that finished Done listed a failed step."""
 
-from app.harness.assembly.deep import ROUTED_TOOLS, SPAWN_AGENT, define_sub_agent, sub_agent_pool
+from app.harness.assembly.deep import (
+    ROUTED_TOOLS,
+    SPAWN_AGENT,
+    define_sub_agent,
+    sub_agent_pool,
+)
 
 
 def test_the_pool_keeps_the_runs_tools_and_drops_planning_and_spawning() -> None:

@@ -9,7 +9,12 @@ from typing import TYPE_CHECKING
 
 from harness_core.engines.events import TurnCompleted
 from harness_core.journal.types import TERMINAL_STATUSES
-from harness_core.testing.engines.durable import ORG, SESSION, EngineWorld, ScriptedEngineAdapter
+from harness_core.testing.engines.durable import (
+    ORG,
+    SESSION,
+    EngineWorld,
+    ScriptedEngineAdapter,
+)
 from harness_core.workspace.types import ObjectScope
 
 if TYPE_CHECKING:

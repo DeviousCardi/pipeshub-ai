@@ -20,9 +20,17 @@ from app.agent_loop_lib.modules.providers.skills.base import (
     SkillProvenance,
     SkillSource,
 )
-from app.agent_loop_lib.modules.providers.skills.in_memory_tracker import InMemoryUsageTracker
-from app.agent_loop_lib.modules.providers.skills.loader import parse_skill_md, render_skill_md
-from app.agent_loop_lib.modules.providers.skills.manager import SkillManager, SkillManagerConfig
+from app.agent_loop_lib.modules.providers.skills.in_memory_tracker import (
+    InMemoryUsageTracker,
+)
+from app.agent_loop_lib.modules.providers.skills.loader import (
+    parse_skill_md,
+    render_skill_md,
+)
+from app.agent_loop_lib.modules.providers.skills.manager import (
+    SkillManager,
+    SkillManagerConfig,
+)
 from app.agent_loop_lib.tools.builtin.data.skills import (
     LoadSkillResourceTool,
     LoadSkillTool,
@@ -30,16 +38,31 @@ from app.agent_loop_lib.tools.builtin.data.skills import (
 )
 from app.agents.actions.knowledge_graph.ops.fetch import FETCH_RECORD_TOOL_NAME
 from app.agents.agent_loop.skills.bundle_source import GraphSkillSource
-from app.agents.agent_loop.skills.graph_store import GraphSkillStore, erase_session_learned_skills
-from app.agents.agent_loop.skills.labelled_manager import SKILL_LABELS_STATE, LabelledSkillManager
+from app.agents.agent_loop.skills.graph_store import (
+    GraphSkillStore,
+    erase_session_learned_skills,
+)
+from app.agents.agent_loop.skills.labelled_manager import (
+    SKILL_LABELS_STATE,
+    LabelledSkillManager,
+)
 from app.agents.agent_loop.skills.provenance import RunSkillProvenance, content_label
-from app.agents.run_definition import AgentRunDefinition, RunDefinitionSkill, pin_skill_content
+from app.agents.run_definition import (
+    AgentRunDefinition,
+    RunDefinitionSkill,
+    pin_skill_content,
+)
 from app.config.constants.arangodb import CollectionNames
 from app.harness.approvals import flow_guarded
 from app.harness.citations import EVENT as CITATIONS_EVENT
 from app.harness.citations import CitationJournal
 from app.harness.flow_destination import pipeshub_destination
-from app.harness.labels import SessionSourceLedger, citation_sources, label_from_wire, own_work_label
+from app.harness.labels import (
+    SessionSourceLedger,
+    citation_sources,
+    label_from_wire,
+    own_work_label,
+)
 from app.harness.skills.pinned_labels import mounted_skills
 from app.harness.unpinned import FLOW_ABOVE_ENV, FLOW_LEVEL_ENV, flow_rules
 from app.utils.env_flags import HARNESS_FLOW_GUARD
@@ -50,7 +73,10 @@ from harness_core.journal.types import SKILL_LABELS, NewEvent
 from harness_core.kernel.durable import ToolExecution
 from harness_core.logs import HarnessLog
 from harness_core.skills import SkillPin
-from tests.unit.agents.adapter.test_skills_graph_store import FakeGraphProvider, _NullIndex
+from tests.unit.agents.adapter.test_skills_graph_store import (
+    FakeGraphProvider,
+    _NullIndex,
+)
 from tests.unit.harness_core.durable.support import RUN, SESSION, World, reply, scripted
 
 if TYPE_CHECKING:

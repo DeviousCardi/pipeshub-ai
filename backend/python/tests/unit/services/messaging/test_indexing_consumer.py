@@ -41,8 +41,8 @@ from app.services.messaging.lease import DEADLINE_LOSS_REASON, LeaseRenewer
 from app.services.resource_governor import Pool
 from app.services.resource_governor.models import ParseTier
 from app.utils import indexing_timing as timing
-from tests.unit.services.messaging.governor_test_helpers import make_test_governor
 from tests.support.settle import settle
+from tests.unit.services.messaging.governor_test_helpers import make_test_governor
 
 # ---------------------------------------------------------------------------
 # Fixtures

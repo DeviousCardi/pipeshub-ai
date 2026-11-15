@@ -6,7 +6,11 @@ import pytest
 
 from app.agents.mcp.service import instance_config_from_dict
 from app.agents.mcp.stdio_policy import StdioPolicyError
-from app.harness.mcp_runner.routing import declared_env_names, runner_spec_for, runner_target
+from app.harness.mcp_runner.routing import (
+    declared_env_names,
+    runner_spec_for,
+    runner_target,
+)
 from app.harness.mcp_runner.settings import (
     RunnerSettings,
     runner_settings,
@@ -15,8 +19,8 @@ from app.harness.mcp_runner.settings import (
 from app.utils.env_flags import InvalidEnvFlag
 from harness_core.sandbox.mcp_runner import RunnerEgressHost, RunnerEgressInvalid
 from harness_core.sandbox.mcp_runner.errors import MCPRunnerRefused
-from harness_core.testing.sandbox.mcp_runner import ECHO_COMMAND
 from harness_core.sandbox.types import RuntimeMode
+from harness_core.testing.sandbox.mcp_runner import ECHO_COMMAND
 from tests.unit.harness.mcp_runner.support import stdio_instance
 
 SETTINGS = RunnerSettings(image="pipeshub/sandbox:x", isolation_floor=RuntimeMode.GVISOR, idle_ttl_s=60, max_age_s=600)

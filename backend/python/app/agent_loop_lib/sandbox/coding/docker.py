@@ -49,9 +49,9 @@ from app.agent_loop_lib.sandbox.coding.docker_client import (
 from app.agent_loop_lib.sandbox.coding.egress_firewall import (
     CONTAINER_HARDENING,
     create_sandbox_container,
-    limited,
     firewall_unavailable,
     firewalled_container_kwargs,
+    limited,
     new_firewall_token,
     parse_cidrs,
 )

@@ -19,10 +19,18 @@ from typing import TYPE_CHECKING
 import pytest
 
 from harness_core.context.quarantine import QuarantinedSummarizer
-from harness_core.engines.repository_instructions import read_repository_instructions, render_repository_instructions
+from harness_core.engines.repository_instructions import (
+    read_repository_instructions,
+    render_repository_instructions,
+)
 from harness_core.models.transport_model import TransportModel
 from harness_core.sandbox.errors import SandboxPathNotFound
-from tests.unit.harness_core.context.test_ga28_quarantined_summarizer import _messages, _reply, _Scripted, _text
+from tests.unit.harness_core.context.test_ga28_quarantined_summarizer import (
+    _messages,
+    _reply,
+    _Scripted,
+    _text,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator

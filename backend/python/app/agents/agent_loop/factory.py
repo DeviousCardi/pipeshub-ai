@@ -136,9 +136,9 @@ from app.agents.agent_loop.hooks import (
     stash_tool_call_metadata,
     sync_visible_tools_for_prompt,
 )
+from app.agents.agent_loop.hooks.attachment_resolver import default_message_budget
 from app.agents.agent_loop.hooks.context_reduction import report_context_reduction
 from app.agents.agent_loop.hooks.flow_guard import register_legacy_flow_guard
-from app.agents.agent_loop.hooks.attachment_resolver import default_message_budget
 from app.agents.agent_loop.hooks.progressive_tools import (
     ENTITY_TOOL_NAMES,
 )

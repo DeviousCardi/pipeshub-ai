@@ -60,8 +60,8 @@ from app.services.rate_budget import (
 )
 from app.sources.client.google.send_safe_http import SendSafeHttp, google_throttled
 from app.sources.client.http.http_client import HTTPClient
-from app.sources.client.jira.jira import JiraRESTClientViaApiKey
 from app.sources.client.http.http_request import HTTPRequest
+from app.sources.client.jira.jira import JiraRESTClientViaApiKey
 from app.sources.client.microsoft.microsoft import (
     GraphMode,
     MSGraphClient,

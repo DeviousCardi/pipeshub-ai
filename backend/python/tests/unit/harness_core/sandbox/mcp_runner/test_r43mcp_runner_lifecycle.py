@@ -15,11 +15,20 @@ from typing import TYPE_CHECKING
 
 from harness_core.ids import RandomIds
 from harness_core.sandbox.egress.sealed import CredentialSealer
-from harness_core.sandbox.mcp_runner import RunnerConfig, RunnerUnavailable, SandboxMCPRunner
+from harness_core.sandbox.mcp_runner import (
+    RunnerConfig,
+    RunnerUnavailable,
+    SandboxMCPRunner,
+)
 from harness_core.sandbox.mcp_runner.types import POOL_LABEL
 from harness_core.testing.clock import ManualClock
 from harness_core.testing.sandbox.fake import FAKE_PROGRAMS, FakeSandboxBroker
-from harness_core.testing.sandbox.mcp_runner import MCPRunnerContractEnv, fake_bridge, request, session
+from harness_core.testing.sandbox.mcp_runner import (
+    MCPRunnerContractEnv,
+    fake_bridge,
+    request,
+    session,
+)
 
 if TYPE_CHECKING:
     from harness_core.sandbox.mcp_runner.types import RunnerKey

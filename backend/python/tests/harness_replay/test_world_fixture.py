@@ -6,7 +6,7 @@ from typing import Any
 
 from app.agents.actions.jira.jira import Jira as RealJira
 from harness_core.tools.decorators import TOOL_META_ATTR
-from tests.harness_replay.world import ReplayWorld, Jira, activate, deactivate
+from tests.harness_replay.world import Jira, ReplayWorld, activate, deactivate
 
 
 def _params(cls: type[Any], name: str) -> dict[str, Any]:

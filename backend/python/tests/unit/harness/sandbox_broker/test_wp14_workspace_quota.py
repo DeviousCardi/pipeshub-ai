@@ -23,6 +23,7 @@ from app.harness.sandbox.docker_broker import (
 )
 from harness_core.sandbox.errors import SandboxRefusal
 from harness_core.sandbox.types import MountSpec, Resources
+from tests.support.settle import settle
 from tests.unit.harness.sandbox_broker.test_docker_broker import (
     LEASE,
     _broker_on,  # pyright: ignore[reportPrivateUsage]
@@ -30,7 +31,6 @@ from tests.unit.harness.sandbox_broker.test_docker_broker import (
     _FakeProvider,  # pyright: ignore[reportPrivateUsage]
     _spec,  # pyright: ignore[reportPrivateUsage]
 )
-from tests.support.settle import settle
 
 QUOTA_MB = 64
 SUBPATH = DockerCapabilities(reachable=True, engine_version="28.0.4", runtimes=frozenset({"runc"}), exec_transport="unix")

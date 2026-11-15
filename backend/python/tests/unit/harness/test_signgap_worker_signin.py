@@ -15,10 +15,18 @@ import pytest
 
 from app.harness.engines import worker as engine_worker
 from app.harness.engines.worker import carries_sign_ins, sign_in_hosts
-from app.harness.worker.capabilities import VENDOR_SIGNIN, WORKER_CAPABILITIES, advertised
+from app.harness.worker.capabilities import (
+    VENDOR_SIGNIN,
+    WORKER_CAPABILITIES,
+    advertised,
+)
 from harness_core.engines.signin import SignInHosts, SignInRefused
 from tests.unit.harness_core.engines.test_controller import task
-from tests.unit.harness_core.engines.test_controller_signin import OWN, FakeRelay, _world
+from tests.unit.harness_core.engines.test_controller_signin import (
+    OWN,
+    FakeRelay,
+    _world,
+)
 
 if TYPE_CHECKING:
     from tests.unit.harness_core.engines.test_controller import World

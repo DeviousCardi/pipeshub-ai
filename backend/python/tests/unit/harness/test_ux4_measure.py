@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 import pytest
 
 from app.harness.approvals import engine_guarded
-from app.harness.unpinned import FLOW_ABOVE_ENV, FLOW_LEVEL_ENV, flow_rules
 from app.harness.labels import SessionSourceLedger
+from app.harness.unpinned import FLOW_ABOVE_ENV, FLOW_LEVEL_ENV, flow_rules
 from app.utils.env_flags import HARNESS_FLOW_GUARD
 from harness_core.effects.flow import GrantingLedger, external_write
 from harness_core.effects.policy import (

@@ -73,7 +73,10 @@ async def test_sync3_search_by_entities_on_both_loops_exactly_when_the_deploymen
     durable toolset source makes the same decision before it loads, so both loops offer the same tools."""
     from unittest.mock import patch
 
-    from app.agents.agent_loop.entity_search_tool import ENTITY_SEARCH_TOOL_ENV_VAR, SEARCH_BY_ENTITIES_TOOL_NAME
+    from app.agents.agent_loop.entity_search_tool import (
+        ENTITY_SEARCH_TOOL_ENV_VAR,
+        SEARCH_BY_ENTITIES_TOOL_NAME,
+    )
 
     monkeypatch.setenv(ENTITY_SEARCH_TOOL_ENV_VAR, "true" if switched_on else "false")
     script = ModelScript(id="entity", turns=[Turn(reply=Reply(text="Priya leads Atlas."))])

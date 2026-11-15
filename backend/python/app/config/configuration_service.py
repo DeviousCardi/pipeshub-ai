@@ -16,8 +16,12 @@ from app.config.constants.service import (
 )
 from app.config.key_value_store import KeyValueStore
 from app.services.messaging.config import RedisConfig
+from app.utils.encryption.component_key import (
+    COMPONENT_DOCUMENTS,
+    component_identity,
+    process_cipher_key,
+)
 from app.utils.encryption.encryption_service import EncryptionService
-from app.utils.encryption.component_key import COMPONENT_DOCUMENTS, component_identity, process_cipher_key
 
 _ = dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
 

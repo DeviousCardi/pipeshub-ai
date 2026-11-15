@@ -530,7 +530,6 @@ async def _within_scope(
 ) -> set[str]:
     """Of ``ids``, those the turn's scope admits (main #4255), publications laid over it (S11)."""
     from app.agents.actions.knowledge_graph.ops.scope import ids_within_scope
-
     from app.harness.knowledge.scope_overlay import published_within_scope
 
     user_key = await resolve_user_key(graph_provider, user_id)

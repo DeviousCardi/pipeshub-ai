@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
     from pydantic import JsonValue
 
+    from harness_core.access.errors import ModelAccessRefused
     from harness_core.access.types import (
         AccessRoute,
         AccountRef,
@@ -24,7 +25,6 @@ if TYPE_CHECKING:
         RunModelGrant,
         Spend,
     )
-    from harness_core.access.errors import ModelAccessRefused
     from harness_core.access.vendor_rules import OrgAccessPolicy
     from harness_core.gateway.types import GatewayClaims, RunAttemptBinding
     from harness_core.models.transports.base import LLMTransport

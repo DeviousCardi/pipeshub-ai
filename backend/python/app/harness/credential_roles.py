@@ -21,7 +21,10 @@ import time
 from typing import TYPE_CHECKING, Protocol
 
 from app.config.constants.service import config_node_constants
-from app.harness.journal_node.credentials import ConfiguredWorkerCredential, WorkerCredentialUnavailable
+from app.harness.journal_node.credentials import (
+    ConfiguredWorkerCredential,
+    WorkerCredentialUnavailable,
+)
 from app.utils.encryption.component_key import COMPONENT_DOCUMENTS, component_identity
 from harness_core.sandbox.auth import AUTHORIZATION, bearer
 from harness_core.telemetry.exposition import METRICS_PATH

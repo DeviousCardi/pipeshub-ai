@@ -26,8 +26,8 @@ from harness_engines.release import (
     installed_acp,
     release_allowlist,
     release_binary_pins,
-    release_image_resources,
     release_image_pins,
+    release_image_resources,
     release_images,
     run_image,
 )

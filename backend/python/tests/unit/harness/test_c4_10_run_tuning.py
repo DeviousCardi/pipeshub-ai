@@ -50,7 +50,13 @@ from harness_core.gateway.result_cap import (
 from harness_core.gateway.types import McpResult
 from harness_core.logs import HarnessLog
 from harness_core.policy import DimensionPolicyResolver, ScopedLayer
-from harness_core.sandbox.types import ImageResources, MountSpec, ResourceCaps, Resources, RuntimeMode
+from harness_core.sandbox.types import (
+    ImageResources,
+    MountSpec,
+    ResourceCaps,
+    Resources,
+    RuntimeMode,
+)
 
 if TYPE_CHECKING:
     from pydantic import JsonValue

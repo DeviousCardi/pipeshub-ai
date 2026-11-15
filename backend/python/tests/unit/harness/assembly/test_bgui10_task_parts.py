@@ -13,9 +13,10 @@ from datetime import UTC, datetime
 from typing import Any, cast
 
 import pytest
+from jsonschema import Draft202012Validator
 
-from app.harness.assembly.code_task import CodeTaskDelegation
 from app.agents.agent_loop.connected_sources import ConnectedSource, ConnectedSources
+from app.harness.assembly.code_task import CodeTaskDelegation
 from app.harness.assembly.task_spec import (
     CARRIED_MAX,
     CONTEXT_HEADING,
@@ -29,7 +30,6 @@ from harness_core.journal.types import CHILD_TASKS
 from harness_core.kernel.core.messages import ToolCall
 from harness_core.kernel.durable.delegation import Delegated, DelegationView, Gathered
 from harness_core.kernel.durable.driver import _ClaimedRun as Driver  # pyright: ignore[reportPrivateUsage]
-from jsonschema import Draft202012Validator
 from tests.unit.contracts_harness.support import registry
 
 NOW = 1_800_000_000.0  # 2027-01-15 08:00 UTC

@@ -15,10 +15,18 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
+
 from app.agents.mcp import oauth_client
 from app.agents.mcp.client import MCPClientManager
 from app.agents.mcp.models import MCPAuthMode, MCPServerConfig, MCPTransport
-from tests.unit.harness.mcp_hub.kinds_server import CONTROL, kinds, loopback_allowed, make, serving, view
+from tests.unit.harness.mcp_hub.kinds_server import (
+    CONTROL,
+    kinds,
+    loopback_allowed,
+    make,
+    serving,
+    view,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

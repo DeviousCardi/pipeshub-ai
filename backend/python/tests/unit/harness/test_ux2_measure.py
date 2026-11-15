@@ -13,9 +13,9 @@ from typing import TYPE_CHECKING
 import pytest
 
 from app.harness.approvals import flow_guarded
-from app.harness.unpinned import flow_rules
 from app.harness.flow_destination import DESTINATION_ARGS
 from app.harness.labels import HISTORY_LABELLED_EVENT, SessionSourceLedger
+from app.harness.unpinned import flow_rules
 from harness_core.effects.flow import FlowRule, external_write
 from harness_core.effects.types import allow_all
 from harness_core.kernel.core.messages import ToolCall

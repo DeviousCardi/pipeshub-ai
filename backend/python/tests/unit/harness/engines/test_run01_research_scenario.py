@@ -539,7 +539,12 @@ async def test_run01_fu3_a_model_call_the_egress_refuses_ends_the_turn_with_its_
     """SC-10's red run hung until pytest's timeout: the egress proxy's refusal of a model call reached the fake engine's
     loop as a connection error, which ended the loop without a turn end, so the kernel waited for one. The engine now
     reads the refusal as a real engine does (its ``[gateway:<code>]``); here an encoded body, PipesHub's own stop."""
-    from harness_core.sandbox.egress import EgressProxy, EgressRefusalReason, EgressRefused, ProxyRequest
+    from harness_core.sandbox.egress import (
+        EgressProxy,
+        EgressRefusalReason,
+        EgressRefused,
+        ProxyRequest,
+    )
 
     authorize = EgressProxy.authorize
     refused: list[str] = []

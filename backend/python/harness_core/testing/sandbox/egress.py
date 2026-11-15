@@ -28,12 +28,12 @@ from harness_core.sandbox.egress.bindings import InMemoryEgressBindings
 from harness_core.sandbox.egress.errors import EgressRefused, TokenUnavailable
 from harness_core.sandbox.egress.proxy import EgressProxy
 from harness_core.sandbox.egress.resolver import StaticResolver
-from harness_core.sandbox.egress.server import is_model_call, refusal_response
 from harness_core.sandbox.egress.sealed import (
     CredentialSealer,
     RoutedTokenSource,
     SealedTokenSource,
 )
+from harness_core.sandbox.egress.server import is_model_call, refusal_response
 from harness_core.sandbox.egress.tokens import (
     DEFAULT_TOKEN_TTL_S,
     TOKEN_PREFIX,

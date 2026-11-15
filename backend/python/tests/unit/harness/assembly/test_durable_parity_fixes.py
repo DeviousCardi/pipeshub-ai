@@ -74,10 +74,10 @@ async def test_dur1_p3_the_runs_transport_is_capped_and_traced_as_the_factory_bu
 ) -> None:
     from app.agents.agent_loop.langchain_transport import LangChainTransport
     from app.agents.agent_loop.output_cap_transport import OutputCappedTransport
+    from app.agents.agent_loop.usage_transport import UsageReportingTransport
     from app.harness import unpinned
     from app.harness.assembly import loop
     from app.utils.image_policy import resolve_image_policy
-    from app.agents.agent_loop.usage_transport import UsageReportingTransport
     from harness_core.models.transports.opik_tracing import OpikTracingTransport
     from tests.unit.agents.adapter.conftest import FakeChatModel
 

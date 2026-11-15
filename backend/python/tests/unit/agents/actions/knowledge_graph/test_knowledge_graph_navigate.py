@@ -20,11 +20,11 @@ from app.agents.actions.knowledge_graph.ops.scope import (
 )
 from app.agents.actions.knowledge_graph.ops.time_range import time_range_to_kh_filters
 from app.config.constants.arangodb import Connectors, OriginTypes
-from tests.support.record_access import InMemoryRecordAccess
 from app.connectors.sources.localKB.api.knowledge_hub_models import BreadcrumbItem
 from app.exceptions.graph_db_exceptions import PermissionVerificationUnavailableError
 from app.models.entities import RecordType, Status, TicketRecord
 from app.services.graph_db.interface.graph_db_provider import AccessCheck
+from tests.support.record_access import InMemoryRecordAccess
 
 
 def _short_id_for(state: dict, full_id: str) -> str:

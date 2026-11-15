@@ -22,7 +22,6 @@ from harness_core.tools.executor import ToolExecutor
 from harness_core.tools.registry import ToolRegistry
 from harness_core.tools.time_bound import ToolTimeBounds
 
-
 # Only a regression reaches it: an unbounded read then fails the test instead of hanging the suite.
 GUARD_S = 5
 

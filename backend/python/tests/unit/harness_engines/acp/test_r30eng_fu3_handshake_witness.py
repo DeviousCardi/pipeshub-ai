@@ -23,13 +23,26 @@ from harness_core.engines.errors import EngineUnhealthy
 from harness_core.engines.events import TurnCompleted, turn_id_for
 from harness_core.engines.types import EngineTask
 from harness_core.gateway.ports import NotesConnects
-from harness_core.testing.contracts.tool_endpoint import BINDING, build_endpoint, claims_for
+from harness_core.testing.contracts.tool_endpoint import (
+    BINDING,
+    build_endpoint,
+    claims_for,
+)
 from harness_core.testing.engines.contract import collect, open_rig
-from harness_engines.acp.profiles import AcpProfileInvalid, McpStatus, parse_acp_agents, parse_profile
+from harness_engines.acp.profiles import (
+    AcpProfileInvalid,
+    McpStatus,
+    parse_acp_agents,
+    parse_profile,
+)
 from harness_engines.acp.testing.profile import fake_entry
 from tests.support.loopback_client import loopback_client
 from tests.unit.harness.gateway.support import GatewayServer, served
-from tests.unit.harness_engines.acp.test_e2e3_f6_gateway_probe import RUNTIME, STATUS, ProbedHarness
+from tests.unit.harness_engines.acp.test_e2e3_f6_gateway_probe import (
+    RUNTIME,
+    STATUS,
+    ProbedHarness,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Mapping

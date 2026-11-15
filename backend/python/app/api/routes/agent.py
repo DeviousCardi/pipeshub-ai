@@ -3864,7 +3864,10 @@ async def _mcp_tool_list(instance: dict[str, Any], user_id: str, config: Any) ->
     """The tools ``instance`` offers ``user_id`` (the tool cache first, then one bounded discovery, as the MCP
     listing does), or None when they cannot be known: not signed in, unreachable, too slow."""
     from app.agents.mcp import service as mcp_service
-    from app.agents.mcp.discovery import cached_tools_for_owner, discover_tools_for_owner
+    from app.agents.mcp.discovery import (
+        cached_tools_for_owner,
+        discover_tools_for_owner,
+    )
 
     try:
         auth = await mcp_service.resolve_effective_user_auth(instance, user_id, config)

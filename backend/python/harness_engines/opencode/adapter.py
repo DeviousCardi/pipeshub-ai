@@ -23,7 +23,6 @@ from harness_core.engines.stopping import stop_after_failed_open
 from harness_core.engines.types import EngineCapabilities
 from harness_core.logs import HarnessLog
 from harness_core.sandbox.tar import put_files
-from harness_engines.opencode_api.http import OpencodeHttp, OpencodeHttpError
 from harness_engines.opencode.launch import (
     AGENT,
     BINARY_PATH,
@@ -32,9 +31,10 @@ from harness_engines.opencode.launch import (
     exposed_tool_name,
     render_launch,
 )
-from harness_engines.opencode_api.readiness import GATEWAY_TIMEOUT_S, await_tool_gateway
 from harness_engines.opencode.session import OpencodeSession, finish
 from harness_engines.opencode.state import decode_state
+from harness_engines.opencode_api.http import OpencodeHttp, OpencodeHttpError
+from harness_engines.opencode_api.readiness import GATEWAY_TIMEOUT_S, await_tool_gateway
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable, Callable, Mapping

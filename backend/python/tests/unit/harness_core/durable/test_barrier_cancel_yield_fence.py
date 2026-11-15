@@ -19,9 +19,9 @@ from harness_core.kernel.core.messages import ToolMessage
 from harness_core.kernel.durable import Lease, LeaseKeeper
 from harness_core.kernel.fold import fold_run
 from harness_core.testing import ErrorSpec, ManualClock, Reply, armed
+from tests.support.settle import settle
 
 from .support import RUN, Crash, World, assert_paired, reply, scripted
-from tests.support.settle import settle
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable

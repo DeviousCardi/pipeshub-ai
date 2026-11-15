@@ -34,8 +34,8 @@ from app.harness.knowledge.knowledge_service import (
     KnowledgeCall,
     KnowledgeModel,
     KnowledgePrincipal,
-    PinnedKnowledge,
     KnowledgeService,
+    PinnedKnowledge,
     SearchRequest,
 )
 from app.harness.knowledge.provenance import (

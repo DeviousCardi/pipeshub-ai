@@ -232,14 +232,19 @@ if TYPE_CHECKING:
     from app.harness.run_policy.ports import RunPolicy
     from app.harness.write_identity.disclosure import WriteIdentitySettings
     from harness_core.activity import CommandActivity
+    from harness_core.engines.outcome.deliverable import Deliverable
+    from harness_core.engines.outcome.loop import LoopSettled
     from harness_core.gateway.priority_gate import ProviderAdmission
     from harness_core.journal.ports import LiveSinkPort
     from harness_core.journal.types import JournalEvent
     from harness_core.kernel.durable.context_compiler import ContextHost
     from harness_core.kernel.durable.effects import ToolEffect
-    from harness_core.engines.outcome.deliverable import Deliverable
-    from harness_core.engines.outcome.loop import LoopSettled
-    from harness_core.kernel.durable.ports import AfterRunStep, PreRunStep, RunEnding, RunRestore
+    from harness_core.kernel.durable.ports import (
+        AfterRunStep,
+        PreRunStep,
+        RunEnding,
+        RunRestore,
+    )
     from harness_core.memories import MemoryScope, MemorySource
     from harness_core.tools.durable_port import Integrity
 

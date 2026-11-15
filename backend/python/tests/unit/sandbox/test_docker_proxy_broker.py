@@ -19,7 +19,9 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from app.agent_loop_lib.sandbox.coding.egress_firewall import build_firewall_rules_script
+from app.agent_loop_lib.sandbox.coding.egress_firewall import (
+    build_firewall_rules_script,
+)
 from app.harness.sandbox.docker_policy import EGRESS_NETWORK_OPTIONS, SANDBOX_USER
 from app.sandbox.docker_proxy import (
     ENV_BROKER_CALLER_TOKEN,

@@ -21,10 +21,21 @@ from app.harness.assembly.assembler import PipesHubRuntimeAssembler
 from app.harness.journal_node import NodeJournal
 from harness_core.contracts import dump_contract
 from harness_core.driver import RunDriver
-from harness_core.testing import ManualClock, ModelScript, Reply, ScriptedModel, ToolCallSpec, Turn
+from harness_core.testing import (
+    ManualClock,
+    ModelScript,
+    Reply,
+    ScriptedModel,
+    ToolCallSpec,
+    Turn,
+)
 from harness_core.testing.durable import ScriptedModelPort
 from tests.unit.harness.assembly import world as w
-from tests.unit.harness.test_node_journal_contract import NODE_APP, _Credential, _NodeServer
+from tests.unit.harness.test_node_journal_contract import (
+    NODE_APP,
+    _Credential,
+    _NodeServer,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

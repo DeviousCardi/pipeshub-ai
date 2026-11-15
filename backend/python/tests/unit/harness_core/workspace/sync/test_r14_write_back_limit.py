@@ -80,7 +80,9 @@ async def test_r46fix_2_a_file_already_saved_over_a_lowered_cap_is_kept_never_de
     reason=file_too_large`` on the next save; the file stays in the workspace as it was, never proposed as deleted."""
     from harness_core.workspace.sync.types import SyncState
     from harness_core.workspace.types import ObjectRef, WorkspaceFile, build_manifest
-    from tests.unit.harness_core.workspace.sync.test_archive_safety import ROOT as SANDBOX_ROOT
+    from tests.unit.harness_core.workspace.sync.test_archive_safety import (
+        ROOT as SANDBOX_ROOT,
+    )
 
     saved = WorkspaceFile("out/plan.txt", ObjectRef("obj-plan", "sha256:" + "a" * 64, 2 * MIB))
     base = build_manifest("ws:s", revision=1, parent_revision=0, files={"out/plan.txt": saved}, created_at_ms=1)

@@ -15,7 +15,6 @@ import pytest
 
 from app.agents.actions.knowledge_graph.ops.fetch import FETCH_RECORD_TOOL_NAME
 from app.harness.approvals import flow_guarded
-from app.harness.unpinned import FLOW_LEVEL_ENV, flow_rules
 from app.harness.citations import EVENT as CITATIONS_EVENT
 from app.harness.labels import (
     HISTORY_LABELLED_EVENT,
@@ -23,6 +22,7 @@ from app.harness.labels import (
     label_wire,
     own_work_label,
 )
+from app.harness.unpinned import FLOW_LEVEL_ENV, flow_rules
 from app.utils.env_flags import HARNESS_FLOW_GUARD
 from harness_core.journal import LegacyImport
 from harness_core.journal.types import NewEvent

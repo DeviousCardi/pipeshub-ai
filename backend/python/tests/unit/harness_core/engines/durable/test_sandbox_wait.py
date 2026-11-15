@@ -11,7 +11,11 @@ from __future__ import annotations
 import pytest
 
 from harness_core.engines.controller import EngineController
-from harness_core.kernel.durable.capability import SANDBOX_RECHECK_S, SANDBOX_UNAVAILABLE, SANDBOX_WAIT
+from harness_core.kernel.durable.capability import (
+    SANDBOX_RECHECK_S,
+    SANDBOX_UNAVAILABLE,
+    SANDBOX_WAIT,
+)
 from harness_core.sandbox.errors import BrokerUnavailable, SandboxNotFound
 from harness_core.testing.engines.durable import EngineWorld
 

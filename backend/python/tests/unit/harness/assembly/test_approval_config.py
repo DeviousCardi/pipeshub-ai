@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from app.harness.approvals import approval_policy
-from app.harness.unpinned import ConfiguredApprovals
 from app.harness.assembly.assembler import PipesHubRuntimeAssembler
+from app.harness.unpinned import ConfiguredApprovals
 from harness_core.contracts.generated.sink import SinkDescriptor
 from harness_core.effects import ToolEffect, tool_id_for
 from harness_core.kernel.core.messages import ToolCall

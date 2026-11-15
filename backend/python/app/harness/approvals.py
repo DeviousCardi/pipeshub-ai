@@ -24,7 +24,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Final, cast
 
-from app.harness.contracts.generated.pipeshub.approvals_document import PipeshubApprovalsDocument
+from app.harness.contracts.generated.pipeshub.approvals_document import (
+    PipeshubApprovalsDocument,
+)
 from app.harness.flow_destination import pipeshub_destination
 from harness_core.effects.flow import (
     ENGINE_WRITES_RULE,

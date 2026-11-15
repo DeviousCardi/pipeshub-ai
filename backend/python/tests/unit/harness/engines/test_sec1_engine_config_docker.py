@@ -38,14 +38,21 @@ from harness_engines.claude_code.adapter import ClaudeCodeAdapter
 from harness_engines.codex.adapter import CodexAdapter
 from harness_engines.opencode.adapter import OpencodeAdapter
 from harness_engines.release import release_allowlist
-from tests.unit.harness.engines.mcp_startup_lab import MODEL_PREFIX, TOOLS_PREFIX, LateGateway
+from tests.unit.harness.engines.mcp_startup_lab import (
+    MODEL_PREFIX,
+    TOOLS_PREFIX,
+    LateGateway,
+)
 from tests.unit.harness.engines.real_stack import OWNER, engine_broker
 from tests.unit.harness.sandbox_broker.conftest import cleanup, cleanup_networks
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-    from app.harness.sandbox.docker_broker import DockerSandboxBroker, DockerSandboxHandle
+    from app.harness.sandbox.docker_broker import (
+        DockerSandboxBroker,
+        DockerSandboxHandle,
+    )
     from harness_core.engines.ports import EngineAdapter
     from tests.unit.harness.engines.real_stack import RealStack
 

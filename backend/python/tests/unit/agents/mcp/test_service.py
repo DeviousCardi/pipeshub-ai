@@ -7,6 +7,7 @@ import pytest
 from app.agents.mcp import service as mcp_service
 from app.agents.mcp.models import MCPAuthMode
 from app.agents.mcp.service import (
+    MCPInstancesUnavailable,
     belongs_to_org,
     credentials_to_discovery_dict,
     get_authenticated_mcp_servers,
@@ -14,7 +15,6 @@ from app.agents.mcp.service import (
     instance_config_from_dict,
     is_effective_auth_authenticated,
     is_mcp_enabled,
-    MCPInstancesUnavailable,
     load_org_instances,
     resolve_effective_user_auth,
 )

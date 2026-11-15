@@ -22,7 +22,11 @@ from harness_core.testing.engines.contract import ENDPOINTS
 from harness_engines.acp.launch import SESSION_POLICY_PATH, render_launch
 from harness_engines.acp.mapper import AcpEventMapper
 from harness_engines.acp.permissions import SessionPolicy, classify
-from harness_engines.acp.profiles import AcpProfileInvalid, parse_acp_agents, parse_profile
+from harness_engines.acp.profiles import (
+    AcpProfileInvalid,
+    parse_acp_agents,
+    parse_profile,
+)
 from harness_engines.acp.registry import AGENTS_RESOURCE
 
 if TYPE_CHECKING:

@@ -21,7 +21,11 @@ from functools import cache
 from importlib import resources
 from typing import TYPE_CHECKING, Final
 
-from harness_core.access.vendor_rules import extend_vendor_rules, verify_release_document, verify_vendor_rules
+from harness_core.access.vendor_rules import (
+    extend_vendor_rules,
+    verify_release_document,
+    verify_vendor_rules,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

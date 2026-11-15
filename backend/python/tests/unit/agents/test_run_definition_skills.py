@@ -12,7 +12,10 @@ import pytest
 import app.edition_config  # noqa: F401  (edition seams load before any router)
 from app.agents.agent_loop.skills.bundle_source import GraphSkillSource
 from app.agents.agent_loop.skills.graph_store import GraphSkillStore
-from app.agents.agent_loop.skills.manager_factory import get_builtin_seeder, reset_builtin_reconcile_state
+from app.agents.agent_loop.skills.manager_factory import (
+    get_builtin_seeder,
+    reset_builtin_reconcile_state,
+)
 from app.agents.run_definition import (
     AgentRunDefinition,
     RunDefinitionSkill,

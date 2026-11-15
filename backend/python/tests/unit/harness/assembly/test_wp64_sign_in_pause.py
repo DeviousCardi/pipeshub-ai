@@ -15,11 +15,19 @@ import pytest
 
 from app.agents.actions.util.sign_in_rejected import note_sign_in_rejected
 from harness_core.interactions.connect import ConnectNeed
-from harness_core.interactions.connect_wait import AUTH_REQUIRED, BridgeConnectWait, connect_interaction_id
+from harness_core.interactions.connect_wait import (
+    AUTH_REQUIRED,
+    BridgeConnectWait,
+    connect_interaction_id,
+)
 from harness_core.interactions.ports import RunBinding
 from harness_core.kernel.core.messages import ToolCall
 from harness_core.kernel.durable import ToolContext
-from harness_core.testing.contracts.tool_endpoint import BINDING, build_endpoint, claims_for
+from harness_core.testing.contracts.tool_endpoint import (
+    BINDING,
+    build_endpoint,
+    claims_for,
+)
 from harness_core.testing.engines.gateway import FakeInteractionBridge
 
 from . import world as w

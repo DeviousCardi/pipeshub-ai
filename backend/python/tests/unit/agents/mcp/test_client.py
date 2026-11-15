@@ -44,8 +44,8 @@ from app.agents.mcp.errors import (
     is_http_unauthorized,
 )
 from app.agents.mcp.models import MCPAuthMode, MCPServerConfig, MCPTransport
-from harness_core.testing.virtual_time import on_virtual_time, run_on_virtual_time
 from app.utils.logger import log_record_fields
+from harness_core.testing.virtual_time import on_virtual_time, run_on_virtual_time
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Iterator

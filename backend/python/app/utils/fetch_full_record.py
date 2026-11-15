@@ -11,8 +11,8 @@ from pydantic import BaseModel, Field
 from app.config.configuration_service import ConfigurationService
 from app.config.constants.arangodb import CollectionNames
 from app.config.constants.service import config_node_constants
-from app.harness.knowledge.read_gate import RecordReadGate
 from app.exceptions.graph_db_exceptions import PermissionVerificationUnavailableError
+from app.harness.knowledge.read_gate import RecordReadGate
 from app.models.entities import (
     USER_EMAIL_PLACEHOLDER,
     Record,

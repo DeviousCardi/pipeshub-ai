@@ -19,7 +19,13 @@ from app.harness.sandbox.docker_broker import DockerSandboxBroker
 from app.harness.sandbox.docker_client import DockerClientProvider
 from harness_core.ids import RandomIds
 from harness_core.sandbox.tar import put_config, put_files
-from harness_core.sandbox.types import LeaseRef, MountSpec, Resources, RuntimeMode, SandboxSpec
+from harness_core.sandbox.types import (
+    LeaseRef,
+    MountSpec,
+    Resources,
+    RuntimeMode,
+    SandboxSpec,
+)
 from harness_core.sandbox.workspace_fs import (
     WorkspacePathRefused,
     read_workspace_text,

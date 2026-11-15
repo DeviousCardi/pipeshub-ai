@@ -13,9 +13,9 @@ import pytest
 
 from app.agents.actions.knowledge_graph.ops.fetch import FETCH_RECORD_TOOL_NAME
 from app.harness.approvals import flow_guarded
-from app.harness.unpinned import FLOW_ABOVE_ENV, FLOW_LEVEL_ENV, flow_rule, flow_rules
 from app.harness.citations import EVENT as CITATIONS_EVENT
 from app.harness.labels import SessionSourceLedger
+from app.harness.unpinned import FLOW_ABOVE_ENV, FLOW_LEVEL_ENV, flow_rule, flow_rules
 from app.utils.env_flags import HARNESS_FLOW_GUARD
 from harness_core.effects import ToolExecution
 from harness_core.effects.flow import FLOW_RULE, FlowGuardedPolicy, FlowRule

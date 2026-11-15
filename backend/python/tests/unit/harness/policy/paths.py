@@ -28,10 +28,10 @@ from app.agents.agent_loop.hooks.flow_guard import (
     register_legacy_flow_guard,
 )
 from app.harness.approvals import engine_guarded
-from app.harness.unpinned import ConfiguredApprovals, engine_governance, flow_rules
 from app.harness.assembly.assembler import PipesHubRuntimeAssembler
 from app.harness.flow_destination import pipeshub_destination
 from app.harness.labels import INHERITED_LABEL_KEY, SessionSourceLedger, inherited_label
+from app.harness.unpinned import ConfiguredApprovals, engine_governance, flow_rules
 from app.harness.worker.warmup import ASSEMBLY_MODULES
 from harness_core.effects.flow import (
     CONVERSATION_SCOPE,

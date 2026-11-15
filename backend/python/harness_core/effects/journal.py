@@ -11,10 +11,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from harness_core.journal.bounds import bounded_content
 from harness_core.effects.results import decode_result, encode_result, put_ref
 from harness_core.effects.types import RecordedEffect, ToolExecution
 from harness_core.gates.tools import is_gate_tool
+from harness_core.journal.bounds import bounded_content
 from harness_core.journal.types import NewEvent
 
 if TYPE_CHECKING:

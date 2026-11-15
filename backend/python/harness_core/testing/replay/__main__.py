@@ -17,6 +17,8 @@ import sys
 from pathlib import Path
 
 from harness_core.testing.replay.diff import diff_recordings
+from harness_core.testing.replay.recording import Recording
+from harness_core.testing.replay.scrub import SecretLeftBehind, scrub_recording
 from harness_core.testing.replay.trace_redactor import (
     GoldenCase,
     RedactionNotProven,
@@ -24,8 +26,6 @@ from harness_core.testing.replay.trace_redactor import (
     load_export,
     verify,
 )
-from harness_core.testing.replay.recording import Recording
-from harness_core.testing.replay.scrub import SecretLeftBehind, scrub_recording
 
 
 def main(argv: list[str] | None = None) -> int:

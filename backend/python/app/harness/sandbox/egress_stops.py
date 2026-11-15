@@ -14,8 +14,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
 from app.core.org_context import org_of
-from app.harness.journal_node.client import INTERNAL_PREFIX
 from app.harness.credential_roles import process_holder
+from app.harness.journal_node.client import INTERNAL_PREFIX
 from app.harness.journal_node.http import NodeServiceClient
 from harness_core.logs import HarnessLog
 from harness_core.sandbox.egress.bindings import Revocation

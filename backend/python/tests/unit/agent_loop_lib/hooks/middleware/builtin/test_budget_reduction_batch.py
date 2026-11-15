@@ -8,8 +8,16 @@ with its own cap (fetch_record) keeps it, and a cut result names its artifact to
 from __future__ import annotations
 
 from app.agent_loop_lib.context.base import ContextBudget
-from app.agent_loop_lib.core.messages import AssistantMessage, ToolCall, ToolMessage, ToolMessageMeta, UserMessage
-from app.agent_loop_lib.hooks.middleware.builtin.budget_reduction import shape_budget_reduction
+from app.agent_loop_lib.core.messages import (
+    AssistantMessage,
+    ToolCall,
+    ToolMessage,
+    ToolMessageMeta,
+    UserMessage,
+)
+from app.agent_loop_lib.hooks.middleware.builtin.budget_reduction import (
+    shape_budget_reduction,
+)
 from app.agent_loop_lib.hooks.middleware.context import ModelCallContext
 from harness_core.context.results import RESULT_CAP_CHARS, batch_result_cap
 

@@ -17,7 +17,12 @@ import pytest
 from app.agents.run_definition import ASSISTANT_AGENT_KEY
 from app.harness.assembly.assembler import PipesHubRuntimeAssembler
 from app.harness.assembly.context import RunContext
-from app.harness.assembly.plan import HAND_OFF_PLAN_NOTE, PLAN_DESCRIPTION, PLAN_TOOL, plan_tool
+from app.harness.assembly.plan import (
+    HAND_OFF_PLAN_NOTE,
+    PLAN_DESCRIPTION,
+    PLAN_TOOL,
+    plan_tool,
+)
 from app.harness.presentation import HIDDEN_TOOLS
 from harness_core.contracts import dump_contract, validate_contract
 from harness_core.contracts.generated.run_spec import RunSpec

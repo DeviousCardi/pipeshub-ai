@@ -27,7 +27,13 @@ from app.agents.constants.mcp_server_constants import (
 from app.agents.mcp import oauth_client
 from tests.unit.agents.adapter.conftest import make_context
 from tests.unit.harness.credentials.support import DictConfig
-from tests.unit.harness.mcp_hub.kinds_server import CONTROL, loopback_allowed, make, serving, view
+from tests.unit.harness.mcp_hub.kinds_server import (
+    CONTROL,
+    loopback_allowed,
+    make,
+    serving,
+    view,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

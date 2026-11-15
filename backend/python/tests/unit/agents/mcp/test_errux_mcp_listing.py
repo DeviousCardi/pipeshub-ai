@@ -7,7 +7,10 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from app.agents.agent_loop.error_classification import MCP_UNAVAILABLE, classify_exception
+from app.agents.agent_loop.error_classification import (
+    MCP_UNAVAILABLE,
+    classify_exception,
+)
 from app.agents.mcp.instance_scope import list_instances_for_org
 from app.agents.mcp.service import MCPInstancesUnavailable, load_org_instances
 from app.api.routes import mcp_servers

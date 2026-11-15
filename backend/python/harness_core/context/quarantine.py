@@ -23,11 +23,11 @@ from typing import TYPE_CHECKING, Final, Protocol
 from pydantic import BaseModel, ConfigDict
 
 from harness_core.activity import shared_redactor
-from harness_core.security.pasted_secrets import redact_pasted_secrets
 from harness_core.budget.errors import BudgetRefused, BudgetUnavailable
 from harness_core.context.quoting import quote
 from harness_core.context.types import Attribution
 from harness_core.kernel.core.messages import UserMessage
+from harness_core.security.pasted_secrets import redact_pasted_secrets
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence

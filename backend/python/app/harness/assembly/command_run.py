@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING, Final, cast
+
 from harness_core.kernel.core.messages import AssistantMessage, TextPart, ToolCall
 from harness_core.kernel.durable.ports import TurnPlan
 

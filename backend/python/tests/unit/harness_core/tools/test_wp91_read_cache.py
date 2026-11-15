@@ -313,7 +313,10 @@ async def test_wp91_tcache_8_through_the_endpoint_an_engine_reads_once() -> None
 async def test_wp91_fu1_each_lookup_is_counted_as_a_hit_a_miss_or_an_expired_entry() -> None:
     """WP91-FU-1: the cache's hits reached only logs and in-process counters. Each lookup is now an observation on
     ``ReadCacheMetrics``, labelled by executor and outcome only (no tool, org or run)."""
-    from harness_core.telemetry.metrics import ReadCacheObserved, RecordingReadCacheMetrics
+    from harness_core.telemetry.metrics import (
+        ReadCacheObserved,
+        RecordingReadCacheMetrics,
+    )
 
     crm = Crm()
     clock = _Clock()

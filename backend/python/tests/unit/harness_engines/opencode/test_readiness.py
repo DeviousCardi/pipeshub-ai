@@ -11,8 +11,8 @@ import pytest
 
 from harness_core.engines.errors import EngineUnhealthy
 from harness_core.logs import HarnessLog
-from harness_engines.opencode_api.http import OpencodeHttpError
 from harness_engines.opencode.launch import MCP_SERVER
+from harness_engines.opencode_api.http import OpencodeHttpError
 from harness_engines.opencode_api.readiness import await_tool_gateway
 
 if TYPE_CHECKING:

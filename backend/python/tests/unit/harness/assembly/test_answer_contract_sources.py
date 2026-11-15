@@ -16,7 +16,11 @@ from unittest.mock import patch
 
 from app.harness.assembly.code_task import found_line
 from app.harness.assembly.grounding_gate import GroundingGate
-from app.harness.assembly.grounding_sources import hits_of, runs_without_asking, source_searches
+from app.harness.assembly.grounding_sources import (
+    hits_of,
+    runs_without_asking,
+    source_searches,
+)
 from app.harness.assembly.loop import GOAL_SLOT
 from app.harness.assembly.task_spec import TaskSpec, request_of
 from app.harness.grounding import (

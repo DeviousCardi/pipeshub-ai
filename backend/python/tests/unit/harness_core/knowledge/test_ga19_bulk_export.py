@@ -19,6 +19,7 @@ import asyncio
 import json
 from typing import TYPE_CHECKING
 
+from harness_core.effects.types import ToolContext
 from harness_core.journal.types import NewEvent
 from harness_core.kernel.core.messages import ToolCall
 from harness_core.knowledge.bulk_export import (
@@ -30,7 +31,6 @@ from harness_core.knowledge.bulk_export import (
     RecordPage,
     ShelfRelay,
 )
-from harness_core.effects.types import ToolContext
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

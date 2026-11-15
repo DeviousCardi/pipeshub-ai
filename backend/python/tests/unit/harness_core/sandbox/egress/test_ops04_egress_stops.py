@@ -44,12 +44,12 @@ from harness_core.sandbox.egress.state import (
 from harness_core.sandbox.errors import SandboxRefusal
 from harness_core.sandbox.types import EgressDestination, EgressPolicy, TokenRoute
 from harness_core.testing.clock import ManualClock
+from tests.support.settle import settle
 from tests.unit.harness_core.sandbox.egress.test_wp14_revocation import (
     RefusingBindings,
     proxy_over,
     wiring_over,
 )
-from tests.support.settle import settle
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

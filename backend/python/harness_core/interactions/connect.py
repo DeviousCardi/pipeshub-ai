@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from pydantic import JsonValue
 
     from harness_core.journal.types import JournalEvent
-
     from harness_core.kernel.core.messages import ToolCall
 
 ItemKind = Literal["toolset", "mcp"]

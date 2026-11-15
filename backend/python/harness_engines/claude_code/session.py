@@ -10,8 +10,8 @@ from harness_core.context.user_compact import CompactReport
 from harness_core.engines.errors import CompactFailed, EngineSessionClosed
 from harness_core.engines.events import TurnCompleted
 from harness_core.engines.jsonview import as_int, as_object, as_str
-from harness_core.engines.stopping import stop_process
 from harness_core.engines.native import set_recorded
+from harness_core.engines.stopping import stop_process
 from harness_core.engines.types import EngineTask, SessionHealth
 from harness_core.sandbox.tar import read_tar_stream
 from harness_engines.claude_code.launch import TRANSCRIPT_DIR, WORKDIR, system_prompt

@@ -703,8 +703,14 @@ async def handle_simple_mode(
 # The sanitizer lives in app.utils.answer_links (imports only ``re``); its names stay importable from here.
 from app.utils.answer_links import (  # noqa: E402
     _flatten_unusable_markdown_links as _flatten_unusable_markdown_links,
+)
+from app.utils.answer_links import (
     _strip_llm_authored_markers as _strip_llm_authored_markers,
+)
+from app.utils.answer_links import (
     link_workspace_files as link_workspace_files,
+)
+from app.utils.answer_links import (
     strip_llm_authored_markers_in_parts as strip_llm_authored_markers_in_parts,
 )
 

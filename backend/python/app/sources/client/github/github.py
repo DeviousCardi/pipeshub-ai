@@ -6,9 +6,8 @@ from typing import Any, cast
 from github import Auth, Github
 from pydantic import BaseModel, Field  # type: ignore
 
-from app.sources.client.http.send_safe_urllib3 import SendSafeRetry
-
 from app.config.constants.http_status_code import HttpStatusCode
+from app.sources.client.http.send_safe_urllib3 import SendSafeRetry
 
 # PyGithub's default retry (GithubRetry) silently sleeps INSIDE the SDK until
 # the rate-limit window resets — observed parking worker threads for 30+ min.

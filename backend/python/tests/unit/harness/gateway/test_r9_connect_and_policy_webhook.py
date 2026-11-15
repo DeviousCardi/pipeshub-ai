@@ -14,7 +14,11 @@ from harness_core.effects.external_policy import ExternalPolicyGuard, ExternalVe
 from harness_core.interactions.connect import ConnectNeed
 from harness_core.interactions.connect_wait import BridgeConnectWait
 from harness_core.interactions.ports import RunBinding
-from harness_core.testing.contracts.tool_endpoint import BINDING, build_endpoint, claims_for
+from harness_core.testing.contracts.tool_endpoint import (
+    BINDING,
+    build_endpoint,
+    claims_for,
+)
 from harness_core.testing.engines.gateway import FakeInteractionBridge
 from tests.unit.harness_core.effects.test_ga20_external_policy import Consultant, Hooks
 

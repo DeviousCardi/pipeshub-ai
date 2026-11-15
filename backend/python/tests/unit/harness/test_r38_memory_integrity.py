@@ -8,7 +8,12 @@ from typing import TYPE_CHECKING
 from app.harness.contracts.generated.pipeshub.events.x_pipeshub_answer_finalized import (
     PipeshubAnswerFinalizedData,
 )
-from app.harness.labels import SessionSourceLedger, label_from_wire, label_wire, own_work
+from app.harness.labels import (
+    SessionSourceLedger,
+    label_from_wire,
+    label_wire,
+    own_work,
+)
 from harness_core.contracts import validate_contract
 from harness_core.journal.types import JournalEvent
 from harness_core.kernel.fold import invocation_id

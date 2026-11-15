@@ -23,8 +23,8 @@ from app.agents.actions.knowledge_graph.views import (
     render_navigation_view_with_ids,
 )
 from app.modules.agents.qna.chat_state import remember_record_ids
-from tests.support.record_access import InMemoryRecordAccess
 from app.services.graph_db.interface.graph_db_provider import AccessCheck
+from tests.support.record_access import InMemoryRecordAccess
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

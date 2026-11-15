@@ -179,7 +179,9 @@ class _BusyOnce(_Service):
 class TestRetryAfter:
     async def test_the_wait_the_service_asks_for_is_used(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """The SDK's own first wait is 15 s give or take 3; Retry-After says 1."""
-        from azure.storage.fileshare._shared.base_client_async import AsyncTransportWrapper
+        from azure.storage.fileshare._shared.base_client_async import (
+            AsyncTransportWrapper,
+        )
 
         slept: list[float] = []
 

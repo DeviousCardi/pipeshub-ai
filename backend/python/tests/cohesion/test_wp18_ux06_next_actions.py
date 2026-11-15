@@ -12,12 +12,14 @@ import re
 from typing import TYPE_CHECKING
 
 import pytest
-from app.control_plane.contracts.generated.errors import ERROR_CODES as CONTROL_PLANE_CODES
+
+from app.control_plane.contracts.generated.errors import (
+    ERROR_CODES as CONTROL_PLANE_CODES,
+)
 from app.harness.contracts.generated.pipeshub.enums import ANSWER_ERROR_CODES
 from app.harness.contracts.generated.pipeshub.errors import ERROR_CODES as HARNESS_CODES
 from harness_core.contracts.generated.enums import NEXT_ACTION_KINDS, TOOL_ERROR_CODES
 from harness_core.contracts.generated.error_catalog import NextAction
-
 from tests.cohesion.support import REPO_ROOT, with_overlay
 
 if TYPE_CHECKING:

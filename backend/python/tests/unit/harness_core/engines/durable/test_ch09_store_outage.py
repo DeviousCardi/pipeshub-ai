@@ -11,7 +11,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from harness_core.kernel.durable.capability import STORE_RECHECK_S, STORE_UNAVAILABLE, STORE_WAIT
+from harness_core.kernel.durable.capability import (
+    STORE_RECHECK_S,
+    STORE_UNAVAILABLE,
+    STORE_WAIT,
+)
 from harness_core.testing.engines.durable import EngineWorld
 from harness_core.workspace import ObjectStoreUnavailable
 from harness_core.workspace.memory import InMemoryBinaryObjectStore

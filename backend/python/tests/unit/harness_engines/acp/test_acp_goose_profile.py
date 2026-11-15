@@ -25,7 +25,12 @@ from harness_engines import release
 from harness_engines.acp.adapter import AcpAdapter
 from harness_engines.acp.launch import SESSION_POLICY_PATH, render_launch
 from harness_engines.acp.permissions import SessionPolicy, classify
-from harness_engines.acp.profiles import AcpProfileInvalid, McpStatus, parse_acp_agents, parse_profile
+from harness_engines.acp.profiles import (
+    AcpProfileInvalid,
+    McpStatus,
+    parse_acp_agents,
+    parse_profile,
+)
 from harness_engines.acp.registry import AGENTS_RESOURCE
 
 if TYPE_CHECKING:

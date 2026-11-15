@@ -53,10 +53,10 @@ from app.agent_loop_lib.sandbox.coding.credentials import (
 from app.agent_loop_lib.sandbox.coding.egress_firewall import (
     CONTAINER_HARDENING,
     create_sandbox_container,
-    limited,
     ensure_egress_network_sync,
     firewall_unavailable,
     firewalled_container_kwargs,
+    limited,
     new_firewall_token,
     parse_cidrs,
 )

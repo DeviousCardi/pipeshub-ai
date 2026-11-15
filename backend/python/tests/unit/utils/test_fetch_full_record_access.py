@@ -14,6 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.harness.knowledge.read_gate import RecordReadGate
+from app.services.graph_db.interface.graph_db_provider import AccessCheck
 from app.utils.fetch_full_record import (
     NOT_INDEXED_YET,
     PUBLICATION_ANSWER_ONLY,
@@ -21,7 +22,6 @@ from app.utils.fetch_full_record import (
     UNAVAILABLE,
     _fetch_multiple_records_impl,
 )
-from app.services.graph_db.interface.graph_db_provider import AccessCheck
 from harness_core.knowledge.publications import ReadGrant
 from tests.support.record_access import InMemoryRecordAccess
 

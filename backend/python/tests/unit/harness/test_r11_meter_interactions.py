@@ -26,12 +26,12 @@ from tests.unit.harness.test_wp49_meter_all import (
     RUN,
     ProviderModel,
     UnmeteredCallError,
+    _guard,
     _meter,
     _resolved,
     _Run,
     _run_model,
     _World,
-    _guard,
     world,
 )
 

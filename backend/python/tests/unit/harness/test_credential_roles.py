@@ -24,7 +24,10 @@ from app.harness.credential_roles import (
     seal_component_document,
     worker_client_auth,
 )
-from app.harness.journal_node.credentials import ConfiguredWorkerCredential, WorkerCredentialUnavailable
+from app.harness.journal_node.credentials import (
+    ConfiguredWorkerCredential,
+    WorkerCredentialUnavailable,
+)
 from app.utils.encryption.component_key import (
     ComponentKeyError,
     component_acl_rules,

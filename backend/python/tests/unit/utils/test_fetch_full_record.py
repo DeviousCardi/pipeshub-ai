@@ -1,7 +1,7 @@
 """Tests for app.utils.fetch_full_record — record fetching tools."""
 
-from typing import Any
 from collections.abc import Iterator
+from typing import Any
 from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest

@@ -51,6 +51,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
 
     from harness_core.driver.types import Disposition
+
     from harness_core.engines.types import EngineProfile
     from harness_core.journal.types import JournalEvent
     from tests.unit.harness.test_node_journal_contract import (

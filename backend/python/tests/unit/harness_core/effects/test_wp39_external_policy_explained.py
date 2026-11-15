@@ -14,9 +14,9 @@ WP39-DR-1 the question tells the webhook whether the run is a dry run (``dryRun`
 
 from __future__ import annotations
 
-import pytest
-
 from typing import TYPE_CHECKING
+
+import pytest
 
 from harness_core.effects import flow
 from harness_core.effects.external_policy import (

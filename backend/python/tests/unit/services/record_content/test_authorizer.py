@@ -14,11 +14,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from app.config.constants.arangodb import Connectors, OriginTypes
 from app.harness.contracts.generated.pipeshub.citation_source import (
     PipeshubLiveSource,
     PipeshubRecordSource,
 )
-from app.config.constants.arangodb import Connectors, OriginTypes
 from app.models.entities import Record, RecordType
 from app.services.record_content.authorizer import TieredRecordAuthorizer
 from app.services.record_content.models import (

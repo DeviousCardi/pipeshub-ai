@@ -6,8 +6,12 @@ from __future__ import annotations
 
 import pytest
 
-from harness_core.kernel.budget.pricing import CACHE_READ_MULTIPLIER, CACHE_WRITE_MULTIPLIER, get_pricing
 from harness_core.kernel.budget.prices import MODEL_PRICES
+from harness_core.kernel.budget.pricing import (
+    CACHE_READ_MULTIPLIER,
+    CACHE_WRITE_MULTIPLIER,
+    get_pricing,
+)
 
 CALL = {"input_tokens": 1_000_000, "output_tokens": 100_000, "cache_read_tokens": 600_000, "cache_write_tokens": 200_000}
 

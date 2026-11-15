@@ -28,7 +28,11 @@ from app.agent_loop_lib.core.streaming import (
     ToolCallDeltaEvent,
 )
 from app.agent_loop_lib.core.tool_schema import ToolSchema
-from app.agent_loop_lib.transport.gemini import GeminiTransport, sanitize_schema, signature_block
+from app.agent_loop_lib.transport.gemini import (
+    GeminiTransport,
+    sanitize_schema,
+    signature_block,
+)
 from harness_core.models.provider_state import GEMINI_GENERATE_CONTENT, with_state
 
 

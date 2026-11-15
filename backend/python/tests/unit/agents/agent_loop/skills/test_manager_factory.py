@@ -45,14 +45,18 @@ class TestSkillsManagerConfig:
 
 class TestBuildGovernor:
     def test_manual_review_governor_by_default(self) -> None:
-        from app.agent_loop_lib.modules.providers.skills.governor import ManualReviewGovernor
+        from app.agent_loop_lib.modules.providers.skills.governor import (
+            ManualReviewGovernor,
+        )
         from app.agents.agent_loop.skills.manager_factory import build_governor
         config = SkillManagerConfig(auto_approve=False, write_approval=True)
         gov = build_governor(config, graph_provider=None, org_id="o", user_id="u")
         assert isinstance(gov, ManualReviewGovernor)
 
     def test_auto_approve_governor(self) -> None:
-        from app.agent_loop_lib.modules.providers.skills.governor import AutoApproveGovernor
+        from app.agent_loop_lib.modules.providers.skills.governor import (
+            AutoApproveGovernor,
+        )
         from app.agents.agent_loop.skills.manager_factory import build_governor
         config = SkillManagerConfig(auto_approve=True, write_approval=False)
         gov = build_governor(config, graph_provider=None, org_id="o", user_id="u")
@@ -66,7 +70,9 @@ class TestBuildGovernor:
         assert isinstance(gov, AuditGovernor)
 
     def test_no_graph_provider_skips_audit(self) -> None:
-        from app.agent_loop_lib.modules.providers.skills.governor import ManualReviewGovernor
+        from app.agent_loop_lib.modules.providers.skills.governor import (
+            ManualReviewGovernor,
+        )
         from app.agents.agent_loop.skills.manager_factory import build_governor
         config = SkillManagerConfig(auto_approve=False, write_approval=True)
         gov = build_governor(config, graph_provider=None, org_id="o", user_id="u")
@@ -204,8 +210,11 @@ class TestSyncBuiltinSkills:
 class TestBuildRuntimeSkillManager:
     @pytest.mark.asyncio
     async def test_returns_none_when_no_graph_provider(self) -> None:
-        from app.agents.agent_loop.skills.manager_factory import build_runtime_skill_manager
         from types import SimpleNamespace
+
+        from app.agents.agent_loop.skills.manager_factory import (
+            build_runtime_skill_manager,
+        )
         context = SimpleNamespace(graph_provider=None, org_id="o", user_id="u", retrieval_service=None)
         registry = MagicMock()
         result = await build_runtime_skill_manager(context, registry)
@@ -238,8 +247,11 @@ class TestBuildRuntimeSkillManager:
 
     @pytest.mark.asyncio
     async def test_builds_manager_with_graph_provider(self) -> None:
-        from app.agents.agent_loop.skills.manager_factory import build_runtime_skill_manager
         from types import SimpleNamespace
+
+        from app.agents.agent_loop.skills.manager_factory import (
+            build_runtime_skill_manager,
+        )
         fake_manager = MagicMock()
         fake_manager.start = AsyncMock()
 
@@ -263,8 +275,11 @@ class TestBuildRuntimeSkillManager:
     @pytest.mark.asyncio
     async def test_runtime_reads_the_users_own_and_the_agents_shared_skills(self) -> None:
         """CPS SK-1/SK-2: the running user under both of their ids, plus what the agent assigns (A-7)."""
-        from app.agents.agent_loop.skills.manager_factory import build_runtime_skill_manager
         from types import SimpleNamespace
+
+        from app.agents.agent_loop.skills.manager_factory import (
+            build_runtime_skill_manager,
+        )
 
         context = SimpleNamespace(
             graph_provider=MagicMock(), org_id="o", user_id="colleague", retrieval_service=None,
@@ -423,7 +438,9 @@ class TestBuildManagerInternal:
 class TestBuildManagementSkillManager:
     @pytest.mark.asyncio
     async def test_builds_management_manager(self) -> None:
-        from app.agents.agent_loop.skills.manager_factory import build_management_skill_manager
+        from app.agents.agent_loop.skills.manager_factory import (
+            build_management_skill_manager,
+        )
         fake_manager = MagicMock()
 
         with patch(

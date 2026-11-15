@@ -95,7 +95,12 @@ from harness_core.effects.edits import (
 from harness_core.effects.edits import (
     noted as with_edit_note,
 )
-from harness_core.effects.flow import GrantingLedger, GrantsContext, edition_features, reason_for_journal
+from harness_core.effects.flow import (
+    GrantingLedger,
+    GrantsContext,
+    edition_features,
+    reason_for_journal,
+)
 from harness_core.effects.journal import JournalEffectLog
 from harness_core.effects.reconcile import ReconcileEvidence, stamped_effect
 from harness_core.effects.redaction import POLICY_REDACTION

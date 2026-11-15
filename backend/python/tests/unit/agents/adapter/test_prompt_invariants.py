@@ -30,7 +30,11 @@ from app.agent_loop_lib.agent.spec import AgentSpec, ModelSpec
 from app.agent_loop_lib.core.types import Goal
 from app.agent_loop_lib.runtime.runtime import AgentRuntime
 from app.agent_loop_lib.tools.registry import ToolRegistry
-from app.agents.agent_loop.connected_sources import MCP_PARENT, SOURCES_STATE_KEY, group_description
+from app.agents.agent_loop.connected_sources import (
+    MCP_PARENT,
+    SOURCES_STATE_KEY,
+    group_description,
+)
 from app.agents.agent_loop.context import AgentContext
 from app.agents.agent_loop.prompt_builder import PipesHubPromptBuilder
 from tests.unit.agents.adapter.test_prompt_builder import FakeTool

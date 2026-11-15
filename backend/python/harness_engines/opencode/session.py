@@ -23,7 +23,6 @@ from harness_core.engines.stopping import SERVER_STOP_SCHEDULE, stop_process
 from harness_core.engines.stream import DEFAULT_BUFFER
 from harness_core.engines.types import EngineTask, FollowUp, SessionHealth
 from harness_core.sandbox.streams import collect
-from harness_engines.opencode_api.http import OpencodeHttpError
 from harness_engines.opencode.launch import (
     AGENT,
     BINARY_PATH,
@@ -33,6 +32,7 @@ from harness_engines.opencode.launch import (
 )
 from harness_engines.opencode.mapper import OpencodeEventMapper
 from harness_engines.opencode.state import encode_state
+from harness_engines.opencode_api.http import OpencodeHttpError
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Mapping

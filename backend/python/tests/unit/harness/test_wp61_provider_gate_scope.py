@@ -33,8 +33,8 @@ from harness_core.testing.model_gateway import (
     org_key_route,
 )
 from tests.support.fake_redis_connection_provider import FakeRedisConnectionProvider
-from tests.unit.harness.access.test_configured_access import Builds, FakeConfig
 from tests.support.settle import settle
+from tests.unit.harness.access.test_configured_access import Builds, FakeConfig
 
 if TYPE_CHECKING:
     import pytest

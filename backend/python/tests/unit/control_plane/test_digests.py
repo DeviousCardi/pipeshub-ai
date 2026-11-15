@@ -103,7 +103,9 @@ def test_qa3_an_mcp_tool_s_catalog_digest_is_the_digest_an_admin_approves() -> N
     """The catalog descriptor carries the tool's behaviour hints, so one digest names the tool in both places."""
     from app.agents.mcp.models import MCPToolInfo
     from app.control_plane.catalog.items import ToolDescriptor
-    from app.control_plane.contracts.generated.descriptors.tool import CatalogToolDescriptor
+    from app.control_plane.contracts.generated.descriptors.tool import (
+        CatalogToolDescriptor,
+    )
     from app.harness.mcp_hub.manifests import descriptor_of
 
     (vector,) = [v for v in VECTORS["tools"] if v["description"] == "MCP tool with behaviour hints"]

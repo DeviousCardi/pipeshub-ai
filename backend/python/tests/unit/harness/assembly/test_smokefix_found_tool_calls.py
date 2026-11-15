@@ -17,7 +17,6 @@ import pytest
 
 from app import edition_config
 from app.agents.constants.toolset_constants import get_toolset_tool_rules_path
-
 from app.harness.assembly.assembler import PipesHubRuntimeAssembler
 from app.harness.assembly.tool_environment import toolset_tool_id
 from harness_core.driver import RunDriver

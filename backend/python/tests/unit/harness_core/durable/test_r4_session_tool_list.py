@@ -22,7 +22,11 @@ from harness_core.kernel.session_tools import SESSION_TOOLS_SLOT, tools_digest
 from harness_core.testing import armed
 from harness_core.testing.durable import FunctionToolPort
 from harness_core.testing.run_spec import minimal_run_spec
-from harness_core.tools.call_tool import CALL_TOOL, CALL_TOOL_DESCRIPTION, CALL_TOOL_INPUT_SCHEMA
+from harness_core.tools.call_tool import (
+    CALL_TOOL,
+    CALL_TOOL_DESCRIPTION,
+    CALL_TOOL_INPUT_SCHEMA,
+)
 
 from .support import ORG, RUN, SESSION, Crash, World, reply, scripted
 

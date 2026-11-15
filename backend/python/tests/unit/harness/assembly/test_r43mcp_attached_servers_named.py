@@ -33,7 +33,14 @@ from app.agents.mcp.tool_cache import CachedCatalog, CachedTool
 from app.harness.assembly.assembler import PipesHubRuntimeAssembler
 from app.harness.assembly.prompt_shown import PROMPT_SHOWN_SLOT
 from harness_core.driver import RunDriver
-from harness_core.testing import ManualClock, ModelScript, Reply, ScriptedModel, ToolCallSpec, Turn
+from harness_core.testing import (
+    ManualClock,
+    ModelScript,
+    Reply,
+    ScriptedModel,
+    ToolCallSpec,
+    Turn,
+)
 from harness_core.testing.durable import ScriptedModelPort
 
 from . import world as w

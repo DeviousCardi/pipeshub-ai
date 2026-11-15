@@ -8,7 +8,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from harness_core.testing.engines.durable import PROGRESS, SESSION, EngineWorld, ScriptedEngineAdapter
+from harness_core.testing.engines.durable import (
+    PROGRESS,
+    SESSION,
+    EngineWorld,
+    ScriptedEngineAdapter,
+)
 
 if TYPE_CHECKING:
     from harness_core.journal.types import Event
