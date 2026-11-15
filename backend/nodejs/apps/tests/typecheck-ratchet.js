@@ -55,4 +55,5 @@ function main(argv) {
   return 0;
 }
 
-process.exit(main(process.argv.slice(2)));
+// process.exit would cut off a piped stderr before the error list and summary flush (the CI log lost both).
+process.exitCode = main(process.argv.slice(2));
