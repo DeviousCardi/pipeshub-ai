@@ -102,6 +102,9 @@ export interface ConversationChatMessages {
   parts: Generated<unknown>;
   created_at: Date;
   updated_at: Date;
+  sender_id: string | null;
+  label: unknown;
+  harness: unknown;
 }
 
 export interface ConversationChatSessionMembers {
@@ -146,6 +149,13 @@ export interface ConversationChatSessions {
   nulls: Generated<string[]>;
   created_at: Date;
   updated_at: Date;
+  harness_version: string | null;
+  harness_ledger: unknown;
+  erasure_requested_at: string | null;
+  coding_engine: string | null;
+  coding_engine_pin: string | null;
+  repository: unknown;
+  harness_seen: unknown;
 }
 
 export interface ConversationCitations {
@@ -355,6 +365,20 @@ export interface IntegrationsSlackThreads {
   updated_at: Date;
 }
 
+export interface IntegrationsSlackUserLinks {
+  org_id: string;
+  workspace_id: string;
+  slack_user_id: string;
+  team_id: string;
+  user_id: string;
+  email: string;
+  slack_name: Generated<string>;
+  linked_at: Date;
+  version: Generated<number>;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface OauthAccessTokens {
   org_id: string;
   id: string;
@@ -540,6 +564,27 @@ export interface PlatformDocstoreChanges {
   at: Generated<Date>;
 }
 
+export interface PlatformDocstoreKeymap {
+  org_id: string;
+  collection: string;
+  source_id: string;
+  source_oid: boolean;
+  row_key: string;
+}
+
+export interface PlatformDocstoreKeymapDeployment {
+  collection: string;
+  source_id: string;
+  source_oid: boolean;
+  row_key: string;
+}
+
+export interface PlatformDocstoreRefused {
+  collection: string;
+  source_id: string;
+  reason: string;
+}
+
 export interface PlatformMailLog {
   org_id: string;
   id: string;
@@ -622,6 +667,7 @@ export interface DB {
   'identity.user_pictures': IdentityUserPictures;
   'identity.users': IdentityUsers;
   'integrations.slack_threads': IntegrationsSlackThreads;
+  'integrations.slack_user_links': IntegrationsSlackUserLinks;
   'oauth.access_tokens': OauthAccessTokens;
   'oauth.agent_registrations': OauthAgentRegistrations;
   'oauth.apps': OauthApps;
@@ -632,6 +678,9 @@ export interface DB {
   'oauth.service_account_delegations': OauthServiceAccountDelegations;
   'platform.connectors_config': PlatformConnectorsConfig;
   'platform.docstore_changes': PlatformDocstoreChanges;
+  'platform.docstore_keymap': PlatformDocstoreKeymap;
+  'platform.docstore_keymap_deployment': PlatformDocstoreKeymapDeployment;
+  'platform.docstore_refused': PlatformDocstoreRefused;
   'platform.mail_log': PlatformMailLog;
   'platform.notifications': PlatformNotifications;
   'platform.outbox': PlatformOutbox;
