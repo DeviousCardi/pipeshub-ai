@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-import io
 import uuid
 from typing import TYPE_CHECKING
 
@@ -17,6 +16,7 @@ from harness_core.testing.contracts.image_binaries import (
     ImageBinaryReaderContract,
 )
 from harness_core.testing.engines.binary import Directory, Link
+from tests.support.docker_images import build_test_image
 
 from .conftest import DOCKER_TEST_IMAGE, skip_without_docker
 
@@ -60,9 +60,7 @@ def provider() -> Iterator[DockerClientProvider]:
 @pytest.fixture(scope="module")
 def image_id(provider: DockerClientProvider) -> Iterator[str]:
     tag = f"pxh-eh2-ibr:{uuid.uuid4().hex[:8]}"
-    image, _ = provider.client.images.build(
-        fileobj=io.BytesIO(_dockerfile(DOCKER_TEST_IMAGE).encode()), tag=tag, rm=True, pull=False
-    )
+    image = provider.client.images.get(build_test_image(provider.client, tag, _dockerfile(DOCKER_TEST_IMAGE)))
     try:
         yield image.id
     finally:

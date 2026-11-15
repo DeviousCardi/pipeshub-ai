@@ -3,7 +3,6 @@ tag, and creates nothing; only a lane gating a candidate runs it."""
 
 from __future__ import annotations
 
-import io
 import uuid
 from typing import TYPE_CHECKING
 
@@ -21,6 +20,7 @@ from harness_core.sandbox.types import (
 )
 from harness_core.testing.clock import ManualClock
 from harness_engines.release import CANDIDATE_LABEL
+from tests.support.docker_images import build_test_image
 from tests.unit.agent_loop_lib.sandbox.contract.conftest import DOCKER_TEST_IMAGE
 
 from .conftest import AGENT_LABEL
@@ -40,7 +40,7 @@ def candidate_image(provider: DockerClientProvider) -> Iterator[str]:
     """The sandbox test image with the candidate label added: a candidate build under a tag of its own."""
     tag = f"pxh-eh1-candidate:{uuid.uuid4().hex[:8]}"
     dockerfile = f"FROM {DOCKER_TEST_IMAGE}\nLABEL {CANDIDATE_LABEL}=true\n"
-    provider.client.images.build(fileobj=io.BytesIO(dockerfile.encode()), tag=tag, rm=True, pull=False)
+    build_test_image(provider.client, tag, dockerfile)
     yield tag
     provider.client.images.remove(tag, force=True)
 

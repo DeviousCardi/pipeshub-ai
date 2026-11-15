@@ -6,7 +6,6 @@ The write attempts run as the sandbox user, the way an engine's own tools would.
 
 from __future__ import annotations
 
-import io
 import logging
 import uuid
 from typing import TYPE_CHECKING
@@ -35,6 +34,7 @@ from harness_core.skills.materializer import skills_mount
 from harness_core.testing.clock import ManualClock
 from harness_core.testing.sandbox.contract import run, tar_of
 from harness_engines.release import BINARY_PATHS, release_binary_pins
+from tests.support.docker_images import build_test_image
 from tests.unit.harness.engines.lane_releases import (
     lane_admits_candidates,
     lane_release,
@@ -229,12 +229,7 @@ def moved_tag(provider: DockerClientProvider, request: pytest.FixtureRequest) ->
     suffix = uuid.uuid4().hex[:8]
     repository = f"pxh-eh2-{engine.image_dir}"
     tag, wrapper = f"{repository}:moved-{suffix}", f"{repository}:wrapper-{suffix}"
-    provider.client.images.build(
-        fileobj=io.BytesIO(_retagged_dockerfile(base, BINARY_PATHS[release.version.kind]).encode()),
-        tag=wrapper,
-        rm=True,
-        pull=False,
-    )
+    build_test_image(provider.client, wrapper, _retagged_dockerfile(base, BINARY_PATHS[release.version.kind]))
     assert provider.client.images.get(base).tag(repository, f"moved-{suffix}")
     try:
         yield kind, tag, wrapper

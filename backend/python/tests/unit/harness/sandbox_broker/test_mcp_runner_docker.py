@@ -11,11 +11,9 @@ removed at teardown. Containers carry this module's own label namespace and are 
 from __future__ import annotations
 
 import contextlib
-import io
 import json
 import logging
 import os
-import tarfile
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, override
@@ -52,6 +50,7 @@ from harness_core.testing.sandbox.mcp_runner import (
     request,
     session,
 )
+from tests.support.docker_images import build_test_image
 from tests.unit.agent_loop_lib.sandbox.contract.conftest import (
     DOCKER_TEST_IMAGE,
     skip_without_docker,
@@ -105,16 +104,6 @@ def echo_catalog_server(echo_catalog_server: MCPServerTemplate) -> Iterator[MCPS
         yield image_template
 
 
-def _context_tar(dockerfile: str, files: dict[str, bytes]) -> io.BytesIO:
-    buffer = io.BytesIO()
-    with tarfile.open(fileobj=buffer, mode="w") as archive:
-        for name, data in {"Dockerfile": dockerfile.encode(), **files}.items():
-            info = tarfile.TarInfo(name)
-            info.size = len(data)
-            archive.addfile(info, io.BytesIO(data))
-    buffer.seek(0)
-    return buffer
-
 
 @pytest.fixture(scope="module")
 def runner_image() -> Iterator[str]:
@@ -123,15 +112,7 @@ def runner_image() -> Iterator[str]:
     client = docker.from_env()
     tag = f"pxh-mcp-runner:p510-{uuid.uuid4().hex[:8]}"
     dockerfile = f"FROM {DOCKER_TEST_IMAGE}\nCOPY server.py {SERVER_PATH}\n"
-    context = _context_tar(dockerfile, {"server.py": ECHO_SOURCE.read_bytes()})
-    _ = client.images.build(
-        fileobj=context,
-        custom_context=True,
-        tag=tag,
-        labels=OWNER,
-        rm=True,
-        forcerm=True,
-    )
+    build_test_image(client, tag, dockerfile, files={"server.py": ECHO_SOURCE.read_bytes()}, labels=OWNER)
     try:
         yield tag
     finally:

@@ -7,7 +7,6 @@ alone would pass; only the hash tells them apart.
 
 from __future__ import annotations
 
-import io
 import uuid
 from typing import TYPE_CHECKING
 
@@ -26,6 +25,7 @@ from harness_core.sandbox.types import (
 )
 from harness_core.testing.clock import ManualClock
 from harness_core.testing.sandbox.contract import run
+from tests.support.docker_images import build_test_image
 from tests.unit.harness.engines.lane_releases import lane_release
 from tests.unit.harness.sandbox_broker.conftest import cleanup
 from tests.unit.harness_engines.test_engine_binary import BY_KIND, Engine
@@ -79,7 +79,7 @@ def retagged(request: pytest.FixtureRequest, provider: DockerClientProvider) -> 
     binary = engine.launch().argv[0]
     tag = f"pxh-eh1-{engine.image_dir}:retagged-{uuid.uuid4().hex[:8]}"
     dockerfile = _retagged_dockerfile(base, binary)
-    provider.client.images.build(fileobj=io.BytesIO(dockerfile.encode()), tag=tag, rm=True, pull=False)
+    build_test_image(provider.client, tag, dockerfile)
     try:
         yield engine, tag
     finally:

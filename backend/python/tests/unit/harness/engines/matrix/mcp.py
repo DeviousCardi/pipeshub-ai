@@ -8,10 +8,8 @@ its own container and admits only the tools whose manifest an admin approved.
 from __future__ import annotations
 
 import contextlib
-import io
 import logging
 import os
-import tarfile
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -34,6 +32,7 @@ from harness_core.sandbox.mcp_runner import RunnerConfig, SandboxMCPRunner
 from harness_core.testing.clock import ManualClock
 from harness_core.testing.sandbox.mcp_runner import SECRET_NAME
 from tests.support import docker_session
+from tests.support.docker_images import build_test_image
 from tests.support.mcp_tool_admission import ApprovalsRequired
 from tests.unit.agents.adapter.conftest import make_context
 from tests.unit.harness.engines.real_stack import OWNER
@@ -67,15 +66,10 @@ SUITE = "e2e3"
 def build_runner_image(client: Any, base: str = BASE_IMAGE) -> str:  # noqa: ANN401 - docker.DockerClient
     tag = f"pxh-mcp-runner:e2e3-{uuid.uuid4().hex[:8]}"
     dockerfile = f"FROM {base}\nCOPY server.py {SERVER_PATH}\n"
-    buffer = io.BytesIO()
-    with tarfile.open(fileobj=buffer, mode="w") as archive:
-        for name, data in {"Dockerfile": dockerfile.encode(), "server.py": ECHO_SOURCE.read_bytes()}.items():
-            info = tarfile.TarInfo(name)
-            info.size = len(data)
-            archive.addfile(info, io.BytesIO(data))
-    buffer.seek(0)
-    _ = client.images.build(fileobj=buffer, custom_context=True, tag=tag, labels={**OWNER, **docker_session.labels(SUITE)}, rm=True, forcerm=True)
-    return tag
+    return build_test_image(
+        client, tag, dockerfile, files={"server.py": ECHO_SOURCE.read_bytes()},
+        labels={**OWNER, **docker_session.labels(SUITE)},
+    )
 
 
 @contextlib.asynccontextmanager
