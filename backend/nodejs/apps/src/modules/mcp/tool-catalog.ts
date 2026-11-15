@@ -4,7 +4,7 @@
  * server mounts.
  */
 
-import { registerCodeGraphTools, ToolRegistrar } from './code-graph.tools';
+import { registerCodeGraphTools } from './code-graph.tools';
 import { PUBLIC_MCP_TOOLS } from './constants/allowed-tools';
 
 export interface McpAccessTool {
@@ -51,9 +51,7 @@ async function buildCatalog(): Promise<McpAccessTool[]> {
         throw new Error('The tool catalog never calls a tool.');
       },
     });
-    // The package's McpServer is typed against its own zod 4; comparing that
-    // generic signature to ToolRegistrar's exceeds tsc's instantiation depth.
-    registerCodeGraphTools(server as unknown as ToolRegistrar, {
+    registerCodeGraphTools(server, {
       aiBackend: '',
       authorization: '',
     });
