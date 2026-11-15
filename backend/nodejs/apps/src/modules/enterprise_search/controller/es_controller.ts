@@ -244,7 +244,6 @@ const actorOf = (orgId: unknown, userId: unknown): SessionActor => ({
   userId: String(userId),
 });
 
-
 const unconfiguredCitations = new SharedCitationService(null, logger);
 const unconfiguredArtifacts = new SharedArtifactService(null, logger);
 
@@ -254,8 +253,7 @@ const unconfiguredArtifacts = new SharedArtifactService(null, logger);
  * record commit in one durable transaction, or neither does.
  */
 export type ParticipantRecorderSource = () =>
-  | SessionParticipantRecorder<StoreSession>
-  | undefined;
+  SessionParticipantRecorder<StoreSession> | undefined;
 
 const noParticipantRecorder: ParticipantRecorderSource = () => undefined;
 
@@ -327,7 +325,9 @@ async function withAccessChecks<
     const foreign = response.messages.filter(sentByCollaborator);
     if (foreign.length === 0) return response;
     const checked = await checkedForViewer(foreign, req, checks, ids);
-    const byOriginal = new Map(foreign.map((message, i) => [message, checked[i]]));
+    const byOriginal = new Map(
+      foreign.map((message, i) => [message, checked[i]]),
+    );
     return {
       ...response,
       messages: response.messages.map(
@@ -3057,7 +3057,13 @@ const deleteConversation = async (
     if (!result) {
       throw new NotFoundError('Conversation not found');
     }
-    await stopDeletedChatRun(stopper, String(orgId), String(conversationId), String(userId), requestId);
+    await stopDeletedChatRun(
+      stopper,
+      String(orgId),
+      String(conversationId),
+      String(userId),
+      requestId,
+    );
 
     const response = {
       id: conversationId,
@@ -3539,13 +3545,21 @@ export const unshareConversationById = (
   appConfig: AppConfig,
   participants: ParticipantRecorderSource = noParticipantRecorder,
 ): ConversationHandler =>
-  createUnshareConversationHandler(appConfig, plainChatShareScope, participants);
+  createUnshareConversationHandler(
+    appConfig,
+    plainChatShareScope,
+    participants,
+  );
 
 export const unshareAgentConversation = (
   appConfig: AppConfig,
   participants: ParticipantRecorderSource = noParticipantRecorder,
 ): ConversationHandler =>
-  createUnshareConversationHandler(appConfig, agentChatShareScope, participants);
+  createUnshareConversationHandler(
+    appConfig,
+    agentChatShareScope,
+    participants,
+  );
 
 /**
  * PUT /api/v1/conversations/:conversationId/project
@@ -4314,7 +4328,7 @@ async function regenerateAnswersInternal(
       headers: {
         ...(await resolvedProxyHeaders(req, {
           agentKey: regenIsAgentMode ? null : agentKey,
-          conversationId: conversationId as string,
+          conversationId: conversationId,
         })),
         'Content-Type': 'application/json',
       },
@@ -5204,7 +5218,9 @@ async function performFeedbackUpdate(params: {
       ? {
           runId: link.runId,
           ...(link.agentKey !== null ? { agentKey: link.agentKey } : {}),
-          ...(link.agentVersion !== null ? { agentVersion: link.agentVersion } : {}),
+          ...(link.agentVersion !== null
+            ? { agentVersion: link.agentVersion }
+            : {}),
         }
       : {}),
     feedbackProvider: userId,
@@ -5230,17 +5246,15 @@ async function performFeedbackUpdate(params: {
   return { updatedConversation: conversation, feedbackEntry };
 }
 
-export const updateFeedbackWith = (runs?: FeedbackRuns) => async (
-  req: AuthenticatedUserRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  const requestId = req.context?.requestId;
-  const startTime = Date.now();
-  try {
-    const { conversationId, messageId } = req.params;
-    const userId = req.user?.userId;
-    const orgId = req.user?.orgId;
+export const updateFeedbackWith =
+  (runs?: FeedbackRuns) =>
+  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+    const requestId = req.context?.requestId;
+    const startTime = Date.now();
+    try {
+      const { conversationId, messageId } = req.params;
+      const userId = req.user?.userId;
+      const orgId = req.user?.orgId;
 
     logger.debug('Attempting to update conversation feedback', {
       requestId,
@@ -5251,19 +5265,20 @@ export const updateFeedbackWith = (runs?: FeedbackRuns) => async (
       timestamp: new Date().toISOString(),
     });
 
-    const { updatedConversation, feedbackEntry } = await unitOfWork.run((tx) =>
-      performFeedbackUpdate({
-        scope: CHAT_SCOPE,
-        conversationId: conversationId!,
-        orgId: String(orgId),
-        messageId: messageId!,
-        userId: userId!,
-        body: req.body,
-        userAgent: req.headers['user-agent'],
-        tx,
-        runs,
-      }),
-    );
+      const { updatedConversation, feedbackEntry } = await unitOfWork.run(
+        (tx) =>
+          performFeedbackUpdate({
+            scope: CHAT_SCOPE,
+            conversationId: conversationId!,
+            orgId: String(orgId),
+            messageId: messageId!,
+            userId: userId!,
+            body: req.body,
+            userAgent: req.headers['user-agent'],
+            tx,
+            runs,
+          }),
+      );
 
     logger.debug('Feedback updated successfully', {
       requestId,
@@ -6929,13 +6944,21 @@ const AGENT_VERSION_ACTIONS: Record<
   AgentVersionAction,
   { method: HttpMethod; path: (version: string) => string; label: string }
 > = {
-  list: { method: HttpMethod.GET, path: () => '/versions', label: 'List Agent Versions' },
+  list: {
+    method: HttpMethod.GET,
+    path: () => '/versions',
+    label: 'List Agent Versions',
+  },
   get: {
     method: HttpMethod.GET,
     path: (v) => `/versions/${encodeURIComponent(v)}`,
     label: 'Get Agent Version',
   },
-  publish: { method: HttpMethod.POST, path: () => '/versions', label: 'Publish Agent' },
+  publish: {
+    method: HttpMethod.POST,
+    path: () => '/versions',
+    label: 'Publish Agent',
+  },
   rollback: {
     method: HttpMethod.POST,
     path: (v) => `/versions/${encodeURIComponent(v)}/rollback`,
@@ -7037,9 +7060,16 @@ export const deleteAgent =
       const agent = aiResponse.data;
       // After the delete: only the query service decides who may delete an agent (C-14 AGENT_DATA_STORES).
       try {
-        const erased = agentKey ? await agentData?.eraseAgent(orgId, agentKey) : undefined;
+        const erased = agentKey
+          ? await agentData?.eraseAgent(orgId, agentKey)
+          : undefined;
         if (erased !== undefined) {
-          logger.info('memory.agent_erased', { requestId, orgId, agentKey, erased });
+          logger.info('memory.agent_erased', {
+            requestId,
+            orgId,
+            agentKey,
+            erased,
+          });
           if (agentKey) await retries?.settle(orgId, agentKey);
         }
       } catch (error) {
@@ -7242,7 +7272,7 @@ export const streamAgentConversation =
         method: HttpMethod.POST,
         headers: {
           ...(await resolvedProxyHeaders(req, {
-            agentKey: agentKey as string,
+            agentKey: agentKey,
             conversationId: newAgentConversationId,
           })),
           'Content-Type': 'application/json',
@@ -8037,7 +8067,7 @@ export const addMessageStreamToAgentConversation =
         method: HttpMethod.POST,
         headers: {
           ...(await resolvedProxyHeaders(req, {
-            agentKey: agentKey as string,
+            agentKey: agentKey,
             conversationId: conversationId as string,
           })),
           'Content-Type': 'application/json',
@@ -8977,7 +9007,10 @@ export const getAgentConversationById =
       // Build conversation response using existing helper
       const builtResponse = await withViewerChecks(
         buildConversationResponse(
-          { ...conversationWithMessages, harnessVersion: harness.harnessVersion },
+          {
+            ...conversationWithMessages,
+            harnessVersion: harness.harnessVersion,
+          },
           userId,
           {
             page,
@@ -9103,7 +9136,13 @@ const deleteAgentConversationOf = async (
       () => deleteConversationArtifacts(appConfig, String(conversationId), req),
     );
     if (conversation) {
-      await stopDeletedChatRun(stopper, String(orgId), String(conversationId), String(userId), requestId);
+      await stopDeletedChatRun(
+        stopper,
+        String(orgId),
+        String(conversationId),
+        String(userId),
+        requestId,
+      );
     }
 
     res.status(200).json({
@@ -9464,17 +9503,15 @@ export const updateAgentConversationTitle = async (
   }
 };
 
-export const updateAgentFeedbackWith = (runs?: FeedbackRuns) => async (
-  req: AuthenticatedUserRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  const requestId = req.context?.requestId;
-  const startTime = Date.now();
-  try {
-    const { agentKey, conversationId, messageId } = req.params;
-    const userId = req.user?.userId;
-    const orgId = req.user?.orgId;
+export const updateAgentFeedbackWith =
+  (runs?: FeedbackRuns) =>
+  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+    const requestId = req.context?.requestId;
+    const startTime = Date.now();
+    try {
+      const { agentKey, conversationId, messageId } = req.params;
+      const userId = req.user?.userId;
+      const orgId = req.user?.orgId;
 
     logger.debug('Attempting to update agent conversation feedback', {
       requestId,
@@ -9485,19 +9522,20 @@ export const updateAgentFeedbackWith = (runs?: FeedbackRuns) => async (
       timestamp: new Date().toISOString(),
     });
 
-    const { updatedConversation, feedbackEntry } = await unitOfWork.run((tx) =>
-      performFeedbackUpdate({
-        scope: agentScope(agentKey),
-        conversationId: conversationId!,
-        orgId: String(orgId),
-        messageId: messageId!,
-        userId: userId!,
-        body: req.body,
-        userAgent: req.headers['user-agent'],
-        tx,
-        runs,
-      }),
-    );
+      const { updatedConversation, feedbackEntry } = await unitOfWork.run(
+        (tx) =>
+          performFeedbackUpdate({
+            scope: agentScope(agentKey),
+            conversationId: conversationId!,
+            orgId: String(orgId),
+            messageId: messageId!,
+            userId: userId!,
+            body: req.body,
+            userAgent: req.headers['user-agent'],
+            tx,
+            runs,
+          }),
+      );
 
     logger.debug('Agent feedback updated successfully', {
       requestId,

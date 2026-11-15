@@ -221,7 +221,8 @@ const SKIPPABLE_CLAIM_CODES = new Set([
 
 /** A refusal's reason code for logs: the conflict code, never the message. */
 const refusalCode = (error: unknown): string =>
-  error instanceof HarnessConflictError || error instanceof ConversationDeletedError
+  error instanceof HarnessConflictError ||
+  error instanceof ConversationDeletedError
     ? error.code
     : error instanceof HarnessNotFoundError
       ? 'RUN_NOT_FOUND'
@@ -265,7 +266,11 @@ export interface RunAuditEvidence {
   pinned: boolean;
   toolIds: string[];
   routeIds: string[];
-  intents: Array<{ invocationId: string; toolId: string; attemptId: string | null }>;
+  intents: Array<{
+    invocationId: string;
+    toolId: string;
+    attemptId: string | null;
+  }>;
   /** The run ended: its usage may be reconciled (C9.01). */
   ended: boolean;
   /** The journal's usage, one record per usage-bearing event. */
@@ -1410,7 +1415,10 @@ export class ExecutionService {
    * run at `expectedRevision`; the store refuses if it moved since.
    */
   /** `fence`: what the control's authority depends on, held inside its transaction (QA21-F2). */
-  async control(command: ControlRun, fence?: CommitFence): Promise<CommitReceipt> {
+  async control(
+    command: ControlRun,
+    fence?: CommitFence,
+  ): Promise<CommitReceipt> {
     const receipt = await this.applyControl(command, fence);
     if (command.action === 'cancel' && receipt.run.status === 'cancelling') {
       await this.wakeCancelled(receipt.run);
@@ -1422,7 +1430,10 @@ export class ExecutionService {
     return receipt;
   }
 
-  private async applyControl(command: ControlRun, fence?: CommitFence): Promise<CommitReceipt> {
+  private async applyControl(
+    command: ControlRun,
+    fence?: CommitFence,
+  ): Promise<CommitReceipt> {
     const prior = await this.store.findReceipt(
       command.orgId,
       command.runId,
@@ -1442,7 +1453,8 @@ export class ExecutionService {
     }
     const run = await this.store.get(command.orgId, command.runId);
     if (run === null) throw new HarnessNotFoundError();
-    if (run.harnessMajor !== 2) return this.store.control(command, [], undefined, fence);
+    if (run.harnessMajor !== 2)
+      return this.store.control(command, [], undefined, fence);
     assertControlCurrent(run, command);
     const resolutions = controlResolutions(command);
     // ADR-OPS-01 D6: an operator's resume of a retired run resolves no interaction; the store holds it to one.
@@ -1450,7 +1462,10 @@ export class ExecutionService {
       (command.action === 'resume' && command.cause === undefined) ||
       command.action === 'resolve'
         ? await this.assertInteractionOpen(run, command)
-        : { grants: new Map<string, ConversationGrant>(), declinable: new Map<string, DeclinableAsk>() };
+        : {
+            grants: new Map<string, ConversationGrant>(),
+            declinable: new Map<string, DeclinableAsk>(),
+          };
     // A cancel that ends the run here (no worker holds it) closes the calls a crashed attempt left open (EV-06).
     const open =
       command.action === 'cancel' && !WORKER_OWNED_RUN_STATUSES.has(run.status)
@@ -1595,20 +1610,18 @@ export class ExecutionService {
     if (run.harnessMajor !== 2 || childOf(run) !== null) return undefined;
     const prior = await this.runEvents(run.orgId, run.runId);
     let seq = prior[prior.length - 1]?.seq ?? 0;
-    const pending = appending.map(
-      (event): JournalEvent => ({
-        ...event,
-        orgId: run.orgId,
-        sessionId: run.sessionId,
-        streamId: journalStreamId(run),
-        runId: run.runId,
-        ...(attemptId !== undefined ? { attemptId } : {}),
-        ...(fence !== undefined ? { fence } : {}),
-        seq: (seq += 1),
-        ts: '',
-        writer: 'node',
-      }),
-    );
+    const pending = appending.map((event): JournalEvent => ({
+      ...event,
+      orgId: run.orgId,
+      sessionId: run.sessionId,
+      streamId: journalStreamId(run),
+      runId: run.runId,
+      ...(attemptId !== undefined ? { attemptId } : {}),
+      ...(fence !== undefined ? { fence } : {}),
+      seq: (seq += 1),
+      ts: '',
+      writer: 'node',
+    }));
     const events = [...prior, ...pending];
     const transcript = runTranscript(events, run.runId);
     if (transcript === null) return undefined;
@@ -1800,7 +1813,10 @@ export class ExecutionService {
           CONVERSATION_GRANTS_OFF_MESSAGE,
         );
       }
-      if (resolution.scope !== undefined && !offered.has(resolution.interactionId)) {
+      if (
+        resolution.scope !== undefined &&
+        !offered.has(resolution.interactionId)
+      ) {
         throw new HarnessConflictError(
           'CONVERSATION_GRANT_NOT_OFFERED',
           'This call can only be allowed once',
@@ -2079,15 +2095,21 @@ export class ExecutionService {
    * alone in its tree reads its own skips itself: nothing is read for it here.
    */
   async treeSkippedConnects(run: HarnessRun): Promise<string[]> {
-    if (run.parent === undefined && (run.children?.spawned ?? 0) === 0) return [];
+    if (run.parent === undefined && (run.children?.spawned ?? 0) === 0)
+      return [];
     const tree = runTreeOf(
       await this.store.sessionRunParents(run.orgId, run.sessionId),
       run.runId,
     );
     const skipped = new Set<string>();
     for (const runId of tree) {
-      for (let after = 0; ; ) {
-        const page = await this.journal.readRun(run.orgId, runId, after, SKIP_SCAN_PAGE);
+      for (let after = 0; ;) {
+        const page = await this.journal.readRun(
+          run.orgId,
+          runId,
+          after,
+          SKIP_SCAN_PAGE,
+        );
         for (const instance of skippedConnectsIn(page)) skipped.add(instance);
         if (page.length < SKIP_SCAN_PAGE) break;
         after = page[page.length - 1]?.seq ?? after;
@@ -2216,12 +2238,19 @@ export class ExecutionService {
       orgId,
       runId,
       pinned: spec !== null,
-      toolIds: spec === null ? [] : spec.grants.tools.map((tool) => tool.toolId),
-      routeIds: spec === null ? [] : spec.model.policy.map((route) => modelRouteId(route)),
+      toolIds:
+        spec === null ? [] : spec.grants.tools.map((tool) => tool.toolId),
+      routeIds:
+        spec === null
+          ? []
+          : spec.model.policy.map((route) => modelRouteId(route)),
       intents: events
         .filter((event) => event.type === 'tool.intent')
         .map((event) => {
-          const data = (event.data ?? {}) as { invocationId?: unknown; toolId?: unknown };
+          const data = (event.data ?? {}) as {
+            invocationId?: unknown;
+            toolId?: unknown;
+          };
           return {
             invocationId: String(data.invocationId ?? ''),
             toolId: String(data.toolId ?? ''),
@@ -2359,7 +2388,9 @@ export class ExecutionService {
       limit,
     );
     for (const run of due) {
-      await forEnumeratedOrg(run.orgId, SWEEP_JOB, () => this.failRun(run, NOT_STARTED));
+      await forEnumeratedOrg(run.orgId, SWEEP_JOB, () =>
+        this.failRun(run, NOT_STARTED),
+      );
       this.logger.warn(
         'run.not_started',
         harnessLogMeta('run.not_started', {
@@ -2415,13 +2446,21 @@ export class ExecutionService {
         };
         if (!pinned) {
           const relaxed = await forEnumeratedOrg(run.orgId, SWEEP_JOB, () =>
-            this.store.relaxRequirement(run.orgId, run.runId, run.revision, feature),
+            this.store.relaxRequirement(
+              run.orgId,
+              run.runId,
+              run.revision,
+              feature,
+            ),
           );
           if (!relaxed) continue;
           availability.metrics.stranded(feature, 'relaxed');
           this.logger.info(
             'run.requirement_relaxed',
-            harnessLogMeta('run.requirement_relaxed', { ...fields, reason: 'no_live_worker' }),
+            harnessLogMeta('run.requirement_relaxed', {
+              ...fields,
+              reason: 'no_live_worker',
+            }),
           );
         } else {
           await forEnumeratedOrg(run.orgId, SWEEP_JOB, () =>
@@ -2430,7 +2469,10 @@ export class ExecutionService {
           availability.metrics.stranded(feature, 'failed');
           this.logger.warn(
             'run.stranded_failed',
-            harnessLogMeta('run.stranded_failed', { ...fields, reason: NO_COMPATIBLE_WORKER }),
+            harnessLogMeta('run.stranded_failed', {
+              ...fields,
+              reason: NO_COMPATIBLE_WORKER,
+            }),
           );
         }
         released += 1;
@@ -2502,11 +2544,15 @@ export class ExecutionService {
     openCalls: (run) =>
       forEnumeratedOrg(run.orgId, SWEEP_JOB, () => this.openCalls(run)),
     project: (run, appending) =>
-      forEnumeratedOrg(run.orgId, SWEEP_JOB, () => this.sweptTranscript(run, appending)),
+      forEnumeratedOrg(run.orgId, SWEEP_JOB, () =>
+        this.sweptTranscript(run, appending),
+      ),
     settled: (run, transcript, outcome, cause) => {
       this.logSweptTranscript(run, transcript, outcome, cause);
       if (outcome === 'written')
-        forEnumeratedOrg(run.orgId, SWEEP_JOB, () => this.labelled(run, transcript));
+        forEnumeratedOrg(run.orgId, SWEEP_JOB, () => {
+          this.labelled(run, transcript);
+        });
     },
   };
 

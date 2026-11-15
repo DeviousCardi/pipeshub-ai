@@ -52,7 +52,10 @@ export const LEFTOVER_GROUPS: ReadonlyArray<
 > = [
   {
     topic: 'control-plane-events',
-    formats: [HISTORICAL_GROUP_FORMATS.node, HISTORICAL_GROUP_FORMATS.pythonControlPlane],
+    formats: [
+      HISTORICAL_GROUP_FORMATS.node,
+      HISTORICAL_GROUP_FORMATS.pythonControlPlane,
+    ],
   },
   {
     topic: 'ai-config-events',
@@ -120,7 +123,9 @@ export class LeftoverGroupSweeper {
   }
 
   private reportLeft(topic: string, left: string[]): void {
-    const fresh = left.filter((group) => !this.reported.has(`${topic}\n${group}`));
+    const fresh = left.filter(
+      (group) => !this.reported.has(`${topic}\n${group}`),
+    );
     if (fresh.length === 0) return;
     for (const group of fresh) this.reported.add(`${topic}\n${group}`);
     this.logger.info(

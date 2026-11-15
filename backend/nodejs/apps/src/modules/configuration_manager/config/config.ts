@@ -1,4 +1,7 @@
-import { etcdTlsFromEnv, type EtcdTlsFiles } from '../../../libs/keyValueStore/etcd-tls';
+import {
+  etcdTlsFromEnv,
+  type EtcdTlsFiles,
+} from '../../../libs/keyValueStore/etcd-tls';
 import { StoreType } from '../../../libs/keyValueStore/constants/KeyValueStoreType';
 import {
   cipherRing,

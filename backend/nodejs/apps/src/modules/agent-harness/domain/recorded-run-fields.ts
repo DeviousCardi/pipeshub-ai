@@ -21,7 +21,9 @@ export interface RecordedRunField {
 let recorded: readonly RecordedRunField[] = [];
 
 /** The fields an edition records (`HarnessEdition.recordedRunFields`); set when the harness is bound. */
-export function useRecordedRunFields(fields: readonly RecordedRunField[]): void {
+export function useRecordedRunFields(
+  fields: readonly RecordedRunField[],
+): void {
   recorded = Object.freeze([...fields]);
 }
 

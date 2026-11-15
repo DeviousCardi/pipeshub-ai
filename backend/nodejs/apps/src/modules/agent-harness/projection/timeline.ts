@@ -118,10 +118,12 @@ export interface CallView {
 }
 
 /** A call's arguments as the live stream previews them (legacy's `argsPreview`): bounded, refs as the model wrote them. */
-export const boundedArgs = (call: CallView): string => call.args ?? call.argsJson;
+export const boundedArgs = (call: CallView): string =>
+  call.args ?? call.argsJson;
 
 /** A call's arguments as its saved part keeps them. */
-export const savedArgs = (call: CallView): string => call.saved?.args ?? boundedArgs(call);
+export const savedArgs = (call: CallView): string =>
+  call.saved?.args ?? boundedArgs(call);
 
 export interface TurnView {
   turn: number;
@@ -302,7 +304,6 @@ export interface CouldNotDoView {
   line: string;
 }
 
-
 /** One `x.pipeshub.engine.progress` line as the `code_task` card reads it (U1, E1). */
 export interface EngineFrameView {
   tool: string;
@@ -323,11 +324,7 @@ export interface EngineTaskView {
 }
 
 export type ApprovalStatus =
-  | 'pending'
-  | 'approved'
-  | 'denied'
-  | 'closed'
-  | 'expired';
+  'pending' | 'approved' | 'denied' | 'closed' | 'expired';
 
 /** A source the run read, as the approval card names it: a title and a link, never shown as an id (UX1). */
 export interface ApprovalSource {
@@ -410,11 +407,7 @@ export interface ApprovalView {
  * when it was refused, `closed` when the run ended first.
  */
 export type ConnectStatus =
-  | 'pending'
-  | 'connected'
-  | 'declined'
-  | 'expired'
-  | 'closed';
+  'pending' | 'connected' | 'declined' | 'expired' | 'closed';
 
 export type ConnectItemKind = 'toolset' | 'mcp';
 
@@ -705,19 +698,28 @@ const str = (value: unknown): string | undefined =>
 /** `run.failed.servers` (WP-84): the labels of the servers that withdrew a tool; nothing when there are none. */
 const failedServers = (value: unknown): { servers?: string[] } => {
   const servers = Array.isArray(value)
-    ? value.filter((label): label is string => typeof label === 'string' && label.length > 0)
+    ? value.filter(
+        (label): label is string =>
+          typeof label === 'string' && label.length > 0,
+      )
     : [];
   return servers.length > 0 ? { servers } : {};
 };
 /** `run.failed.memoryLimitMb` (R31GVISO-FU-3): the limit an out-of-memory run met; nothing when malformed. */
 const failedMemoryLimit = (value: unknown): { memoryLimitMb?: number } =>
-  typeof value === 'number' && Number.isInteger(value) && value > 0 ? { memoryLimitMb: value } : {};
+  typeof value === 'number' && Number.isInteger(value) && value > 0
+    ? { memoryLimitMb: value }
+    : {};
 const record = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
 
-const SITE_ACCESSES: ReadonlySet<string> = new Set(['read', 'read-write', 'host-level']);
+const SITE_ACCESSES: ReadonlySet<string> = new Set([
+  'read',
+  'read-write',
+  'host-level',
+]);
 const SITE_USES: ReadonlySet<string> = new Set(['read', 'write']);
 
 /** An egress record's `site` (WP-63) as the activity reads it; anything malformed is no site. */
@@ -851,7 +853,10 @@ export function approvalReason(
   const label = safeText(record(data['destination'])['label']);
   const fieldOrder = Array.isArray(data['fieldOrder'])
     ? data['fieldOrder']
-        .filter((name): name is string => typeof name === 'string' && name.length > 0 && name.length <= 128)
+        .filter(
+          (name): name is string =>
+            typeof name === 'string' && name.length > 0 && name.length <= 128,
+        )
         .slice(0, 64)
     : [];
   return {
@@ -872,7 +877,9 @@ export function approvalReason(
       ? { ruleGrant: true as const }
       : {}),
     ...(data['editable'] === true ? { editable: true as const } : {}),
-    ...(data['editable'] === true && fieldOrder.length > 0 ? { fieldOrder } : {}),
+    ...(data['editable'] === true && fieldOrder.length > 0
+      ? { fieldOrder }
+      : {}),
     ...editionReasonFields(data),
   };
 }
@@ -1268,7 +1275,8 @@ export class TimelineBuilder {
       }
       case REPOSITORY_UNAVAILABLE: {
         const card = unavailableRepository(data);
-        if (card !== null) (this.timeline.repositoriesUnavailable ??= []).push(card);
+        if (card !== null)
+          (this.timeline.repositoriesUnavailable ??= []).push(card);
         return;
       }
       case REPOSITORY_FETCHED: {
@@ -1444,7 +1452,6 @@ export class TimelineBuilder {
     // A tool's result goes over the bound like output; its step still ends, so the line stays without it.
     if (line.kind === 'tool_result' && over && 'result' in line.data) {
       const { result: _result, ...rest } = line.data;
-      void _result;
       line = { ...line, data: { ...rest, truncated: true } };
       size = line.text.length + JSON.stringify(line.data).length;
       engine.truncated = true;
@@ -1472,7 +1479,12 @@ export class TimelineBuilder {
     const engine = this.engineCalls.get(interactionId);
     const explainedTool = this.explainedTools.get(interactionId);
     // WP-97: a request whose call line is missing is still a card, from the tool its reason names; never nothing.
-    if (call === undefined && engine === undefined && explainedTool === undefined) return;
+    if (
+      call === undefined &&
+      engine === undefined &&
+      explainedTool === undefined
+    )
+      return;
     const reason = this.reasons.get(interactionId);
     this.timeline.approvals.push({
       interactionId,
@@ -1536,23 +1548,39 @@ export class TimelineBuilder {
       decision === 'approved' || decision === 'denied' ? decision : 'closed';
     if (decision === 'denied') {
       // WP-63 part A: a clone or push the person refused is a line of the run's activity too.
-      const tool = [REPOSITORY_FETCH_TOOL, REPOSITORY_PUSH_TOOL].find((name) => isRepositoryTool(view.toolName, name));
-      if (tool !== undefined) (this.timeline.sites ??= []).push(deniedRepositoryLine(tool, view.reason?.destination));
+      const tool = [REPOSITORY_FETCH_TOOL, REPOSITORY_PUSH_TOOL].find((name) =>
+        isRepositoryTool(view.toolName, name),
+      );
+      if (tool !== undefined)
+        (this.timeline.sites ??= []).push(
+          deniedRepositoryLine(tool, view.reason?.destination),
+        );
     }
     // WP-63: the upload card's answer, for the site it names.
-    if (isRepositoryTool(view.toolName, SITE_UPLOAD_TOOL) && view.reason?.destination !== undefined) {
+    if (
+      isRepositoryTool(view.toolName, SITE_UPLOAD_TOOL) &&
+      view.reason?.destination !== undefined
+    ) {
       if (decision === 'approved' || decision === 'denied') {
-        (this.timeline.sites ??= []).push(siteUploadDecisionLine(view.reason.destination, decision === 'approved'));
+        (this.timeline.sites ??= []).push(
+          siteUploadDecisionLine(
+            view.reason.destination,
+            decision === 'approved',
+          ),
+        );
       }
     }
     // Only a denial journals a reason, inline (AP-05); anything else carries none.
     const reason =
-      decision === 'denied' ? inlineContent(data['answerRef'])?.trim() : undefined;
+      decision === 'denied'
+        ? inlineContent(data['answerRef'])?.trim()
+        : undefined;
     if (reason) view.denyReason = reason.slice(0, MAX_DENY_REASON_CHARS);
     // An approval's answer is the arguments the person approved instead (AP-06).
     const edited =
       decision === 'approved' ? inlineContent(data['answerRef']) : undefined;
-    if (typeof edited === 'string' && edited.length > 0) view.editedArgs = edited;
+    if (typeof edited === 'string' && edited.length > 0)
+      view.editedArgs = edited;
   }
 
   private modelCalled(route: unknown): void {
@@ -1798,7 +1826,11 @@ export class TimelineBuilder {
     if (step !== undefined) view.step = step;
   }
 
-  private keepSaved(view: CallView, field: keyof NonNullable<CallView['saved']>, value: unknown): void {
+  private keepSaved(
+    view: CallView,
+    field: keyof NonNullable<CallView['saved']>,
+    value: unknown,
+  ): void {
     const saved = str(value);
     if (saved !== undefined) view.saved = { ...view.saved, [field]: saved };
   }
@@ -1979,7 +2011,6 @@ function withoutHiddenReasoning(
   if (display?.reasoning !== false || answer.reasoning === undefined)
     return answer;
   const { reasoning: _hidden, ...kept } = answer;
-  void _hidden;
   return kept;
 }
 
@@ -2041,11 +2072,21 @@ export function notFoundOf(data: Record<string, unknown>): {
   const subject = str(value['subject']);
   const line = str(value['line']);
   const hits = value['hits'];
-  if (subject === undefined || line === undefined || typeof hits !== 'number' || !Number.isInteger(hits) || hits < 0) {
+  if (
+    subject === undefined ||
+    line === undefined ||
+    typeof hits !== 'number' ||
+    !Number.isInteger(hits) ||
+    hits < 0
+  ) {
     return {};
   }
   const strings = (raw: unknown): string[] =>
-    Array.isArray(raw) ? raw.filter((name): name is string => typeof name === 'string' && name !== '') : [];
+    Array.isArray(raw)
+      ? raw.filter(
+          (name): name is string => typeof name === 'string' && name !== '',
+        )
+      : [];
   const near = strings(value['near']);
   const places = strings(value['places']);
   return {

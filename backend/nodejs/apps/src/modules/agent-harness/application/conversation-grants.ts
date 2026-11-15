@@ -153,7 +153,12 @@ export class ConversationGrantService<Tx> {
       ),
     );
     for (const runId of origins) {
-      if (read.has(runId) || events.some((event) => event.runId === runId && event.streamId === sessionId)) {
+      if (
+        read.has(runId) ||
+        events.some(
+          (event) => event.runId === runId && event.streamId === sessionId,
+        )
+      ) {
         continue;
       }
       read.add(runId);

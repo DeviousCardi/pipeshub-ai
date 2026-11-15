@@ -3,7 +3,13 @@
  * allowlist (CSP_FRAME_ANCESTORS) lets the rest of the app be framed: a consent
  * or sign-in page overlaid by its embedder can be clickjacked into "Allow".
  */
-export const UNFRAMEABLE_PAGE_PATHS = ['/login', '/sign-up', '/oauth', '/slack/link', '/agent/claim'];
+export const UNFRAMEABLE_PAGE_PATHS = [
+  '/login',
+  '/sign-up',
+  '/oauth',
+  '/slack/link',
+  '/agent/claim',
+];
 
 /**
  * Matched as Express routes them (case-insensitive, on segment boundaries), and
@@ -11,7 +17,10 @@ export const UNFRAMEABLE_PAGE_PATHS = ['/login', '/sign-up', '/oauth', '/slack/l
  * path that serves one of these pages escapes the rule. `editionPaths` are an
  * edition's own decision pages (EditionBoot.unframeablePaths), held to the same rule.
  */
-export function isUnframeablePage(path: string, editionPaths: readonly string[] = []): boolean {
+export function isUnframeablePage(
+  path: string,
+  editionPaths: readonly string[] = [],
+): boolean {
   let normalised = path;
   try {
     normalised = decodeURIComponent(path);

@@ -30,7 +30,7 @@ const ownerRef = z
   .string()
   .regex(/^(?:org|(?:team|user):[A-Za-z0-9][A-Za-z0-9_.:-]{0,127})$/);
 const subjectKind = z.enum(['org', 'team', 'agent', 'user']);
-const limit = (max: number): z.ZodDefault<z.ZodCoercedNumber<unknown>> =>
+const limit = (max: number): z.ZodDefault<z.ZodCoercedNumber> =>
   z.coerce.number().int().min(1).max(max).default(50);
 const visibility = z.enum(['owner', 'team', 'org']);
 

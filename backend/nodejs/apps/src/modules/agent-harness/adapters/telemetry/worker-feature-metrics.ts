@@ -24,8 +24,13 @@ const stranded = metricsBackend.createCounter({
 });
 
 export const prometheusWorkerFeatureMetrics: WorkerFeatureMetrics = {
-  live: (feature: WorkerFeature, isLive: boolean) => live.set({ feature }, isLive ? 1 : 0),
-  withheld: (feature: WorkerFeature) => withheld.inc({ feature }),
-  stranded: (feature: WorkerFeature, outcome: StrandedOutcome) =>
-    stranded.inc({ feature, outcome }),
+  live: (feature: WorkerFeature, isLive: boolean) => {
+    live.set({ feature }, isLive ? 1 : 0);
+  },
+  withheld: (feature: WorkerFeature) => {
+    withheld.inc({ feature });
+  },
+  stranded: (feature: WorkerFeature, outcome: StrandedOutcome) => {
+    stranded.inc({ feature, outcome });
+  },
 };

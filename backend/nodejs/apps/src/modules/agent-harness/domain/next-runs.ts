@@ -23,8 +23,7 @@ export interface NextRunRecord {
 }
 
 export type NextRunOutcome =
-  | { status: 'admitted'; runId: string }
-  | { status: 'refused'; reason: string };
+  { status: 'admitted'; runId: string } | { status: 'refused'; reason: string };
 
 /** Where next runs wait; both admission stores implement it. */
 export interface NextRunQueue {
@@ -70,7 +69,6 @@ export function drainCommand(record: NextRunRecord): AdmitRunCommand {
     visibleRuns: _visible,
     ...command
   } = record.command;
-  void [_steer, _visible];
   return {
     ...structuredClone(command),
     idempotencyKey: nextRunIdempotencyKey(record.id),
@@ -91,6 +89,5 @@ export function queuedNextRun(
 /** The active run as a next run's sender may see it in an admission result. */
 export function withoutInput(run: HarnessRun): HarnessRun {
   const { input: _input, ...rest } = run;
-  void _input;
   return structuredClone(rest);
 }

@@ -108,10 +108,10 @@ const TABLES: ReadonlyArray<{
       'harness.workspace_heads': 'agentWorkspaceHeads',
       'harness.workspace_writers': 'agentWorkspaceWriters',
     }[table],
-    select: ((s) => ({
+    select: (s) => ({
       where: `(workspace_id = $2 OR workspace_id LIKE $3 ESCAPE '\\')`,
       values: [s.workspace, `${likeEscape(s.workspace)}:%`],
-    })) as Select,
+    }),
   })),
   {
     table: 'harness.workspace_keys',
@@ -142,7 +142,6 @@ const TABLES: ReadonlyArray<{
 /** Each table and the Mongo store it is (C-14 holds the Mongo stores to the backup coverage; a test holds these to it). */
 export const SESSION_BACKUP_PG_TABLES: Readonly<Record<string, string>> =
   Object.fromEntries(TABLES.map(({ table, mongo }) => [table, mongo]));
-
 
 const writePrivate = async (path: string, text: string): Promise<void> => {
   await writeFile(path, text, { mode: 0o600 });
@@ -196,7 +195,10 @@ export class PgSessionBackup {
     for (const [table, rows] of files) {
       const text = rows.map((row) => JSON.stringify(row)).join('\n');
       await writePrivate(join(directory, `${table}.ndjson`), text);
-      collections[table] = { documents: rows.length, sha256: archiveFileDigest(text) };
+      collections[table] = {
+        documents: rows.length,
+        sha256: archiveFileDigest(text),
+      };
     }
     const manifest: SessionBackupManifest = {
       format: SESSION_BACKUP_PG_FORMAT,
@@ -253,49 +255,54 @@ export class PgSessionBackup {
       }
       contents.set(table, rows);
     }
-    if (manifestDigest(manifest.collections, archiveFileDigest) !== manifest.digest) {
+    if (
+      manifestDigest(manifest.collections, archiveFileDigest) !==
+      manifest.digest
+    ) {
       throw new SessionBackupRefused(
         'archive_corrupt',
         'the manifest digest does not match',
       );
     }
     // The archive, verified whole above, is the job's own record of its org (as a job row is): bound from it.
-    await forOrg(manifest.orgId, 'session-backup', () => asOrgUnit(manifest.orgId, true, async (k) => {
-      const { rows } = await k.query<{ held: boolean }>(
-        `/* pipeshub:harness.session_backup_present */ SELECT EXISTS (SELECT 1 FROM harness.runs WHERE org_id = $1 AND session_id = $2)
+    await forOrg(manifest.orgId, 'session-backup', () =>
+      asOrgUnit(manifest.orgId, true, async (k) => {
+        const { rows } = await k.query<{ held: boolean }>(
+          `/* pipeshub:harness.session_backup_present */ SELECT EXISTS (SELECT 1 FROM harness.runs WHERE org_id = $1 AND session_id = $2)
             OR EXISTS (SELECT 1 FROM harness.session_events WHERE org_id = $1 AND session_id = $2) AS held`,
-        [manifest.orgId, manifest.sessionId],
-      );
-      if (rows[0]?.held === true) {
-        throw new SessionBackupRefused(
-          'session_exists',
-          'the target database already holds this session',
+          [manifest.orgId, manifest.sessionId],
         );
-      }
-      for (const { table, org } of TABLES) {
-        const found = contents.get(table) ?? [];
-        if (found.length === 0) continue;
-        const { columns, identity } = await writableColumns(k, table);
-        const list = columns.map((c) => `"${c}"`).join(', ');
-        // The org's keys may already be there (an earlier restore of the same org): never overwrite one.
-        await k.query(
-          fill(
-            `/* pipeshub:harness.session_backup_restore */ INSERT INTO @{TABLE} (@{COLUMNS})@{OVERRIDING}
+        if (rows[0]?.held === true) {
+          throw new SessionBackupRefused(
+            'session_exists',
+            'the target database already holds this session',
+          );
+        }
+        for (const { table, org } of TABLES) {
+          const found = contents.get(table) ?? [];
+          if (found.length === 0) continue;
+          const { columns, identity } = await writableColumns(k, table);
+          const list = columns.map((c) => `"${c}"`).join(', ');
+          // The org's keys may already be there (an earlier restore of the same org): never overwrite one.
+          await k.query(
+            fill(
+              `/* pipeshub:harness.session_backup_restore */ INSERT INTO @{TABLE} (@{COLUMNS})@{OVERRIDING}
              SELECT @{VALUES} FROM jsonb_array_elements($1::jsonb) e,
                LATERAL jsonb_populate_record(NULL::@{TABLE}, e) r@{CONFLICT}`,
-            {
-              TABLE: table,
-              COLUMNS: list,
-              // An identity value is the row's place in its table's order (a run's admission): restored as archived.
-              OVERRIDING: identity ? ' OVERRIDING SYSTEM VALUE' : '',
-              VALUES: columns.map((c) => `r."${c}"`).join(', '),
-              CONFLICT: org ? ' ON CONFLICT DO NOTHING' : '',
-            },
-          ),
-          [JSON.stringify(found)],
-        );
-      }
-    }));
+              {
+                TABLE: table,
+                COLUMNS: list,
+                // An identity value is the row's place in its table's order (a run's admission): restored as archived.
+                OVERRIDING: identity ? ' OVERRIDING SYSTEM VALUE' : '',
+                VALUES: columns.map((c) => `r."${c}"`).join(', '),
+                CONFLICT: org ? ' ON CONFLICT DO NOTHING' : '',
+              },
+            ),
+            [JSON.stringify(found)],
+          );
+        }
+      }),
+    );
     return manifest;
   }
 }

@@ -64,7 +64,10 @@ export class ImmediateOrgErasureSteps<Tx> implements OrgErasureSteps {
         const erased = await parts.sandboxes.eraseOrg(job.orgId);
         return {
           kind: 'done',
-          counts: { sandboxes: erased.sandboxes, sandboxFolders: erased.folders },
+          counts: {
+            sandboxes: erased.sandboxes,
+            sandboxFolders: erased.folders,
+          },
         };
       },
       principals: async (job) => {

@@ -366,7 +366,8 @@ export class RetentionSweeper<Tx> {
     why: { days: number; detail?: Readonly<Record<string, string>> },
   ): Promise<boolean> {
     const runs = await this.deps.runs.runsOf(orgId, sessionId);
-    if (runs.some((run) => !TERMINAL_RUN_STATUSES.has(run.status))) return false;
+    if (runs.some((run) => !TERMINAL_RUN_STATUSES.has(run.status)))
+      return false;
     return this.expireOne(orgId, sessionId, before, why);
   }
 
@@ -377,18 +378,21 @@ export class RetentionSweeper<Tx> {
     before: number,
     why: { days: number; detail?: Readonly<Record<string, string>> },
   ): Promise<boolean> {
-    const done = await this.deps.transaction(async (tx) => {
-      if (
-        !(await this.deps.conversations.expire(orgId, sessionId, before, tx))
-      ) {
-        return false;
-      }
-      await this.deps.erasures.enqueue(
-        { orgId, sessionId, reason: 'retention', by: null },
-        tx,
-      );
-      return true;
-    }, { orgId });
+    const done = await this.deps.transaction(
+      async (tx) => {
+        if (
+          !(await this.deps.conversations.expire(orgId, sessionId, before, tx))
+        ) {
+          return false;
+        }
+        await this.deps.erasures.enqueue(
+          { orgId, sessionId, reason: 'retention', by: null },
+          tx,
+        );
+        return true;
+      },
+      { orgId },
+    );
     if (done) {
       this.logger.info(
         'retention.expired',
@@ -446,7 +450,10 @@ export class RetentionSweeper<Tx> {
             erased += (
               await unsent.eraser.eraseAttachments(
                 orgId,
-                abandoned.map(({ recordId, ownerId }) => ({ recordId, ownerId })),
+                abandoned.map(({ recordId, ownerId }) => ({
+                  recordId,
+                  ownerId,
+                })),
               )
             ).attachments;
           }

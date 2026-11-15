@@ -1,5 +1,8 @@
 import type { Db } from 'mongodb';
-import { JournalCapability, recordJournalCapability } from '../../../../modules/agent-harness/config';
+import {
+  JournalCapability,
+  recordJournalCapability,
+} from '../../../../modules/agent-harness/config';
 import { DeploymentCapabilities } from '../../../../modules/agent-harness/domain/capabilities';
 import { CapabilityProbe } from '../../../../modules/agent-harness/ports/capability-probe';
 import { probeJournalDurability } from '../journal-startup/mongo';

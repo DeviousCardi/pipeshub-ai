@@ -26,7 +26,7 @@ import type { NextRunEraser } from '../../../../../src/modules/agent-harness/dom
 /** What a replay of `first` answers: the stored admission, not the session `first` created. */
 const replayOf = <T extends { createdSession?: unknown }>(first: T): Omit<T, 'createdSession'> & { created: false } => {
   const { createdSession: _created, ...stored } = first;
-  void _created;
+  _created;
   return { ...stored, created: false };
 };
 

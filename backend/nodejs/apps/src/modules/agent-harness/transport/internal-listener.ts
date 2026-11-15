@@ -23,9 +23,12 @@ export const INTERNAL_HOST_ENV = 'AGENT_HARNESS_INTERNAL_HOST';
 export const DEFAULT_INTERNAL_PORT = 3002;
 export const DEFAULT_INTERNAL_HOST = '0.0.0.0';
 export const INTERNAL_LISTENER_CODE = 'AGENT_HARNESS_INTERNAL_LISTENER';
-export const INTERNAL_HEADERS_TIMEOUT_ENV = 'AGENT_HARNESS_INTERNAL_HEADERS_TIMEOUT_MS';
-export const INTERNAL_REQUEST_TIMEOUT_ENV = 'AGENT_HARNESS_INTERNAL_REQUEST_TIMEOUT_MS';
-export const INTERNAL_MAX_CONNECTIONS_ENV = 'AGENT_HARNESS_INTERNAL_MAX_CONNECTIONS';
+export const INTERNAL_HEADERS_TIMEOUT_ENV =
+  'AGENT_HARNESS_INTERNAL_HEADERS_TIMEOUT_MS';
+export const INTERNAL_REQUEST_TIMEOUT_ENV =
+  'AGENT_HARNESS_INTERNAL_REQUEST_TIMEOUT_MS';
+export const INTERNAL_MAX_CONNECTIONS_ENV =
+  'AGENT_HARNESS_INTERNAL_MAX_CONNECTIONS';
 /**
  * The worker's requests are small JSON (10 MB at most) from inside the
  * deployment, so the request bounds are far tighter than the public listener's
@@ -52,7 +55,9 @@ export function internalListenerConfig(
 ): InternalListenerConfig {
   const rawPort = env[INTERNAL_PORT_ENV]?.trim();
   const port =
-    rawPort === undefined || rawPort === '' ? DEFAULT_INTERNAL_PORT : Number(rawPort);
+    rawPort === undefined || rawPort === ''
+      ? DEFAULT_INTERNAL_PORT
+      : Number(rawPort);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error(
       `${INTERNAL_PORT_ENV} must be a TCP port (1-65535), got ${JSON.stringify(rawPort)}`,

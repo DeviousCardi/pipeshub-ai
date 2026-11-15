@@ -38,13 +38,20 @@ function keyProblem(policy: AccessGroupsPolicy): AccessGroupsProblem | null {
   if (Object.keys(policy.models ?? {}).length > 200) {
     return { field: 'access.models', reason: 'At most 200 models' };
   }
-  const engine = Object.keys(policy.engines ?? {}).find((kind) => !ENGINE_KIND.test(kind));
+  const engine = Object.keys(policy.engines ?? {}).find(
+    (kind) => !ENGINE_KIND.test(kind),
+  );
   if (engine !== undefined) {
     return { field: `access.engines.${engine}`, reason: 'Not a coding engine' };
   }
-  const model = Object.keys(policy.models ?? {}).find((key) => !MODEL_KEY.test(key));
+  const model = Object.keys(policy.models ?? {}).find(
+    (key) => !MODEL_KEY.test(key),
+  );
   if (model !== undefined) {
-    return { field: `access.models.${model}`, reason: 'Not a configured model' };
+    return {
+      field: `access.models.${model}`,
+      reason: 'Not a configured model',
+    };
   }
   return null;
 }
@@ -82,10 +89,12 @@ export function unknownGroupProblem(
       ? [['access.harness', policy.harness] as [string, readonly string[]]]
       : []),
     ...Object.entries(policy.engines ?? {}).map(
-      ([kind, ids]) => [`access.engines.${kind}`, ids] as [string, readonly string[]],
+      ([kind, ids]) =>
+        [`access.engines.${kind}`, ids] as [string, readonly string[]],
     ),
     ...Object.entries(policy.models ?? {}).map(
-      ([key, ids]) => [`access.models.${key}`, ids] as [string, readonly string[]],
+      ([key, ids]) =>
+        [`access.models.${key}`, ids] as [string, readonly string[]],
     ),
   ];
   for (const [field, ids] of lists) {

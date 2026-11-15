@@ -152,16 +152,19 @@ export async function* zipStream(
   let offset = 0;
   // SEC-FS-02: a list's links are known before its first entry; a stream's are the ones it has shown so far, so a
   // streaming source judges each link against its whole tree before it yields it.
-  const all = Symbol.iterator in entries ? [...(entries as Iterable<ZipEntry>)] : undefined;
+  const all = Symbol.iterator in entries ? [...entries] : undefined;
   const links = new Set(
-    (all ?? []).filter((entry) => entry.mode === SYMLINK_MODE).map((entry) => entry.path),
+    (all ?? [])
+      .filter((entry) => entry.mode === SYMLINK_MODE)
+      .map((entry) => entry.path),
   );
   for await (const entry of all ?? entries) {
     if (!portablePath(entry.path)) continue;
     const content = await entry.read();
     const link = entry.mode === SYMLINK_MODE;
     // SEC-FS-02: a link an unzip on any system would resolve outside the folder is left out, never shipped.
-    if (link && linkEscapes(entry.path, content.toString('utf8'), links)) continue;
+    if (link && linkEscapes(entry.path, content.toString('utf8'), links))
+      continue;
     if (link) links.add(entry.path);
     // A link's target is a few bytes; deflate would only grow it.
     const deflated = link ? content : deflateRawSync(content);

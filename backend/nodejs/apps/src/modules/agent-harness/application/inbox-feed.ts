@@ -273,8 +273,13 @@ export class InboxFeedService {
       const isAdmin = (await this.deps.isOrgAdmin?.(orgId, userId)) ?? false;
       const counts = await this.counts({ orgId, userId, isAdmin });
       // No credential here: what only the person's own can count is left out, and the client recounts (FIXMS1-FU-1).
-      const recount = this.deps.waiting.some((source) => source.credentialOnly === true);
-      this.deps.publisher?.publish(userId, recount ? { ...counts, recount: true } : counts);
+      const recount = this.deps.waiting.some(
+        (source) => source.credentialOnly === true,
+      );
+      this.deps.publisher?.publish(
+        userId,
+        recount ? { ...counts, recount: true } : counts,
+      );
     } catch {
       // The next read recounts; a push is a hint, never the record.
     }

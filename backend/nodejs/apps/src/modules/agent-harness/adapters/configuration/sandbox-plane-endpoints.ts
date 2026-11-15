@@ -18,7 +18,8 @@ export async function sandboxPlaneEndpoints(
   try {
     const raw = await store.get<string>(configPaths.endpoint);
     const parsed: unknown = raw === null ? null : JSON.parse(raw);
-    if (parsed !== null && typeof parsed === 'object') stored = parsed as typeof stored;
+    if (parsed !== null && typeof parsed === 'object')
+      stored = parsed as typeof stored;
   } catch {
     stored = {};
   }

@@ -76,7 +76,11 @@ export function batchExclusion(subject: PatternSubject): BatchExclusion | null {
  * two; text that is not canonical JSON (a lone surrogate, a reserved key) is
  * kept byte for byte.
  */
-function patternText(toolName: string, args: string, destination: string | null): string {
+function patternText(
+  toolName: string,
+  args: string,
+  destination: string | null,
+): string {
   try {
     return canonicalJson({
       tool: toolName,
@@ -84,7 +88,11 @@ function patternText(toolName: string, args: string, destination: string | null)
       destination,
     });
   } catch {
-    return JSON.stringify({ tool: toolName, args: { text: args }, destination });
+    return JSON.stringify({
+      tool: toolName,
+      args: { text: args },
+      destination,
+    });
   }
 }
 

@@ -1647,7 +1647,7 @@ export function describeClaimCases(
       const pinnedAtV2: RunSpecResolver = (subject, capabilities) => {
         const pinned = pinRunSpec(subject, capabilities);
         const { executor: _executor, ...rest } = pinned.spec;
-        void _executor;
+        _executor;
         const spec = { ...rest, schemaVersion: 2 } as RunSpec;
         return { ...pinned, spec, specDigest: canonicalDigest(spec) };
       };

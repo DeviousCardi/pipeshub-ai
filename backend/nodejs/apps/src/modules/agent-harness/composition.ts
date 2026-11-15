@@ -717,12 +717,7 @@ export function createHarnessJournal(
       : snapshots,
     audit,
   );
-  const service = new JournalService(
-    payloads,
-    cipher,
-    undefined,
-    recorders,
-  );
+  const service = new JournalService(payloads, cipher, undefined, recorders);
   return {
     keys,
     cipher,
@@ -814,11 +809,11 @@ export function createHarnessRollout(
 ): HarnessRolloutPolicy {
   const orgSettings = sources.orgSettings ?? singleStoreOrgSettings(settings);
   const labs = new PlatformHarnessRolloutSettings(
-      settings,
-      process.env,
-      undefined,
-      orgSettings,
-    );
+    settings,
+    process.env,
+    undefined,
+    orgSettings,
+  );
   return new HarnessRollout(
     // CONTROL_PLANE_PIN shadow or on: the Labs document is read once per org head (CPD-5).
     parseControlPlanePin(env, envFlag('AGENT_HARNESS_WORKER_ENABLED')) === 'off'

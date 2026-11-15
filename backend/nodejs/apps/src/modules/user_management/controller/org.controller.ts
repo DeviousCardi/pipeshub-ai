@@ -150,7 +150,10 @@ export class OrgController {
     protected queryService: OrgQueryServiceEraser | null = null,
     @inject(PRINCIPAL_DELETION)
     @optional()
-    protected principalDeletion: Pick<PrincipalDeletionService, 'requestOrg'> | null = null,
+    protected principalDeletion: Pick<
+      PrincipalDeletionService,
+      'requestOrg'
+    > | null = null,
   ) {}
 
   getDomainFromEmail(email: string) {

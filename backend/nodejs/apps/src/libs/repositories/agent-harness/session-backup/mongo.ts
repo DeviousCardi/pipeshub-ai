@@ -31,10 +31,13 @@ interface Selection {
   citationIds: ObjectId[];
 }
 
-const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeRegExp = (text: string): string =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const idsOf = (selection: Selection): Array<string | ObjectId> =>
-  selection.session === null ? [selection.sessionId] : [selection.sessionId, selection.session];
+  selection.session === null
+    ? [selection.sessionId]
+    : [selection.sessionId, selection.session];
 
 const orgIdsOf = (selection: Selection): Array<string | ObjectId> =>
   selection.org === null ? [selection.orgId] : [selection.orgId, selection.org];
@@ -43,41 +46,95 @@ const orgIdsOf = (selection: Selection): Array<string | ObjectId> =>
 const SELECTORS: ReadonlyArray<[string, (s: Selection) => Filter<Document>]> = [
   ['agentRuns', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
   ['sessionEvents', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
-  ['chatSessionMessages', (s) => ({ sessionId: { $in: idsOf(s) }, orgId: { $in: orgIdsOf(s) } }) as Filter<Document>],
-  ['chatSessions', (s) => ({ _id: { $in: idsOf(s) }, orgId: { $in: orgIdsOf(s) } }) as Filter<Document>],
-  ['citations', (s) => ({ _id: { $in: s.citationIds }, 'metadata.orgId': s.orgId })],
-  ['conversations', (s) => ({ _id: { $in: idsOf(s) }, orgId: { $in: orgIdsOf(s) } }) as Filter<Document>],
-  ['agentconversations', (s) => ({ _id: { $in: idsOf(s) }, orgId: { $in: orgIdsOf(s) } }) as Filter<Document>],
+  [
+    'chatSessionMessages',
+    (s) => ({
+      sessionId: { $in: idsOf(s) },
+      orgId: { $in: orgIdsOf(s) },
+    }),
+  ],
+  [
+    'chatSessions',
+    (s) =>
+      ({
+        _id: { $in: idsOf(s) },
+        orgId: { $in: orgIdsOf(s) },
+      }) as Filter<Document>,
+  ],
+  [
+    'citations',
+    (s) => ({ _id: { $in: s.citationIds }, 'metadata.orgId': s.orgId }),
+  ],
+  [
+    'conversations',
+    (s) =>
+      ({
+        _id: { $in: idsOf(s) },
+        orgId: { $in: orgIdsOf(s) },
+      }) as Filter<Document>,
+  ],
+  [
+    'agentconversations',
+    (s) =>
+      ({
+        _id: { $in: idsOf(s) },
+        orgId: { $in: orgIdsOf(s) },
+      }) as Filter<Document>,
+  ],
   ['agentNextRuns', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
   ['agentEvents', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
-  ['agentCommandReceipts', (s) => ({ orgId: s.orgId, runId: { $in: s.runIds } })],
-  ['agentAdmissionReceipts', (s) => ({ 'result.sessionId': s.sessionId, 'result.run.orgId': s.orgId })],
+  [
+    'agentCommandReceipts',
+    (s) => ({ orgId: s.orgId, runId: { $in: s.runIds } }),
+  ],
+  [
+    'agentAdmissionReceipts',
+    (s) => ({ 'result.sessionId': s.sessionId, 'result.run.orgId': s.orgId }),
+  ],
   [
     'agentSessionForks',
-    (s) => ({ orgId: s.orgId, $or: [{ sourceSessionId: s.sessionId }, { forkSessionId: s.sessionId }] }),
+    (s) => ({
+      orgId: s.orgId,
+      $or: [{ sourceSessionId: s.sessionId }, { forkSessionId: s.sessionId }],
+    }),
   ],
-  ['agentJournalPayloads', (s) => ({ orgId: s.orgId, 'owner.sessionId': s.sessionId })],
-  ...(['agentWorkspaceManifests', 'agentWorkspaceHeads', 'agentWorkspaceWriters'] as const).map(
-    (name): [string, (s: Selection) => Filter<Document>] => [
-      name,
-      (s) => ({
-        orgId: s.orgId,
-        workspaceId: { $regex: `^${escapeRegExp(sessionWorkspaceId(s.sessionId))}(?::|$)` },
-      }),
-    ],
-  ),
+  [
+    'agentJournalPayloads',
+    (s) => ({ orgId: s.orgId, 'owner.sessionId': s.sessionId }),
+  ],
+  ...(
+    [
+      'agentWorkspaceManifests',
+      'agentWorkspaceHeads',
+      'agentWorkspaceWriters',
+    ] as const
+  ).map((name): [string, (s: Selection) => Filter<Document>] => [
+    name,
+    (s) => ({
+      orgId: s.orgId,
+      workspaceId: {
+        $regex: `^${escapeRegExp(sessionWorkspaceId(s.sessionId))}(?::|$)`,
+      },
+    }),
+  ]),
   ['agentWorkspaceKeys', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
   ['agentEventCounters', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
-  ['sessionStreamCounters', (s) => ({ orgId: s.orgId, streamId: { $in: s.streamIds } })],
+  [
+    'sessionStreamCounters',
+    (s) => ({ orgId: s.orgId, streamId: { $in: s.streamIds } }),
+  ],
   ['agentHarnessDataKeys', (s) => ({ orgId: s.orgId })],
 ];
 
 /** The stores backed up, each with how it is selected; equal to the coverage's copied stores (C-14). */
-export const SESSION_BACKUP_SELECTED: readonly string[] = SELECTORS.map(([name]) => name);
-
+export const SESSION_BACKUP_SELECTED: readonly string[] = SELECTORS.map(
+  ([name]) => name,
+);
 
 const objectIdOrNull = (value: string): ObjectId | null =>
-  ObjectId.isValid(value) && /^[0-9a-f]{24}$/i.test(value) ? new ObjectId(value) : null;
+  ObjectId.isValid(value) && /^[0-9a-f]{24}$/i.test(value)
+    ? new ObjectId(value)
+    : null;
 
 const ORG_STORES = new Set(
   Object.entries(SESSION_BACKUP_COVERAGE)
@@ -94,7 +151,11 @@ const writePrivate = async (path: string, text: string): Promise<void> => {
 export class MongoSessionBackup {
   constructor(private readonly db: Db) {}
 
-  async export(orgId: string, sessionId: string, directory: string): Promise<SessionBackupManifest> {
+  async export(
+    orgId: string,
+    sessionId: string,
+    directory: string,
+  ): Promise<SessionBackupManifest> {
     // The messages and citations are plaintext in the archive: only the operator who made it may read it.
     await mkdir(directory, { recursive: true, mode: 0o700 });
     await chmod(directory, 0o700);
@@ -109,11 +170,19 @@ export class MongoSessionBackup {
     };
     const collections: SessionBackupManifest['collections'] = {};
     for (const [name, select] of SELECTORS) {
-      const documents = await this.db.collection(name).find(select(selection)).toArray();
+      const documents = await this.db
+        .collection(name)
+        .find(select(selection))
+        .toArray();
       this.learn(name, documents, selection);
-      const text = documents.map((doc) => EJSON.stringify(doc, { relaxed: false })).join('\n');
+      const text = documents
+        .map((doc) => EJSON.stringify(doc, { relaxed: false }))
+        .join('\n');
       await writePrivate(join(directory, `${name}.ndjson`), text);
-      collections[name] = { documents: documents.length, sha256: archiveFileDigest(text) };
+      collections[name] = {
+        documents: documents.length,
+        sha256: archiveFileDigest(text),
+      };
     }
     const manifest: SessionBackupManifest = {
       format: SESSION_BACKUP_FORMAT,
@@ -123,7 +192,10 @@ export class MongoSessionBackup {
       collections,
       digest: manifestDigest(collections, archiveFileDigest),
     };
-    await writePrivate(join(directory, 'manifest.json'), JSON.stringify(manifest, null, 2));
+    await writePrivate(
+      join(directory, 'manifest.json'),
+      JSON.stringify(manifest, null, 2),
+    );
     return manifest;
   }
 
@@ -132,20 +204,34 @@ export class MongoSessionBackup {
    * otherwise); the archive is verified whole before anything is written.
    */
   async restore(directory: string): Promise<SessionBackupManifest> {
-    const manifest = JSON.parse(await readFile(join(directory, 'manifest.json'), 'utf-8')) as SessionBackupManifest;
+    const manifest = JSON.parse(
+      await readFile(join(directory, 'manifest.json'), 'utf-8'),
+    ) as SessionBackupManifest;
     if (manifest.format !== SESSION_BACKUP_FORMAT) {
-      throw new SessionBackupRefused('archive_format', `not a ${SESSION_BACKUP_FORMAT} archive`);
+      throw new SessionBackupRefused(
+        'archive_format',
+        `not a ${SESSION_BACKUP_FORMAT} archive`,
+      );
     }
     const contents = new Map<string, string>();
     for (const [name, entry] of Object.entries(manifest.collections)) {
       const text = await readFile(join(directory, `${name}.ndjson`), 'utf-8');
       if (archiveFileDigest(text) !== entry.sha256) {
-        throw new SessionBackupRefused('archive_corrupt', `${name} does not match the manifest`);
+        throw new SessionBackupRefused(
+          'archive_corrupt',
+          `${name} does not match the manifest`,
+        );
       }
       contents.set(name, text);
     }
-    if (manifestDigest(manifest.collections, archiveFileDigest) !== manifest.digest) {
-      throw new SessionBackupRefused('archive_corrupt', 'the manifest digest does not match');
+    if (
+      manifestDigest(manifest.collections, archiveFileDigest) !==
+      manifest.digest
+    ) {
+      throw new SessionBackupRefused(
+        'archive_corrupt',
+        'the manifest digest does not match',
+      );
     }
     const present = await this.db
       .collection('agentRuns')
@@ -154,17 +240,29 @@ export class MongoSessionBackup {
       .collection('sessionEvents')
       .findOne({ orgId: manifest.orgId, sessionId: manifest.sessionId });
     if (present !== null || events !== null) {
-      throw new SessionBackupRefused('session_exists', 'the target database already holds this session');
+      throw new SessionBackupRefused(
+        'session_exists',
+        'the target database already holds this session',
+      );
     }
     for (const [name, text] of contents) {
-      const documents = text === '' ? [] : text.split('\n').map((line) => EJSON.parse(line, { relaxed: false }) as Document);
+      const documents =
+        text === ''
+          ? []
+          : text
+              .split('\n')
+              .map((line) => EJSON.parse(line, { relaxed: false }) as Document);
       if (documents.length === 0) continue;
       if (ORG_STORES.has(name)) {
         // The org's keys may already be there (an earlier restore, the same org): never overwrite one.
         for (const document of documents) {
           await this.db
             .collection(name)
-            .updateOne({ _id: document['_id'] }, { $setOnInsert: document }, { upsert: true });
+            .updateOne(
+              { _id: document['_id'] },
+              { $setOnInsert: document },
+              { upsert: true },
+            );
         }
         continue;
       }
@@ -173,16 +271,26 @@ export class MongoSessionBackup {
     return manifest;
   }
 
-  private learn(name: string, documents: Document[], selection: Selection): void {
-    if (name === 'agentRuns') selection.runIds = documents.map((doc) => String(doc['runId']));
+  private learn(
+    name: string,
+    documents: Document[],
+    selection: Selection,
+  ): void {
+    if (name === 'agentRuns')
+      selection.runIds = documents.map((doc) => String(doc['runId']));
     if (name === 'sessionEvents') {
-      selection.streamIds = [...new Set(documents.map((doc) => String(doc['streamId'])))];
+      selection.streamIds = [
+        ...new Set(documents.map((doc) => String(doc['streamId']))),
+      ];
     }
     if (name === 'chatSessionMessages') {
       selection.citationIds = [
         ...new Set(
           documents.flatMap((doc) =>
-            ((doc['citations'] as Array<{ citationId?: unknown }> | undefined) ?? []).flatMap((citation) =>
+            (
+              (doc['citations'] as
+                Array<{ citationId?: unknown }> | undefined) ?? []
+            ).flatMap((citation) =>
               citation.citationId ? [String(citation.citationId)] : [],
             ),
           ),

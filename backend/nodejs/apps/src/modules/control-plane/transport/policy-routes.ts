@@ -102,7 +102,10 @@ export const POLICY_ROUTES = [
     body: z
       .object({
         value: z
-          .union([z.record(z.string(), z.unknown()), z.array(z.string().min(1).max(256)).max(500)])
+          .union([
+            z.record(z.string(), z.unknown()),
+            z.array(z.string().min(1).max(256)).max(500),
+          ])
           .nullable(),
       })
       .strict(),

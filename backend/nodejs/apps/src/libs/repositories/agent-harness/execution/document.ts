@@ -52,24 +52,6 @@ export function runFromDocument(stored: object): HarnessRun {
     resolved: _resolved,
     ...run
   } = document;
-  void [
-    _documentId,
-    _active,
-    _definition,
-    _profile,
-    _autoRoute,
-    _answered,
-    _access,
-    _via,
-    _surface,
-    _pinned,
-    _audience,
-    _queued,
-    _label,
-    _trigger,
-    _memory,
-    _resolved,
-  ];
   const parsed = structuredClone(run) as unknown as HarnessRun;
   if (parsed.input) {
     delete (parsed.input as StoredRunInput).historyRef;

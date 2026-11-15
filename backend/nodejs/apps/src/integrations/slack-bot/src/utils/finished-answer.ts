@@ -73,7 +73,11 @@ export function citationSourceBlocks(citations?: CitationData[]): SlackBlock[] {
   };
   for (const record of records) {
     elements.push(
-      { type: 'link', url: record.url, text: ` ${safeLinkLabel(record.url, record.name)}` },
+      {
+        type: 'link',
+        url: record.url,
+        text: ` ${safeLinkLabel(record.url, record.name)}`,
+      },
       { type: 'text', text: '\n' },
     );
     if (elements.length === 20) flush();

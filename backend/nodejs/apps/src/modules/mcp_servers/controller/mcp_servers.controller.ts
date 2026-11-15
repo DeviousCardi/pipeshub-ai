@@ -407,7 +407,14 @@ export const approveMcpInstanceManifest = auditedProxyMcp(
 const manifestApprovalBody = z
   .object({
     tools: z
-      .array(z.object({ name: z.string().min(1).max(128), digest: z.string().regex(/^sha256:[0-9a-f]{64}$/) }).strict())
+      .array(
+        z
+          .object({
+            name: z.string().min(1).max(128),
+            digest: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+          })
+          .strict(),
+      )
       .max(1000),
   })
   .strict();
@@ -427,15 +434,26 @@ export function approveMcpManifestThroughWorkflow(
 ) {
   const action = 'Approve MCP server tool manifest';
   const unparsed = approveMcpInstanceManifest(appConfig, controlPlane);
-  return async (req: AuthenticatedUserRequest, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     const userId: unknown = req.user?.userId;
     const orgId: unknown = getCurrentOrgId();
     const body = manifestApprovalBody.safeParse(req.body);
-    if (!body.success || typeof userId !== 'string' || typeof orgId !== 'string') {
+    if (
+      !body.success ||
+      typeof userId !== 'string' ||
+      typeof orgId !== 'string'
+    ) {
       await unparsed(req, res, next);
       return;
     }
-    const hubWrite = async (request: ApprovalRequest, subset: readonly string[] | null) => {
+    const hubWrite = async (
+      request: ApprovalRequest,
+      subset: readonly string[] | null,
+    ) => {
       const tools = Object.entries(request.change.descriptors ?? {})
         .filter(([name]) => subset === null || subset.includes(name))
         .map(([name, digest]) => ({ name, digest }));
@@ -445,16 +463,21 @@ export function approveMcpManifestThroughWorkflow(
         buildProxyHeaders(req),
         { tools },
       );
-      if (response.statusCode < 200 || response.statusCode >= 300) throw handleBackendError(response, action);
+      if (response.statusCode < 200 || response.statusCode >= 300)
+        throw handleBackendError(response, action);
       return response;
     };
     try {
-      const { applied } = await workflowFor([new McpManifestApprovalTarget(hubWrite)]).submit({
+      const { applied } = await workflowFor([
+        new McpManifestApprovalTarget(hubWrite),
+      ]).submit({
         actor: { orgId, userId },
         target: { type: 'installation', id: String(req.params.instanceId) },
         change: {
           type: 'descriptor_change',
-          descriptors: Object.fromEntries(body.data.tools.map((tool) => [tool.name, tool.digest])),
+          descriptors: Object.fromEntries(
+            body.data.tools.map((tool) => [tool.name, tool.digest]),
+          ),
         },
         decision: { decision: 'approve' },
       });

@@ -5,9 +5,7 @@ import type {
 import type { SessionRepository } from '../domain/repository';
 
 /** The coding-engine choices in memory (tests and the in-memory composition). */
-export class InMemoryCodingEnginePreferences
-  implements CodingEnginePreferences
-{
+export class InMemoryCodingEnginePreferences implements CodingEnginePreferences {
   private readonly users = new Map<string, string>();
   private readonly orgs = new Map<string, string>();
   private readonly sessions = new Map<string, string>();

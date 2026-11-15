@@ -227,7 +227,9 @@ export class AgentHarnessInternalController {
           worker: body.workerRegion,
           here: this.region,
         }),
-        ...(body.aboveClass !== undefined ? { aboveClass: body.aboveClass } : {}),
+        ...(body.aboveClass !== undefined
+          ? { aboveClass: body.aboveClass }
+          : {}),
       });
       if (claimed === null) {
         res.status(HTTP_STATUS.NO_CONTENT).end();
@@ -266,7 +268,9 @@ export class AgentHarnessInternalController {
         fence: body.fence,
         reason: body.reason,
       });
-      res.status(HTTP_STATUS.OK).json({ run: workerRun(RunInputSeal.withoutSealed(run)) });
+      res
+        .status(HTTP_STATUS.OK)
+        .json({ run: workerRun(RunInputSeal.withoutSealed(run)) });
     } catch (error) {
       next(this.refused(req, error));
     }
@@ -351,7 +355,10 @@ export class AgentHarnessInternalController {
         run,
         body.leaseDurationMs,
       );
-      res.status(HTTP_STATUS.OK).json({ run: workerRun(RunInputSeal.withoutSealed(run)), attemptToken });
+      res.status(HTTP_STATUS.OK).json({
+        run: workerRun(RunInputSeal.withoutSealed(run)),
+        attemptToken,
+      });
     } catch (error) {
       next(this.refused(req, error));
     }
@@ -371,9 +378,6 @@ export class AgentHarnessInternalController {
         workerId: _workerId,
         ...input
       } = requestBody(req);
-      void _orgId;
-      void _runId;
-      void _workerId;
       const body = commitRunBodySchema.parse(input);
       const prior = this.executions.priorCommit(
         claims.orgId,

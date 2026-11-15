@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/require-await -- in-memory adapters implement asynchronous ports without I/O. */
+ 
 /**
  * In-memory adapters of the resolution ports (03-interfaces §4.2–§4.5): the
  * reference behaviour each production adapter is held to by the same suite.

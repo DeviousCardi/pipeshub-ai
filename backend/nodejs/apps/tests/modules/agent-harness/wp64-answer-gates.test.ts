@@ -93,7 +93,7 @@ describe('WP-64: the answer turn and the run routes', () => {
     await controller.get(request({}, { runId: 'run-asked' }) as never, res as never, sinon.stub() as never);
     expect(res.json.firstCall.args[0].run.gates).to.deep.equal(GATES);
     const { gates: _gates, ...ungated } = RUN;
-    void _gates;
+    _gates;
     const bare = response();
     await new AgentHarnessSessionController(
       { get: sinon.stub().resolves(ungated), effectivePolicy: runs.effectivePolicy } as never,

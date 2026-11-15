@@ -126,7 +126,7 @@ export const PLATFORM_FEATURE_FLAGS: PlatformFeatureFlagDef[] = [
     key: 'ENABLE_AGENT_HARNESS',
     label: 'Agent harness',
     description:
-      'Run agent chats on the agent harness: answers survive a reload or a restart, show their steps and plan as they work, can ask before they write, and offer suggested next questions. The default chat\'s Agent mode runs on it, and people a conversation is shared with for editing can send messages in it. Turn off to send every new chat to the standard path; chats already running finish where they are.',
+      "Run agent chats on the agent harness: answers survive a reload or a restart, show their steps and plan as they work, can ask before they write, and offer suggested next questions. The default chat's Agent mode runs on it, and people a conversation is shared with for editing can send messages in it. Turn off to send every new chat to the standard path; chats already running finish where they are.",
     defaultEnabled: true,
     previousDefault: false,
     requiresAgentHarness: true,
@@ -270,6 +270,7 @@ export const PLATFORM_FEATURE_FLAGS: PlatformFeatureFlagDef[] = [
 ];
 
 /** The Labs flags that exist only with the agent harness switched on (ADR-OPS-06). */
-export const AGENT_HARNESS_LABS_FLAGS: readonly string[] = PLATFORM_FEATURE_FLAGS.filter(
-  (flag) => flag.requiresAgentHarness === true,
-).map((flag) => flag.key);
+export const AGENT_HARNESS_LABS_FLAGS: readonly string[] =
+  PLATFORM_FEATURE_FLAGS.filter(
+    (flag) => flag.requiresAgentHarness === true,
+  ).map((flag) => flag.key);

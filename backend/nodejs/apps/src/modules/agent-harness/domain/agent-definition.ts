@@ -139,7 +139,9 @@ export const agentRunDefinitionSchema = z.object({
 export type AgentRunDefinition = z.infer<typeof agentRunDefinitionSchema>;
 
 /** Whether the authority bound any granted tool to its descriptor: the run then pins version-2 digests. */
-export const bindsDescriptors = (definition: AgentRunDefinition | null): boolean =>
+export const bindsDescriptors = (
+  definition: AgentRunDefinition | null,
+): boolean =>
   definition !== null &&
   [...definition.toolsets, ...definition.mcpServers].some((owner) =>
     owner.tools.some((tool) => typeof tool.descriptorDigest === 'string'),

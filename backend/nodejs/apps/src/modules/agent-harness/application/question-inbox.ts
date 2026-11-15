@@ -43,22 +43,42 @@ const clip = (text: string, max: number): string =>
   [...text].length <= max ? text : [...text].slice(0, max).join('');
 
 /** The card's first question, as `ask_user_question` and the gateway's `ask_user` write it; null: nothing to answer. */
-function asked(view: QuestionView): Omit<InboxQuestion, 'runId' | 'sessionId' | 'agentKey' | 'runUpdatedAt'> | null {
+function asked(
+  view: QuestionView,
+): Omit<
+  InboxQuestion,
+  'runId' | 'sessionId' | 'agentKey' | 'runUpdatedAt'
+> | null {
   if (view.status !== 'success') return null;
   const data = view.toolData;
   if (typeof data === 'string') {
     const question = data.trim();
     return question.length === 0
       ? null
-      : { callId: view.callId, question: clip(redactTokens(question), MAX_QUESTION_CHARS), options: [], multiSelect: false, moreQuestions: 0 };
+      : {
+          callId: view.callId,
+          question: clip(redactTokens(question), MAX_QUESTION_CHARS),
+          options: [],
+          multiSelect: false,
+          moreQuestions: 0,
+        };
   }
   if (!isObject(data) || !Array.isArray(data['questions'])) return null;
   const questions = (data['questions'] as unknown[]).filter(isObject);
   const first = questions[0];
-  const text = typeof first?.['question'] === 'string' ? first['question'].trim() : '';
+  const text =
+    typeof first?.['question'] === 'string' ? first['question'].trim() : '';
   if (first === undefined || text.length === 0) return null;
-  const options = (Array.isArray(first['options']) ? (first['options'] as unknown[]) : [])
-    .map((option) => (isObject(option) && typeof option['label'] === 'string' ? option['label'] : typeof option === 'string' ? option : ''))
+  const options = (
+    Array.isArray(first['options']) ? (first['options'] as unknown[]) : []
+  )
+    .map((option) =>
+      isObject(option) && typeof option['label'] === 'string'
+        ? option['label']
+        : typeof option === 'string'
+          ? option
+          : '',
+    )
     .filter((label) => label.trim().length > 0)
     .slice(0, MAX_OPTIONS)
     .map((label) => clip(redactTokens(label), MAX_OPTION_CHARS));
@@ -89,13 +109,21 @@ export class QuestionInboxService {
       limit: query.limit,
       ...(query.agentKey !== undefined ? { agentKey: query.agentKey } : {}),
     });
-    const found = await Promise.all(runs.map((run) => this.question(query, run)));
+    const found = await Promise.all(
+      runs.map((run) => this.question(query, run)),
+    );
     return found.filter((item): item is InboxQuestion => item !== null);
   }
 
-  private async question(query: QuestionInboxQuery, run: HarnessRun): Promise<InboxQuestion | null> {
+  private async question(
+    query: QuestionInboxQuery,
+    run: HarnessRun,
+  ): Promise<InboxQuestion | null> {
     if (run.actorId !== query.actorId || run.orgId !== query.orgId) return null;
-    const agentKey = run.agentKey !== undefined && run.agentKey.length > 0 ? run.agentKey : undefined;
+    const agentKey =
+      run.agentKey !== undefined && run.agentKey.length > 0
+        ? run.agentKey
+        : undefined;
     const access = await this.sessions.findStreamAccess({
       orgId: run.orgId,
       actorId: query.actorId,

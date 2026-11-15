@@ -9,11 +9,7 @@
 export type NotificationStatus = 'read' | 'unread' | 'archived';
 
 export type NotificationSeverity =
-  | 'info'
-  | 'warning'
-  | 'error'
-  | 'critical'
-  | 'success';
+  'info' | 'warning' | 'error' | 'critical' | 'success';
 
 export interface NotificationRow {
   _id: string;

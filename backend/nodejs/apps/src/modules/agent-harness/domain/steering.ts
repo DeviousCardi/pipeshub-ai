@@ -32,7 +32,8 @@ export const STEERABLE_RUN_STATUSES: ReadonlySet<RunStatus> = new Set([
 ]);
 
 /** Why a message cannot join the active run (it is then `RUN_ACTIVE`). */
-export type SteeringRefusal = 'not_durable' | 'cancelling' | 'worker' | 'input_artifacts';
+export type SteeringRefusal =
+  'not_durable' | 'cancelling' | 'worker' | 'input_artifacts';
 
 export function steeringRefusal(
   run: Pick<HarnessRun, 'harnessMajor' | 'status' | 'attemptFeatures'>,
@@ -71,7 +72,10 @@ export function assertSteeredByActor(
   }
 }
 
-type SteeringInput = Pick<RunInputSnapshot, 'query' | 'attachments' | 'recordIds'>;
+type SteeringInput = Pick<
+  RunInputSnapshot,
+  'query' | 'attachments' | 'recordIds'
+>;
 
 /** The attachments and records a message names by reference (C-21). */
 export const hasReferences = (
@@ -110,9 +114,10 @@ export function steeringReferences(
         ...(virtualRecordId !== undefined ? { virtualRecordId } : {}),
       };
     }),
-    ...input.recordIds.map(
-      (recordId): CheckedSource => ({ kind: 'indexed', recordId }),
-    ),
+    ...input.recordIds.map((recordId): CheckedSource => ({
+      kind: 'indexed',
+      recordId,
+    })),
   ];
 }
 
@@ -177,7 +182,9 @@ export function inputQueuedEvent(
       ...(input.attachments.length > 0
         ? { attachments: input.attachments.map(attachmentRef) }
         : {}),
-      ...(input.recordIds.length > 0 ? { recordIds: [...input.recordIds] } : {}),
+      ...(input.recordIds.length > 0
+        ? { recordIds: [...input.recordIds] }
+        : {}),
     },
   };
 }
@@ -275,26 +282,6 @@ export function workerRun(run: HarnessRun): HarnessRun {
     gates: _gates,
     ...rest
   } = run;
-  void [
-    _seq,
-    _pending,
-    _open,
-    _from,
-    _requires,
-    _features,
-    _waiting,
-    _parent,
-    _children,
-    _suspendedFor,
-    _workLeft,
-    _waitingChildren,
-    _sessionRole,
-    _attribution,
-    _agentVersion,
-    _priorityClass,
-    _priorityRank,
-    _gates,
-  ];
   // The fields an edition records are the model gateway's; the worker folds its own.
   return withoutRecordedRunFields(rest);
 }

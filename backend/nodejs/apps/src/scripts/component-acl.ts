@@ -15,15 +15,17 @@ import {
 
 type Env = Record<string, string | undefined>;
 
-const quoted = (arg: string): string => (/^[\w#~&+:/*.@-]+$/.test(arg) ? arg : `"${arg.replace(/(["\\$`])/g, '\\$1')}"`);
+const quoted = (arg: string): string =>
+  /^[\w#~&+:/*.@-]+$/.test(arg)
+    ? arg
+    : `"${arg.replace(/(["\\$`])/g, '\\$1')}"`;
 
 /** What the operator runs, one entry per component this install holds a key for. */
-export function componentAclLines(
-  env: Env,
-  withPassword: boolean,
-): string[] {
+export function componentAclLines(env: Env, withPassword: boolean): string[] {
   const lines: string[] = [];
-  for (const component of Object.keys(SANDBOX_PLANE_COMPONENTS) as SandboxPlaneComponent[]) {
+  for (const component of Object.keys(
+    SANDBOX_PLANE_COMPONENTS,
+  ) as SandboxPlaneComponent[]) {
     const key = componentKey(component, env);
     if (key === null) continue;
     const command = componentAclCommand(
@@ -42,10 +44,13 @@ export function componentAclLines(
 }
 
 if (require.main === module) {
-  const lines = componentAclLines(process.env, process.argv.includes('--password'));
+  const lines = componentAclLines(
+    process.env,
+    process.argv.includes('--password'),
+  );
   if (lines.length === 0) {
     process.stderr.write(
-      'No component key is set (EGRESS_PROXY_COMPONENT_KEY, SANDBOX_BROKER_COMPONENT_KEY): run this with the app container\'s environment.\n',
+      "No component key is set (EGRESS_PROXY_COMPONENT_KEY, SANDBOX_BROKER_COMPONENT_KEY): run this with the app container's environment.\n",
     );
     process.exitCode = 1;
   } else {

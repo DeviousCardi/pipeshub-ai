@@ -44,7 +44,10 @@ export interface SecurityHeaderPolicy {
 // install sits behind Cloudflare, and GitHub's read-only API for the sign-in page's repository card
 // (frontend/lib/branding/defaults.ts githubApiUrl). Anything else is the operator's to add (CSP_*_SRCS) or an edition's.
 const BUILT_IN_SOURCES: CspSources = {
-  scriptSrc: ['https://accounts.google.com', 'https://static.cloudflareinsights.com'],
+  scriptSrc: [
+    'https://accounts.google.com',
+    'https://static.cloudflareinsights.com',
+  ],
   connectSrc: [
     'https://static.cloudflareinsights.com',
     'https://accounts.google.com',
@@ -53,10 +56,14 @@ const BUILT_IN_SOURCES: CspSources = {
     'https://graph.microsoft.com',
     'https://api.github.com',
   ],
-  frameSrc: ['https://accounts.google.com', 'https://login.microsoftonline.com'],
+  frameSrc: [
+    'https://accounts.google.com',
+    'https://login.microsoftonline.com',
+  ],
 };
 
-const HOST_SOURCE = /^(?:https?|wss?):\/\/(?:\*\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*(?::\d{1,5})?(?:\/[^\s;,'"]*)?$/i;
+const HOST_SOURCE =
+  /^(?:https?|wss?):\/\/(?:\*\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*(?::\d{1,5})?(?:\/[^\s;,'"]*)?$/i;
 
 /**
  * Only host sources: an operator value cannot smuggle a keyword ('unsafe-inline',
@@ -73,7 +80,9 @@ function originOf(url: string | undefined): string | undefined {
   if (!url) return undefined;
   try {
     const parsed = new URL(url);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.origin : undefined;
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+      ? parsed.origin
+      : undefined;
   } catch {
     return undefined;
   }
@@ -86,7 +95,9 @@ export function securityHeaderPolicy(
   editionUnframeablePaths: readonly string[] = [],
 ): SecurityHeaderPolicy {
   const connector = originOf(connectorPublicUrl);
-  const unique = (xs: (string | undefined)[]) => [...new Set(xs.filter((x): x is string => !!x))];
+  const unique = (xs: (string | undefined)[]) => [
+    ...new Set(xs.filter((x): x is string => !!x)),
+  ];
   const enforced = strictHeaders(env);
   const reportOnlyRaw = (env.CSP_REPORT_ONLY ?? '').trim().toLowerCase();
   return {
@@ -94,16 +105,25 @@ export function securityHeaderPolicy(
     unframeablePaths: [...editionUnframeablePaths],
     reportOnly: reportOnlyRaw === '' ? !enforced : reportOnlyRaw === 'true',
     enforced,
-    publicUrlIsHttps: originOf(env.FRONTEND_PUBLIC_URL)?.startsWith('https://') ?? false,
+    publicUrlIsHttps:
+      originOf(env.FRONTEND_PUBLIC_URL)?.startsWith('https://') ?? false,
     sources: {
-      scriptSrc: unique([...BUILT_IN_SOURCES.scriptSrc, ...edition.scriptSrc, ...parseSourceList(env.CSP_SCRIPT_SRCS)]),
+      scriptSrc: unique([
+        ...BUILT_IN_SOURCES.scriptSrc,
+        ...edition.scriptSrc,
+        ...parseSourceList(env.CSP_SCRIPT_SRCS),
+      ]),
       connectSrc: unique([
         ...BUILT_IN_SOURCES.connectSrc,
         ...edition.connectSrc,
         ...parseSourceList(env.CSP_CONNECT_SRCS),
         connector,
       ]),
-      frameSrc: unique([...BUILT_IN_SOURCES.frameSrc, ...edition.frameSrc, ...parseSourceList(env.CSP_FRAME_SRCS)]),
+      frameSrc: unique([
+        ...BUILT_IN_SOURCES.frameSrc,
+        ...edition.frameSrc,
+        ...parseSourceList(env.CSP_FRAME_SRCS),
+      ]),
     },
   };
 }
@@ -157,12 +177,19 @@ export function apiCsp(policy: SecurityHeaderPolicy, path: string): string {
   ]);
 }
 
-export function documentCsp(policy: SecurityHeaderPolicy, path: string, scriptHashes: string[]): string {
+export function documentCsp(
+  policy: SecurityHeaderPolicy,
+  path: string,
+  scriptHashes: string[],
+): string {
   const { sources } = policy;
   return serialize([
     ['default-src', ["'self'"]],
     // 'wasm-unsafe-eval' compiles WebAssembly (the Lottie player) and allows no JavaScript eval.
-    ['script-src', ["'self'", "'wasm-unsafe-eval'", ...scriptHashes, ...sources.scriptSrc]],
+    [
+      'script-src',
+      ["'self'", "'wasm-unsafe-eval'", ...scriptHashes, ...sources.scriptSrc],
+    ],
     // React and Radix set style attributes, and the static export carries <style> blocks.
     ['style-src', ["'self'", "'unsafe-inline'", 'https://accounts.google.com']],
     // A model's or a document's remote image loads only after the user asks for it (SafeMarkdownImage).
@@ -191,7 +218,10 @@ export function apiDocsCsp(policy: SecurityHeaderPolicy, path: string): string {
   return serialize([
     ['default-src', ["'self'"]],
     ['script-src', ["'self'", "'unsafe-inline'"]],
-    ['style-src', ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com']],
+    [
+      'style-src',
+      ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+    ],
     ['font-src', ["'self'", 'data:', 'https://fonts.gstatic.com']],
     ['img-src', ["'self'", 'data:']],
     ['connect-src', ["'self'", 'https:', 'http:']],
@@ -212,14 +242,19 @@ export function inlineScriptHashes(html: string): string[] {
   const hashes = new Set<string>();
   for (const [, attributes, body] of html.matchAll(INLINE_SCRIPT)) {
     if (/\bsrc\s*=/i.test(attributes ?? '') || !body) continue;
-    hashes.add(`'sha256-${createHash('sha256').update(body, 'utf8').digest('base64')}'`);
+    hashes.add(
+      `'sha256-${createHash('sha256').update(body, 'utf8').digest('base64')}'`,
+    );
   }
   return [...hashes];
 }
 
 /** Memoised per file and version: shells are replaced only by a deploy, which restarts the process. */
 export class ShellScriptHashes {
-  private readonly cache = new Map<string, { version: string; hashes: string[] }>();
+  private readonly cache = new Map<
+    string,
+    { version: string; hashes: string[] }
+  >();
 
   of(filePath: string): string[] {
     let version: string;
@@ -237,7 +272,12 @@ export class ShellScriptHashes {
   }
 }
 
-function setCsp(res: Response, policy: SecurityHeaderPolicy, path: string, value: string): void {
+function setCsp(
+  res: Response,
+  policy: SecurityHeaderPolicy,
+  path: string,
+  value: string,
+): void {
   if (policy.reportOnly) {
     res.setHeader('Content-Security-Policy-Report-Only', value);
     // frame-ancestors is ignored in a report-only policy, so framing stays enforced on its own.
@@ -280,7 +320,9 @@ const PERMISSIONS_POLICY = [
 
 const HSTS = 'max-age=31536000';
 
-export function securityHeaders(policy: SecurityHeaderPolicy): RequestHandler[] {
+export function securityHeaders(
+  policy: SecurityHeaderPolicy,
+): RequestHandler[] {
   return [
     helmet({
       contentSecurityPolicy: false,
@@ -295,9 +337,13 @@ export function securityHeaders(policy: SecurityHeaderPolicy): RequestHandler[] 
     }),
     (req, res, next) => {
       res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
-      res.setHeader('Reporting-Endpoints', `${REPORT_GROUP}="${CSP_REPORT_PATH}"`);
+      res.setHeader(
+        'Reporting-Endpoints',
+        `${REPORT_GROUP}="${CSP_REPORT_PATH}"`,
+      );
       // X-Frame-Options cannot name origins, so an embed allowlist leaves framing to the CSP.
-      if (frameAncestors(policy, req.path) === "'none'") res.setHeader('X-Frame-Options', 'DENY');
+      if (frameAncestors(policy, req.path) === "'none'")
+        res.setHeader('X-Frame-Options', 'DENY');
       // Browsers ignore HSTS on plain HTTP, so this only ever pins an origin that already served HTTPS.
       if (policy.enforced && (req.secure || policy.publicUrlIsHttps)) {
         res.setHeader('Strict-Transport-Security', HSTS);

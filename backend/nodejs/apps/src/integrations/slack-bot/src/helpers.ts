@@ -1,8 +1,8 @@
-import axios from "axios";
-import FormData from "form-data";
-import { markdownToSlackMrkdwn, markdownToText } from "./utils/md_to_mrkdwn";
-import { escapeSlackText, safeLinkLabel } from "./utils/slack-escape";
-import { type SlackBotConfig } from "./botRegistry";
+import axios from 'axios';
+import FormData from 'form-data';
+import { markdownToSlackMrkdwn, markdownToText } from './utils/md_to_mrkdwn';
+import { escapeSlackText, safeLinkLabel } from './utils/slack-escape';
+import { type SlackBotConfig } from './botRegistry';
 
 // ---------------------------------------------------------------------------
 // Interfaces & Types
@@ -786,7 +786,9 @@ export function formatSlackErrorMessage(rawMessage: string): string {
   }
 
   // A backend error can echo model or user text: shown as text, never as Slack syntax (SEC-B-03).
-  return escapeSlackText(truncateFromEnd(normalizedMessage, MAX_USER_VISIBLE_ERROR_LENGTH));
+  return escapeSlackText(
+    truncateFromEnd(normalizedMessage, MAX_USER_VISIBLE_ERROR_LENGTH),
+  );
 }
 
 export function resolveSlackErrorMessage(error: unknown): string {

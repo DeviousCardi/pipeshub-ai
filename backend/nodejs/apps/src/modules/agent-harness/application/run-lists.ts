@@ -108,7 +108,9 @@ export class RunListService {
       ...(filter.createdFrom !== undefined
         ? { createdFrom: filter.createdFrom }
         : {}),
-      ...(filter.createdTo !== undefined ? { createdTo: filter.createdTo } : {}),
+      ...(filter.createdTo !== undefined
+        ? { createdTo: filter.createdTo }
+        : {}),
       ...(filter.after !== undefined ? { after: filter.after } : {}),
       limit: limit + 1,
     });
@@ -144,7 +146,9 @@ export class RunListService {
    * Each job's title from its goal, so the Jobs panel needs no brief per row. The goal is the caller's own
    * conversation's content (the list is theirs alone); one that cannot be opened lists without a title.
    */
-  private async jobTitles(runs: readonly HarnessRun[]): Promise<Map<string, string>> {
+  private async jobTitles(
+    runs: readonly HarnessRun[],
+  ): Promise<Map<string, string>> {
     const inputs = this.deps.inputs;
     const titles = new Map<string, string>();
     if (inputs === undefined) return titles;
@@ -224,4 +228,3 @@ function personRunView(
       : {}),
   };
 }
-

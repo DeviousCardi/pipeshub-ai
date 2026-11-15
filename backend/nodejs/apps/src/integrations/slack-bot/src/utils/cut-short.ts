@@ -7,19 +7,19 @@
  */
 import { slackBotEdition } from '../edition';
 
-
 const NOTICES: Record<string, string> = {
-  budget: "Stopped early: spending limit reached",
-  turns: "Stopped early: turn limit reached",
-  time: "Stopped early: time limit reached",
-  stall: "Stopped early: its steps kept repeating without progress",
-  provider: "Stopped early: the AI model provider was unavailable",
-  engine_error: "Stopped early: the coding engine ran into an error",
-  secret_blocked: "Stopped early: PipesHub blocked a request that looked like it contained a secret",
+  budget: 'Stopped early: spending limit reached',
+  turns: 'Stopped early: turn limit reached',
+  time: 'Stopped early: time limit reached',
+  stall: 'Stopped early: its steps kept repeating without progress',
+  provider: 'Stopped early: the AI model provider was unavailable',
+  engine_error: 'Stopped early: the coding engine ran into an error',
+  secret_blocked:
+    'Stopped early: PipesHub blocked a request that looked like it contained a secret',
 };
 
 const HOW_TO_CONTINUE =
-  "The answer uses what was gathered before the limit. Reply “continue” to carry on.";
+  'The answer uses what was gathered before the limit. Reply “continue” to carry on.';
 
 /**
  * The notice for `truncatedBy`, or `null` when the answer was not cut short (or names a limit this
@@ -30,9 +30,9 @@ export function cutShortNotice(
   budgetScope?: unknown,
   now: Date = new Date(),
 ): string | null {
-  if (typeof truncatedBy !== "string") return null;
+  if (typeof truncatedBy !== 'string') return null;
   const scoped =
-    truncatedBy === "budget" && typeof budgetScope === "string"
+    truncatedBy === 'budget' && typeof budgetScope === 'string'
       ? slackBotEdition().budgetStopNotice(budgetScope, now)
       : null;
   if (scoped !== null) return scoped;
@@ -50,8 +50,8 @@ export function cutShortBlocks(
   if (notice === null) return null;
   return [
     {
-      type: "context",
-      elements: [{ type: "mrkdwn", text: `:warning: ${notice}` }],
+      type: 'context',
+      elements: [{ type: 'mrkdwn', text: `:warning: ${notice}` }],
     },
   ];
 }
@@ -61,13 +61,18 @@ export function cutShortBlocks(
  * bot has no locale, so it appends the presenter's English closing, which already says why it stopped and how to
  * carry on (so the cut-short notice is not added again).
  */
-export function withOutcomeClosing<T extends { content: string; truncatedBy?: string; runOutcome?: { closing?: unknown } }>(
-  response: T,
-): T {
+export function withOutcomeClosing<
+  T extends {
+    content: string;
+    truncatedBy?: string;
+    runOutcome?: { closing?: unknown };
+  },
+>(response: T): T {
   const closing = response.runOutcome?.closing;
-  if (typeof closing !== "string") return response;
+  if (typeof closing !== 'string') return response;
   const { truncatedBy: _said, ...rest } = response;
   if (closing.length === 0) return rest as T;
-  const content = response.content.length > 0 ? `${response.content}\n\n${closing}` : closing;
+  const content =
+    response.content.length > 0 ? `${response.content}\n\n${closing}` : closing;
   return { ...rest, content } as T;
 }

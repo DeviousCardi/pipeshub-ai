@@ -14,7 +14,13 @@ import {
   UNKNOWN_EFFECT_RESOLVED_FRAME,
 } from './run-projector';
 import { HeldCard } from './stream-id';
-import { MODEL_SWITCHED, REPEATING_NOTICES, SANDBOX_QUEUED, TIME_PLAN, TimelineBuilder } from './timeline';
+import {
+  MODEL_SWITCHED,
+  REPEATING_NOTICES,
+  SANDBOX_QUEUED,
+  TIME_PLAN,
+  TimelineBuilder,
+} from './timeline';
 import { isSharedGrant } from '../domain/conversation-grants';
 import { HeldAsks } from './held-asks';
 
@@ -29,7 +35,11 @@ const RELAYED_NOTICES: ReadonlySet<string> = new Set([
   MODEL_SWITCHED,
   ...REPEATING_NOTICES,
 ]);
-const NOTICE_EVENTS: ReadonlySet<string> = new Set(['x.pipeshub.run.notice', 'run.yielded', 'model.fallback']);
+const NOTICE_EVENTS: ReadonlySet<string> = new Set([
+  'x.pipeshub.run.notice',
+  'run.yielded',
+  'model.fallback',
+]);
 import {
   reconcileVerdict,
   unknownEffectCard,
@@ -205,7 +215,12 @@ export class ChildInteractions {
       if (NOTICE_EVENTS.has(event.type)) {
         for (const notice of state.builder.timeline.notices) {
           if (known.has(notice) || !RELAYED_NOTICES.has(notice.code)) continue;
-          steps.push({ type: AGUI.CUSTOM, name: NOTICE_FRAME, value: { ...notice }, runId: childRunId });
+          steps.push({
+            type: AGUI.CUSTOM,
+            name: NOTICE_FRAME,
+            value: { ...notice },
+            runId: childRunId,
+          });
         }
       } else if (event.type === ENGINE_PROGRESS) {
         steps.push(engineProgressFrame(data, childRunId, true));
@@ -437,7 +452,6 @@ export class ChildInteractions {
       const reason = card['reason'] as Record<string, unknown> | undefined;
       // BUGS-B: nor "Don't ask again" (the rule would be saved from a run the card does not belong to).
       const { ruleGrant: _ruleGrant, ...shown } = reason ?? {};
-      void _ruleGrant;
       return this.custom(APPROVAL_REQUESTED_FRAME, {
         ...card,
         // FLOWGRANT: a child's grant reaches the whole conversation, so the worker's offer stands.

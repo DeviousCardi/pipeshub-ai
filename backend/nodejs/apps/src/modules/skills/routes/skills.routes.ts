@@ -83,13 +83,21 @@ export const skillReviewSchema = z.object({
 /** UI-B4: the name people see, checked here as Python's `RenameRequest` checks it. */
 export const skillRenameSchema = z.object({
   params: z.object({ name: z.string().min(1).max(200) }),
-  body: z.object({ displayName: z.string().max(120).nullable().optional() }).strict(),
+  body: z
+    .object({ displayName: z.string().max(120).nullable().optional() })
+    .strict(),
 });
 
 /** Candidate review: the admin's own decision, or through configuration-change approvals where they are bound. */
-function candidateDecisions(container: Container, appConfig: AppConfig): { approve: RequestHandler; reject: RequestHandler } {
+function candidateDecisions(
+  container: Container,
+  appConfig: AppConfig,
+): { approve: RequestHandler; reject: RequestHandler } {
   if (!container.isBound(CONTROL_PLANE_APPROVALS_FACTORY)) {
-    return { approve: approveSkillCandidate(appConfig) as RequestHandler, reject: rejectSkillCandidate(appConfig) as RequestHandler };
+    return {
+      approve: approveSkillCandidate(appConfig) as RequestHandler,
+      reject: rejectSkillCandidate(appConfig) as RequestHandler,
+    };
   }
   const bound = container.get<CandidateWorkflowFactory>(
     CONTROL_PLANE_APPROVALS_FACTORY,
@@ -130,12 +138,27 @@ export function createSkillsRouter(container: Container): Router {
 
   router.get('/candidates/pending', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_READ), getPendingSkillCandidates(appConfig));
   const candidates = candidateDecisions(container, appConfig);
-  router.post('/candidates/:candidateId/approve', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_WRITE), candidates.approve);
-  router.post('/candidates/:candidateId/reject', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_WRITE), candidates.reject);
+  router.post(
+    '/candidates/:candidateId/approve',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_WRITE),
+    candidates.approve,
+  );
+  router.post(
+    '/candidates/:candidateId/reject',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_WRITE),
+    candidates.reject,
+  );
 
   // ---- Supply-chain review of imported skills (ADR-SEC-01; admin only, enforced by Python's admin gate) --
 
-  router.get('/reviews/pending', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_WRITE), getPendingSkillReviews(appConfig));
+  router.get(
+    '/reviews/pending',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_WRITE),
+    getPendingSkillReviews(appConfig),
+  );
   router.post(
     '/:name/review',
     authMiddleware.authenticate,
@@ -178,12 +201,42 @@ export function createSkillsRouter(container: Container): Router {
 
   // ---- CRUD -----------------------------------------------------------------
 
-  router.get('/commands/provenance', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_READ), getCommandProvenance(appConfig));
-  router.get('/commands/share-targets', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_READ), getCommandShareTargets(appConfig));
-  router.post('/', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_WRITE), createSkill(appConfig));
-  router.get('/:name', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_READ), getSkill(appConfig));
-  router.put('/:name', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_WRITE), updateSkill(appConfig));
-  router.patch('/:name/body', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_WRITE), patchSkillBody(appConfig));
+  router.get(
+    '/commands/provenance',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_READ),
+    getCommandProvenance(appConfig),
+  );
+  router.get(
+    '/commands/share-targets',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_READ),
+    getCommandShareTargets(appConfig),
+  );
+  router.post(
+    '/',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_WRITE),
+    createSkill(appConfig),
+  );
+  router.get(
+    '/:name',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_READ),
+    getSkill(appConfig),
+  );
+  router.put(
+    '/:name',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_WRITE),
+    updateSkill(appConfig),
+  );
+  router.patch(
+    '/:name/body',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_WRITE),
+    patchSkillBody(appConfig),
+  );
   router.post(
     '/:name/rename',
     authMiddleware.authenticate,
@@ -200,10 +253,30 @@ export function createSkillsRouter(container: Container): Router {
 
   // ---- Version history ------------------------------------------------------
 
-  router.get('/:name/versions', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_READ), listSkillVersions(appConfig));
-  router.get('/:name/versions/:version', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_READ), getSkillVersion(appConfig));
-  router.post('/:name/rollback', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_WRITE), rollbackSkill(appConfig));
-  router.post('/:name/publish', authMiddleware.authenticate, requireScopes(OAuthScopeNames.SKILL_WRITE), publishCommand(appConfig));
+  router.get(
+    '/:name/versions',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_READ),
+    listSkillVersions(appConfig),
+  );
+  router.get(
+    '/:name/versions/:version',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_READ),
+    getSkillVersion(appConfig),
+  );
+  router.post(
+    '/:name/rollback',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_WRITE),
+    rollbackSkill(appConfig),
+  );
+  router.post(
+    '/:name/publish',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.SKILL_WRITE),
+    publishCommand(appConfig),
+  );
 
   // ---- Bundled resources ------------------------------------------------------
 

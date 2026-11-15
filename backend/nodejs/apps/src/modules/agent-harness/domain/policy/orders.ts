@@ -191,7 +191,11 @@ const minMapOrder: Order = {
       const mine = minMapBound(x, key);
       const theirs = minMapBound(y, key);
       const bound =
-        mine === null ? theirs : theirs === null ? mine : Math.min(mine, theirs);
+        mine === null
+          ? theirs
+          : theirs === null
+            ? mine
+            : Math.min(mine, theirs);
       if (bound !== null) out[key] = bound;
     }
     return minMap(out);

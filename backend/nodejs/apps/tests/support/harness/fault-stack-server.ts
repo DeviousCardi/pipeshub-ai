@@ -449,7 +449,7 @@ async function main(): Promise<void> {
   const requests = trackRequests(server);
   server.listen(PORT, () => {
     logger.info('fault node ready', { port: PORT, broker: broker.type });
-    // eslint-disable-next-line no-console
+     
     console.log(`FAULT NODE READY ${String(PORT)}`);
   });
   // A rolling deploy's stop, in the order of the app's `stop()`: leadership, then the answers owed, then the exit;
@@ -469,7 +469,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  // eslint-disable-next-line no-console
+   
   console.error('fault node failed', error);
   process.exit(1);
 });

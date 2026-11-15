@@ -260,7 +260,7 @@ describe('C-10: agent-harness routes are in the OpenAPI spec (API-01, C12.01: no
         if (JSON.stringify(names) !== JSON.stringify(inPath) || optional.length > 0) {
           wrong.push(
             `${method.toUpperCase()} ${path}: declares [${names.join(', ')}]` +
-              `${optional.length ? ` (not required: ${optional.map((p) => p.name).join(', ')})` : ''}`,
+              (optional.length ? ` (not required: ${optional.map((p) => p.name).join(', ')})` : ''),
           );
         }
       }

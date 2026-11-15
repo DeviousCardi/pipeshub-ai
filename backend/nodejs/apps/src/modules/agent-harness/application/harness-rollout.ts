@@ -31,7 +31,9 @@ export class HarnessRollout implements HarnessRolloutPolicy {
         ...(settings.assistantModes !== undefined
           ? { assistantModes: settings.assistantModes }
           : {}),
-        ...(request.durableRequested === true ? { durableRequested: true } : {}),
+        ...(request.durableRequested === true
+          ? { durableRequested: true }
+          : {}),
       },
     );
     // Resolving the family reads model config; skip it when nothing depends on it.

@@ -1629,7 +1629,12 @@ export class MongoConversationRepository implements ConversationRepository {
     const row = (await ChatSession.findOneAndUpdate(
       { _id: id, orgId },
       { $max: { [field]: at } },
-      { ...opts(tx), returnDocument: 'after', timestamps: false, projection: { [field]: 1 } },
+      {
+        ...opts(tx),
+        returnDocument: 'after',
+        timestamps: false,
+        projection: { [field]: 1 },
+      },
     ).lean()) as { harnessSeen?: Record<string, number> } | null;
     return row === null ? null : (row.harnessSeen?.[userId] ?? null);
   }
@@ -1891,10 +1896,13 @@ export class MongoConversationRepository implements ConversationRepository {
     )
       .sort({ _id: 1 })
       .read('primary')
-      .lean<Array<{ _id: unknown; isShared?: boolean; sharedWith?: unknown[] }>>();
+      .lean<
+        Array<{ _id: unknown; isShared?: boolean; sharedWith?: unknown[] }>
+      >();
     return owned.map((session) => ({
       sessionId: String(session._id),
-      shared: session.isShared === true && (session.sharedWith ?? []).length > 0,
+      shared:
+        session.isShared === true && (session.sharedWith ?? []).length > 0,
     }));
   }
 
@@ -1910,7 +1918,10 @@ export class MongoConversationRepository implements ConversationRepository {
     const to = oid(toUserId);
     const result = await ChatSession.updateMany(
       { _id: { $in: oids(valid) }, orgId: oid(orgId), userId: oid(fromUserId) },
-      { $set: { userId: to, initiator: to }, $pull: { sharedWith: { userId: to } } },
+      {
+        $set: { userId: to, initiator: to },
+        $pull: { sharedWith: { userId: to } },
+      },
       opts(tx),
     );
     return result.matchedCount;
@@ -1947,7 +1958,10 @@ export class MongoConversationRepository implements ConversationRepository {
     if (!validIds(orgId) || limit <= 0) return [];
     if (after !== null && !mongoose.Types.ObjectId.isValid(after)) return [];
     const sessions = await ChatSession.find(
-      { orgId: oid(orgId), ...(after !== null ? { _id: { $gt: oid(after) } } : {}) },
+      {
+        orgId: oid(orgId),
+        ...(after !== null ? { _id: { $gt: oid(after) } } : {}),
+      },
       { _id: 1 },
     )
       .sort({ _id: 1 })

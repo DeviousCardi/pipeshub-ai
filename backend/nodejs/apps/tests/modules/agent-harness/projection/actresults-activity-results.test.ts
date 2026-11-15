@@ -180,7 +180,7 @@ describe('ACTRESULTS: snapshot size', () => {
           }),
         }),
       );
-      // eslint-disable-next-line no-console
+       
       console.log(`      snapshot bytes, ${steps} steps: before ${before}, after ${after}`);
       expect(after).to.be.below(before / 10);
       expect(after / steps).to.be.below(400);

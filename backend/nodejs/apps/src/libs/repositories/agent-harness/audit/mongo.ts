@@ -38,7 +38,6 @@ import { transactionWrites } from '../transaction-writes/mongo';
 
 const toRecord = (document: AuditRecord & { _id?: unknown }): AuditRecord => {
   const { _id, ...record } = document;
-  void _id;
   return { ...record, fields: { ...record.fields } };
 };
 

@@ -23,8 +23,7 @@ export const bindPrincipalDeactivation: HarnessBinder = ({
 }) => {
   if (container.isBound(PRINCIPAL_DEACTIVATION)) return;
   const configured = dependencies.schedules?.store as
-    | (Partial<ScheduleEraser> & object)
-    | undefined;
+    (Partial<ScheduleEraser> & object) | undefined;
   const schedules: Pick<ScheduleEraser, 'pauseUser'> =
     configured !== undefined && typeof configured.pauseUser === 'function'
       ? (configured as Pick<ScheduleEraser, 'pauseUser'>)

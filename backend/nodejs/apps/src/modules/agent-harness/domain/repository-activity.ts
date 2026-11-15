@@ -19,9 +19,16 @@ export interface RepositoryUnavailableView {
 }
 
 /** The card for a refused clone, or null for a malformed record. */
-export function unavailableRepository(data: Record<string, unknown>): RepositoryUnavailableView | null {
+export function unavailableRepository(
+  data: Record<string, unknown>,
+): RepositoryUnavailableView | null {
   const { host, path, reason } = data;
-  if (typeof host !== 'string' || typeof path !== 'string' || reason !== 'host_not_allowed') return null;
+  if (
+    typeof host !== 'string' ||
+    typeof path !== 'string' ||
+    reason !== 'host_not_allowed'
+  )
+    return null;
   return { host, path, reason };
 }
 export const REPOSITORY_FETCH_TOOL = 'repository_fetch';
@@ -29,14 +36,22 @@ export const REPOSITORY_PUSH_TOOL = 'repository_push';
 
 const MIB = 1024 * 1024;
 
-const megabytes = (bytes: number): string => `${String(Math.max(1, Math.round(bytes / MIB)))} MB`;
+const megabytes = (bytes: number): string =>
+  `${String(Math.max(1, Math.round(bytes / MIB)))} MB`;
 
 /** The line for a fetched repository, or null for a malformed record. */
-export function fetchedRepositoryLine(data: Record<string, unknown>): SiteActivityView | null {
+export function fetchedRepositoryLine(
+  data: Record<string, unknown>,
+): SiteActivityView | null {
   const host = data['host'];
   const repository = data['repository'];
   const bytes = data['bytes'];
-  if (typeof host !== 'string' || typeof repository !== 'string' || typeof bytes !== 'number') return null;
+  if (
+    typeof host !== 'string' ||
+    typeof repository !== 'string' ||
+    typeof bytes !== 'number'
+  )
+    return null;
   return {
     kind: 'cloned',
     host,
@@ -50,16 +65,26 @@ export function fetchedRepositoryLine(data: Record<string, unknown>): SiteActivi
 }
 
 /** Whether an approval's tool is the repository fetch (an engine names it bare or with its server's prefix). */
-export const isRepositoryTool = (toolName: string | undefined, tool: string): boolean =>
-  toolName !== undefined && (toolName === tool || toolName.endsWith(`__${tool}`) || toolName.endsWith(`_${tool}`));
+export const isRepositoryTool = (
+  toolName: string | undefined,
+  tool: string,
+): boolean =>
+  toolName !== undefined &&
+  (toolName === tool ||
+    toolName.endsWith(`__${tool}`) ||
+    toolName.endsWith(`_${tool}`));
 
 /**
  * The line for a clone or push the person refused on its card. The card's
  * destination names the repository ("github.com/o/r (public, read-only, …)",
  * or "pipeshub/session-… on github.com/o/r" for a push): its host and path.
  */
-export function deniedRepositoryLine(tool: string, destination: string | undefined): SiteActivityView {
-  const named = (destination ?? '').split(' on ').at(-1)?.split(' (')[0]?.trim() ?? '';
+export function deniedRepositoryLine(
+  tool: string,
+  destination: string | undefined,
+): SiteActivityView {
+  const named =
+    (destination ?? '').split(' on ').at(-1)?.split(' (')[0]?.trim() ?? '';
   const slash = named.indexOf('/');
   const host = slash === -1 ? named : named.slice(0, slash);
   const path = slash === -1 ? undefined : named.slice(slash);

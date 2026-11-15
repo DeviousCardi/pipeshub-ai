@@ -484,11 +484,19 @@ export class InMemoryScheduleStore implements ScheduleStore, ScheduleEraser {
     );
   }
 
-  async pauseUser(orgId: string, userId: string, reason: string): Promise<number> {
+  async pauseUser(
+    orgId: string,
+    userId: string,
+    reason: string,
+  ): Promise<number> {
     const now = this.clock.now();
     let count = 0;
     for (const schedule of this.schedules.values()) {
-      if (schedule.orgId !== orgId || schedule.actorId !== userId || schedule.status !== 'active')
+      if (
+        schedule.orgId !== orgId ||
+        schedule.actorId !== userId ||
+        schedule.status !== 'active'
+      )
         continue;
       this.schedules.set(schedule.id, {
         ...schedule,

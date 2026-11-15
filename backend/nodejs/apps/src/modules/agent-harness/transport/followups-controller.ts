@@ -88,7 +88,8 @@ export class AgentHarnessFollowupsController {
       );
       return new BadRequestError('Invalid follow-ups');
     }
-    if (error instanceof RunNotCompletedError) return internalTransportError(error);
+    if (error instanceof RunNotCompletedError)
+      return internalTransportError(error);
     return transportError(error);
   }
 }

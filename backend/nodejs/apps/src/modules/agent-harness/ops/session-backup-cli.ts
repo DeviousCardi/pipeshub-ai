@@ -30,12 +30,15 @@ import { forOrg } from '../../../libs/context/orgContext';
 
 type Options = Record<string, string>;
 
-const parse = (argv: readonly string[]): { command: string; options: Options } => {
+const parse = (
+  argv: readonly string[],
+): { command: string; options: Options } => {
   const [command = '', ...rest] = argv;
   const options: Options = {};
   for (let i = 0; i < rest.length; i += 2) {
     const key = rest[i] ?? '';
-    if (!key.startsWith('--') || rest[i + 1] === undefined) throw new Error(`bad argument ${key}`);
+    if (!key.startsWith('--') || rest[i + 1] === undefined)
+      throw new Error(`bad argument ${key}`);
     options[key.slice(2)] = rest[i + 1] as string;
   }
   return { command, options };
@@ -43,19 +46,25 @@ const parse = (argv: readonly string[]): { command: string; options: Options } =
 
 const required = (options: Options, ...names: string[]): void => {
   const missing = names.filter((name) => !options[name]);
-  if (missing.length > 0) throw new Error(`missing ${missing.map((m) => `--${m}`).join(', ')}`);
+  if (missing.length > 0)
+    throw new Error(`missing ${missing.map((m) => `--${m}`).join(', ')}`);
 };
 
-export async function runSessionBackupCli(argv: readonly string[]): Promise<number> {
+export async function runSessionBackupCli(
+  argv: readonly string[],
+): Promise<number> {
   let parsed: { command: string; options: Options };
   try {
     parsed = parse(argv);
     if (docStore() !== 'postgres') required(parsed.options, 'mongo-uri', 'db');
-    if (parsed.command === 'export') required(parsed.options, 'org', 'session', 'out');
+    if (parsed.command === 'export')
+      required(parsed.options, 'org', 'session', 'out');
     else if (parsed.command === 'restore') required(parsed.options, 'in');
     else throw new Error('the command is export or restore');
   } catch (error) {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.stderr.write(
+      `${error instanceof Error ? error.message : String(error)}\n`,
+    );
     return 2;
   }
   const { command, options } = parsed;
@@ -63,25 +72,41 @@ export async function runSessionBackupCli(argv: readonly string[]): Promise<numb
   if (postgres) await initDocStore('session-backup-cli', { jobs: false });
   const connection = postgres
     ? null
-    : await openMongoConnection(options['mongo-uri'] as string, options['db'] as string);
+    : await openMongoConnection(
+        options['mongo-uri'] as string,
+        options['db'] as string,
+      );
   try {
     const backup: SessionBackup =
-      connection === null ? new PgSessionBackup() : new MongoSessionBackup(connection.db);
+      connection === null
+        ? new PgSessionBackup()
+        : new MongoSessionBackup(connection.db);
     const manifest =
       command === 'export'
         ? // The operator names the org the export is for, as a job names the org it works on.
           await forOrg(options['org'] as string, 'session-backup', () =>
-            backup.export(options['org'] as string, options['session'] as string, options['out'] as string),
+            backup.export(
+              options['org'] as string,
+              options['session'] as string,
+              options['out'] as string,
+            ),
           )
         : await backup.restore(options['in'] as string);
     const counts = Object.fromEntries(
-      Object.entries(manifest.collections).map(([name, entry]) => [name, entry.documents]),
+      Object.entries(manifest.collections).map(([name, entry]) => [
+        name,
+        entry.documents,
+      ]),
     );
-    process.stdout.write(`${JSON.stringify({ command, sessionId: manifest.sessionId, digest: manifest.digest, counts })}\n`);
+    process.stdout.write(
+      `${JSON.stringify({ command, sessionId: manifest.sessionId, digest: manifest.digest, counts })}\n`,
+    );
     return 0;
   } catch (error) {
     if (error instanceof SessionBackupRefused) {
-      process.stdout.write(`${JSON.stringify({ command, refused: error.reasonCode, message: error.message })}\n`);
+      process.stdout.write(
+        `${JSON.stringify({ command, refused: error.reasonCode, message: error.message })}\n`,
+      );
       return 1;
     }
     throw error;
@@ -94,7 +119,9 @@ if (require.main === module) {
   runSessionBackupCli(process.argv.slice(2)).then(
     (code) => process.exit(code),
     (error: unknown) => {
-      process.stderr.write(`${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
+      process.stderr.write(
+        `${error instanceof Error ? (error.stack ?? error.message) : String(error)}\n`,
+      );
       process.exit(2);
     },
   );

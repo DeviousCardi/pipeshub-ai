@@ -62,9 +62,7 @@ export interface InMemoryForkTx {
 }
 
 /** Conversations, their citations and fork records in memory, for the fork contract. */
-export class InMemorySessionForkStore
-  implements SessionForkStore<InMemoryForkTx>
-{
+export class InMemorySessionForkStore implements SessionForkStore<InMemoryForkTx> {
   readonly conversations = new Map<string, InMemoryConversation>();
   readonly citations = new Map<string, ForkCitationData>();
   readonly records = new Map<string, StoredRecord>();
@@ -120,21 +118,19 @@ export class InMemorySessionForkStore
         title: conversation.title,
         modelInfo: conversation.modelInfo,
         durable: conversation.durable === true,
-        messages: conversation.messages.map(
-          (message): ForkSourceMessage => ({
-            messageType: message.messageType,
-            senderId: message.senderId,
-            content: message.content,
-            citations: message.citations.flatMap((link) => {
-              const data = this.citations.get(link.citationId);
-              if (data === undefined) return [];
-              const { citationId: _id, ...use } = link;
-              return [{ ...use, data }];
-            }),
-            fields: message.fields,
-            label: message.label ?? null,
+        messages: conversation.messages.map((message): ForkSourceMessage => ({
+          messageType: message.messageType,
+          senderId: message.senderId,
+          content: message.content,
+          citations: message.citations.flatMap((link) => {
+            const data = this.citations.get(link.citationId);
+            if (data === undefined) return [];
+            const { citationId: _id, ...use } = link;
+            return [{ ...use, data }];
           }),
-        ),
+          fields: message.fields,
+          label: message.label ?? null,
+        })),
       }),
     );
   }
@@ -147,19 +143,17 @@ export class InMemorySessionForkStore
       return Promise.reject(new Error('The fork session already exists'));
     }
     tx.staged.push(() => {
-      const messages = fork.messages.map(
-        (message): InMemoryMessage => ({
-          messageType: message.messageType,
-          senderId: null,
-          content: message.content,
-          citations: message.citations.map(({ data, ...use }) => ({
-            ...use,
-            citationId: this.addCitation(data),
-          })),
-          fields: structuredClone(message.fields),
-          ...(message.foreignTurn ? { foreignTurn: true } : { copied: true }),
-        }),
-      );
+      const messages = fork.messages.map((message): InMemoryMessage => ({
+        messageType: message.messageType,
+        senderId: null,
+        content: message.content,
+        citations: message.citations.map(({ data, ...use }) => ({
+          ...use,
+          citationId: this.addCitation(data),
+        })),
+        fields: structuredClone(message.fields),
+        ...(message.foreignTurn ? { foreignTurn: true } : { copied: true }),
+      }));
       this.conversations.set(fork.forkSessionId, {
         orgId: fork.key.orgId,
         participants: {

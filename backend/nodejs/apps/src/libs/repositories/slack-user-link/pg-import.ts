@@ -61,7 +61,8 @@ export async function importSlackUserLinkDocs(
   const candidates: Array<{ id: string; row: Row }> = [];
   for (const d of docs) {
     const row = slackUserLinkRow(d);
-    if (typeof row === 'string') stats.skipped.push({ id: String(d._id), reason: row });
+    if (typeof row === 'string')
+      stats.skipped.push({ id: String(d._id), reason: row });
     else candidates.push({ id: String(d._id), row });
   }
   const users = [...new Set(candidates.map((c) => String(c.row.user_id)))];

@@ -8,10 +8,16 @@ import { TOOL_DISPLAY } from '../../../../modules/agent-harness/contracts/genera
 
 type Builtin = (typeof TOOL_DISPLAY.builtins)[number];
 
-const BUILTINS = new Map<string, Builtin>(TOOL_DISPLAY.builtins.flatMap((b) => b.tools.map((t) => [t, b] as const)));
-const TOOLSETS = new Map(TOOL_DISPLAY.toolsets.map((t) => [t.prefix, t.name] as const));
+const BUILTINS = new Map<string, Builtin>(
+  TOOL_DISPLAY.builtins.flatMap((b) => b.tools.map((t) => [t, b] as const)),
+);
+const TOOLSETS = new Map(
+  TOOL_DISPLAY.toolsets.map((t) => [t.prefix, t.name] as const),
+);
 const HIDDEN: ReadonlySet<string> = new Set(TOOL_DISPLAY.hiddenToolsets);
-const ACRONYMS = new Map(TOOL_DISPLAY.acronyms.map((a) => [a.toLowerCase(), a] as const));
+const ACRONYMS = new Map(
+  TOOL_DISPLAY.acronyms.map((a) => [a.toLowerCase(), a] as const),
+);
 const NO_TOOL = 'Used a tool';
 const SEP = ' · ';
 
@@ -43,7 +49,9 @@ function word(raw: string, capital: boolean): string {
   const lower = raw.toLowerCase();
   const known = ACRONYMS.get(lower);
   if (known) return known;
-  const stem = lower.endsWith('s') ? ACRONYMS.get(lower.slice(0, -1)) : undefined;
+  const stem = lower.endsWith('s')
+    ? ACRONYMS.get(lower.slice(0, -1))
+    : undefined;
   if (stem && stem === stem.toUpperCase()) return `${stem}s`;
   return capital ? lower.charAt(0).toUpperCase() + lower.slice(1) : lower;
 }
@@ -52,12 +60,16 @@ function word(raw: string, capital: boolean): string {
 function split(id: string): { prefix?: string; bare: string; server?: string } {
   const at = id.indexOf('@');
   const slash = id.lastIndexOf('/');
-  if (at > 0 && slash > at) return { prefix: id.slice(at + 1, slash), bare: id.slice(slash + 1) };
+  if (at > 0 && slash > at)
+    return { prefix: id.slice(at + 1, slash), bare: id.slice(slash + 1) };
   const sep = id.lastIndexOf('__');
   if (sep >= 0) {
     const head = id.slice(0, sep);
     const inner = head.lastIndexOf('__');
-    return { prefix: inner >= 0 ? head.slice(inner + 2) : head, bare: id.slice(sep + 2) };
+    return {
+      prefix: inner >= 0 ? head.slice(inner + 2) : head,
+      bare: id.slice(sep + 2),
+    };
   }
   // shortcut: `mcp_{server}_{tool}` splits at the first `_`; a server id with `_` reads wrong. Python sends the
   // server's display name on every MCP call, so this only names calls saved without one.
@@ -65,11 +77,15 @@ function split(id: string): { prefix?: string; bare: string; server?: string } {
   return mcp ? { server: mcp[1], bare: mcp[2]! } : { bare: id };
 }
 
-const titleCase = (text: string): string => words(text).map((w) => word(w, true)).join(' ');
+const titleCase = (text: string): string =>
+  words(text)
+    .map((w) => word(w, true))
+    .join(' ');
 
 function appOf(prefix: string | undefined): string | undefined {
   // An instance id (`3f2a-11c9`) is no name a person knows.
-  if (!prefix || HIDDEN.has(prefix) || !/^[a-z0-9_]+$/.test(prefix)) return undefined;
+  if (!prefix || HIDDEN.has(prefix) || !/^[a-z0-9_]+$/.test(prefix))
+    return undefined;
   return TOOLSETS.get(prefix) ?? (titleCase(prefix) || undefined);
 }
 
@@ -91,8 +107,14 @@ export function toolKey(toolName: string | undefined): ToolKey {
     .map((w) => w.toLowerCase().replace(/[^a-z0-9]/g, ''))
     .filter(Boolean);
   const key = (text: string | undefined): string | null =>
-    text !== undefined && /^[a-z0-9][a-z0-9_.-]{0,127}$/.test(text.toLowerCase()) ? text.toLowerCase() : null;
-  const app = prefix !== undefined && appOf(prefix) !== undefined ? key(prefix) : key(server);
+    text !== undefined &&
+    /^[a-z0-9][a-z0-9_.-]{0,127}$/.test(text.toLowerCase())
+      ? text.toLowerCase()
+      : null;
+  const app =
+    prefix !== undefined && appOf(prefix) !== undefined
+      ? key(prefix)
+      : key(server);
   return {
     name: parts.length > 0 ? parts.join('_').slice(0, 256) : 'tool',
     verb: parts[0]?.slice(0, 64) ?? null,
@@ -109,18 +131,33 @@ export function humanizeToolName(name: string): string {
 /** An id ("create_ticket", "getUser", "search") is worded by the humanizer; a name written for people ("Search",
  * "Searched the web") is kept as written. */
 const isId = (text: string): boolean =>
-  !/\s/.test(text) && (/[_\-./@]|[a-z][A-Z]/.test(text) || text === text.toLowerCase());
+  !/\s/.test(text) &&
+  (/[_\-./@]|[a-z][A-Z]/.test(text) || text === text.toLowerCase());
 
-export function describeTool(toolName: string | undefined, displayName?: string): ToolDescription {
+export function describeTool(
+  toolName: string | undefined,
+  displayName?: string,
+): ToolDescription {
   const { prefix, bare, server } = split(toolName ?? '');
   const builtin = BUILTINS.get(bare);
   const shown = displayName?.trim() || undefined;
   const dot = shown?.indexOf(SEP) ?? -1;
-  const shownApp = shown && dot > 0 ? shown.slice(0, dot).trim() || undefined : undefined;
-  const shownTool = shown && dot > 0 ? shown.slice(dot + SEP.length).trim() || undefined : shown;
-  const written = shownTool && !shownApp && !isId(shownTool) ? shownTool : undefined;
-  const name = shownApp && shownTool ? (isId(shownTool) ? humanizeToolName(shownTool) : shownTool) : humanizeToolName(bare);
-  const app = shownApp ?? appOf(prefix) ?? (server ? titleCase(server) : undefined);
+  const shownApp =
+    shown && dot > 0 ? shown.slice(0, dot).trim() || undefined : undefined;
+  const shownTool =
+    shown && dot > 0
+      ? shown.slice(dot + SEP.length).trim() || undefined
+      : shown;
+  const written =
+    shownTool && !shownApp && !isId(shownTool) ? shownTool : undefined;
+  const name =
+    shownApp && shownTool
+      ? isId(shownTool)
+        ? humanizeToolName(shownTool)
+        : shownTool
+      : humanizeToolName(bare);
+  const app =
+    shownApp ?? appOf(prefix) ?? (server ? titleCase(server) : undefined);
   const named = app ? `${app}${SEP}${name}` : name;
   return {
     name,
@@ -133,7 +170,10 @@ export function describeTool(toolName: string | undefined, displayName?: string)
 }
 
 /** Past-tense label for a finished step in Slack's activity ("Jira · Create issue", "Searched the web"). */
-export function toolActivityLabel(toolName: string | undefined, displayName?: string): string {
+export function toolActivityLabel(
+  toolName: string | undefined,
+  displayName?: string,
+): string {
   return describeTool(toolName, displayName).displayName;
 }
 

@@ -43,7 +43,10 @@ export class SessionParticipantJournal<Tx>
     private readonly preparer: JournalPreparer,
     private readonly logger: HarnessLogger = silentHarnessLogger,
     /** SIGNIN: a conversation shared with anyone ends a sign-in held in it (ARCH §4.9); best effort. */
-    private readonly onShared?: (orgId: string, sessionId: string) => Promise<void>,
+    private readonly onShared?: (
+      orgId: string,
+      sessionId: string,
+    ) => Promise<void>,
   ) {}
 
   async participantsChanged(
@@ -56,7 +59,9 @@ export class SessionParticipantJournal<Tx>
     if (events.length === 0) return 0;
     await this.append('session.participants_journaled', change, events, tx);
     if (change.after.isShared && change.after.shares.length > 0) {
-      await this.onShared?.(change.orgId, change.sessionId).catch(() => undefined);
+      await this.onShared?.(change.orgId, change.sessionId).catch(
+        () => undefined,
+      );
     }
     return events.length;
   }

@@ -51,11 +51,15 @@ export function boundedServer(
 }
 
 /** For a server made elsewhere: every bound but the checking interval, which keeps Node's. */
-export function applyReadLimits(server: http.Server, limits: HttpReadLimits): void {
+export function applyReadLimits(
+  server: http.Server,
+  limits: HttpReadLimits,
+): void {
   server.keepAliveTimeout = limits.keepAliveTimeoutMs;
   server.headersTimeout = limits.headersTimeoutMs;
   server.requestTimeout = limits.requestTimeoutMs;
-  if (limits.maxConnections !== undefined) server.maxConnections = limits.maxConnections;
+  if (limits.maxConnections !== undefined)
+    server.maxConnections = limits.maxConnections;
 }
 
 /** Strict, like every harness setting (F3): a value that is not a positive whole number stops the process and names it. */
@@ -68,7 +72,9 @@ export function positiveIntegerSetting(
   if (text === undefined || text === '') return fallback;
   const value = Number(text);
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${name} must be a positive whole number, got ${JSON.stringify(text)}`);
+    throw new Error(
+      `${name} must be a positive whole number, got ${JSON.stringify(text)}`,
+    );
   }
   return value;
 }

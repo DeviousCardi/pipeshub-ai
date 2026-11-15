@@ -34,7 +34,9 @@ import {
  * A message as history: its `previousConversations` entries as they travel
  * (JSON), so the ledger digests what a model is sent.
  */
-export const asHistory = (message: IMessage & { seq: number }): HistoryMessage => ({
+export const asHistory = (
+  message: IMessage & { seq: number },
+): HistoryMessage => ({
   seq: message.seq,
   turns: JSON.parse(JSON.stringify(historyTurns(message))) as Array<
     Record<string, unknown>
@@ -84,10 +86,10 @@ const ledgerRow = async (
   ref: ConversationRef,
   tx: ClientSession | null,
 ): Promise<LedgerRow | null> =>
-  (await ChatSession.findOne({ _id: ref.sessionId, orgId: ref.orgId })
+  await ChatSession.findOne({ _id: ref.sessionId, orgId: ref.orgId })
     .select('+nextSeq +harnessLedger')
     .session(tx)
-    .lean()) as LedgerRow | null;
+    .lean();
 
 const plainLedger = (ledger: HistoryLedger): HistoryLedger => ({
   seq: ledger.seq,

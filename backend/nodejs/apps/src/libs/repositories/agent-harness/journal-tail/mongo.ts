@@ -4,7 +4,10 @@ import {
   harnessLogMeta,
   silentHarnessLogger,
 } from '../../../../modules/agent-harness/application/harness-log';
-import { JournalTail, JournalTailSubscription } from '../../../../modules/agent-harness/ports/journal-tail';
+import {
+  JournalTail,
+  JournalTailSubscription,
+} from '../../../../modules/agent-harness/ports/journal-tail';
 import { SessionEventModel } from '../journal/schema/journal.schema';
 
 /**
@@ -39,7 +42,7 @@ const openSessionEventInserts: OpenChangeStream = () =>
       },
     ],
     {},
-  ) as unknown as ChangeStreamLike;
+  );
 
 export class MongoJournalTail implements JournalTail {
   private readonly watchers = new Map<string, Set<(seq?: number) => void>>();

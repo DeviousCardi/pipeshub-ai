@@ -79,16 +79,23 @@ function caller(req: AuthenticatedUserRequest): PublicationCaller {
   const user = (req as Request & { user?: Record<string, unknown> }).user;
   const orgId = identityString(user?.['orgId']);
   const authorization = req.headers.authorization;
-  if (orgId === null || typeof authorization !== 'string' || authorization === '') {
+  if (
+    orgId === null ||
+    typeof authorization !== 'string' ||
+    authorization === ''
+  ) {
     throw new UnauthorizedError('A publication is managed by a signed-in user');
   }
   return { orgId, authorization };
 }
 
-const PUBLICATION_CODES: ReadonlySet<string> = new Set<ErrorCodeOf<'publication'>>(
+const PUBLICATION_CODES: ReadonlySet<string> = new Set<
+  ErrorCodeOf<'publication'>
+>(
   (Object.keys(ERROR_CODES) as ErrorCode[]).filter(
     (code): code is ErrorCodeOf<'publication'> =>
-      (ERROR_CODES[code] as { readonly group?: string }).group === 'publication',
+      (ERROR_CODES[code] as { readonly group?: string }).group ===
+      'publication',
   ),
 );
 

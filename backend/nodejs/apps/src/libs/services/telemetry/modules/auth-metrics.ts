@@ -73,15 +73,21 @@ const editionMethods = new Set<string>();
  */
 export function addAuthAttemptMethods(names: readonly string[]): void {
   for (const name of names) {
-    if (!EDITION_METHOD.test(name) || (AUTH_METHODS as readonly string[]).includes(name)) {
-      throw new Error(`Not a new sign-in method label: ${JSON.stringify(name)}`);
+    if (
+      !EDITION_METHOD.test(name) ||
+      (AUTH_METHODS as readonly string[]).includes(name)
+    ) {
+      throw new Error(
+        `Not a new sign-in method label: ${JSON.stringify(name)}`,
+      );
     }
   }
   for (const name of names) editionMethods.add(name);
 }
 
 const knownMethod = (method: string): boolean =>
-  (AUTH_METHODS as readonly string[]).includes(method) || editionMethods.has(method);
+  (AUTH_METHODS as readonly string[]).includes(method) ||
+  editionMethods.has(method);
 
 /** Never throws: a metrics fault must not turn a refusal into an acceptance, or an acceptance into a 500. */
 export function recordAuthAttempt(
@@ -93,7 +99,8 @@ export function recordAuthAttempt(
       outcome: (AUTH_OUTCOMES as readonly string[]).includes(outcome)
         ? outcome
         : 'error',
-      method: typeof method === 'string' && knownMethod(method) ? method : 'other',
+      method:
+        typeof method === 'string' && knownMethod(method) ? method : 'other',
     });
   } catch {
     // Counted nowhere rather than answered differently.

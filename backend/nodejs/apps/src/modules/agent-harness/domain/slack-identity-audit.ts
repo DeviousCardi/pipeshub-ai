@@ -10,10 +10,7 @@ export const SLACK_UNLINKED_KIND = 'identity.slack_unlinked';
  * can no longer act (removed, disabled or made a service account) and removed it itself.
  */
 export type SlackUnlinkReason =
-  | 'admin_removed'
-  | 'account_removed'
-  | 'account_disabled'
-  | 'service_account';
+  'admin_removed' | 'account_removed' | 'account_disabled' | 'service_account';
 
 /** Who acts in PipesHub as a Slack person changed (ADR-SLACKID-01). Ids only: never a token or a Slack name. */
 export type SlackIdentityChange =
@@ -40,11 +37,16 @@ export type SlackIdentityChange =
     };
 
 /** One Slack person's stream of the org's chain: its own, as `wsdl:` is for a session's downloads. */
-export const slackIdentityStreamId = (teamId: string, slackUserId: string): string =>
-  `slackid:${teamId}:${slackUserId}`;
+export const slackIdentityStreamId = (
+  teamId: string,
+  slackUserId: string,
+): string => `slackid:${teamId}:${slackUserId}`;
 
 /** The chain entry of a link or unlink. `at` is the change's time in milliseconds, which orders the stream. */
-export function slackIdentityAuditEntry(change: SlackIdentityChange, at: number): AuditEntry {
+export function slackIdentityAuditEntry(
+  change: SlackIdentityChange,
+  at: number,
+): AuditEntry {
   const fields: AuditFields = {
     teamId: change.teamId,
     slackUserId: change.slackUserId,
@@ -52,10 +54,16 @@ export function slackIdentityAuditEntry(change: SlackIdentityChange, at: number)
   };
   if (change.type === SLACK_LINKED_KIND) {
     fields['by'] = principalRefFor(change.userId);
-    fields['moved'] = change.previousUserId !== undefined && change.previousUserId !== change.userId;
-    if (fields['moved'] === true) fields['previousAccount'] = principalRefFor(change.previousUserId as string);
+    fields['moved'] =
+      change.previousUserId !== undefined &&
+      change.previousUserId !== change.userId;
+    if (fields['moved'] === true)
+      fields['previousAccount'] = principalRefFor(
+        change.previousUserId as string,
+      );
   } else {
-    if (change.actorId !== undefined) fields['by'] = principalRefFor(change.actorId);
+    if (change.actorId !== undefined)
+      fields['by'] = principalRefFor(change.actorId);
     else fields['actor'] = 'system';
     fields['reason'] = change.reason;
   }
@@ -70,6 +78,8 @@ export function slackIdentityAuditEntry(change: SlackIdentityChange, at: number)
     fence: null,
     fields,
     // An absent optional id is left out, never digested as undefined.
-    dataDigest: canonicalDigest(JSON.parse(JSON.stringify({ ...change, at })) as Record<string, unknown>),
+    dataDigest: canonicalDigest(
+      JSON.parse(JSON.stringify({ ...change, at })) as Record<string, unknown>,
+    ),
   };
 }

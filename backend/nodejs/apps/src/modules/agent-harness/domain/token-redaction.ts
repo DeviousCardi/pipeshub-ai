@@ -61,7 +61,12 @@ export function redactedArgs(args: string): string {
 }
 
 /** Fields that hold a tool call's arguments, as a JSON string or an object. */
-const ARGUMENT_FIELDS = new Set(['args', 'argsJson', 'argsPreview', 'arguments']);
+const ARGUMENT_FIELDS = new Set([
+  'args',
+  'argsJson',
+  'argsPreview',
+  'arguments',
+]);
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   if (value === null || typeof value !== 'object') return false;

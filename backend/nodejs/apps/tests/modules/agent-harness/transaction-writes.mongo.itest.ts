@@ -41,7 +41,7 @@ const receiptRow = (commandId: string) => ({
 /** A stored document less what differs between any two inserts (its id and the insert's own time). */
 const shape = (document: Record<string, unknown> | null): Record<string, unknown> => {
   const { _id, createdAt, updatedAt, ...rest } = document ?? {};
-  void _id;
+  _id;
   return { ...rest, createdAt: typeof createdAt, updatedAt: typeof updatedAt };
 };
 

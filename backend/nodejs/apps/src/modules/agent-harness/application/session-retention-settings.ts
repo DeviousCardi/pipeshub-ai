@@ -6,9 +6,7 @@ import {
 import { orgLayerScope } from '../domain/policy-layers';
 import { ControlPlaneTransaction } from '../../control-plane';
 import { ConfigDocumentStore } from '../ports/config-document-store';
-import {
-  SessionRetentionSettings,
-} from '../ports/session-retention';
+import { SessionRetentionSettings } from '../ports/session-retention';
 import { auditedConfigUpdate } from './config-documents';
 import {
   orgLayer,
@@ -26,9 +24,7 @@ import {
  * two admins saving at once do not lose either org's entry. Read on every
  * call: a change applies to the next sweep.
  */
-export class ConfigSessionRetentionSettings
-  implements SessionRetentionSettings
-{
+export class ConfigSessionRetentionSettings implements SessionRetentionSettings {
   constructor(
     private readonly store: ConfigDocumentStore<SessionRetentionDocument>,
     private readonly transaction: ControlPlaneTransaction,

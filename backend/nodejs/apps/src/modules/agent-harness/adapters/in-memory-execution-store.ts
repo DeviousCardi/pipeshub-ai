@@ -304,7 +304,7 @@ export class InMemoryExecutionStore
   /** Dispatch commands in write order, as the shared outbox would hold them. */
   readonly dispatches: DispatchRecord[] = [];
   /** WP56-OUTBOX: written in the commit that makes a run wait, as the Mongo store's transaction does. */
-  approverNotices: ApproverNoticeOutbox<unknown> | null = null;
+  approverNotices: ApproverNoticeOutbox | null = null;
 
   private readonly workspaceHeads = new Map<string, number>();
   /** Admission-time grants by run, kept off HarnessRun as Mongo keeps them. */
@@ -371,7 +371,11 @@ export class InMemoryExecutionStore
   ): Promise<RunAdmissionResult> {
     const scopeKey = admissionScopeKey(command);
     // An identical admission in flight is waited for, then replayed, as the stores' quota holds have it (QA21-1).
-    for (let twin = this.admitting.get(scopeKey); twin !== undefined; twin = this.admitting.get(scopeKey)) {
+    for (
+      let twin = this.admitting.get(scopeKey);
+      twin !== undefined;
+      twin = this.admitting.get(scopeKey)
+    ) {
       await twin.catch(() => undefined);
     }
     const admitted = this.admitOnce(command, callerNow);
@@ -379,7 +383,8 @@ export class InMemoryExecutionStore
     try {
       return await admitted;
     } finally {
-      if (this.admitting.get(scopeKey) === admitted) this.admitting.delete(scopeKey);
+      if (this.admitting.get(scopeKey) === admitted)
+        this.admitting.delete(scopeKey);
     }
   }
 
@@ -532,7 +537,7 @@ export class InMemoryExecutionStore
       this.journalFeatures.set(sessionScope, [
         ...new Set([
           ...(this.journalFeatures.get(sessionScope) ?? []),
-          SESSION_ROLES_FEATURE as WorkerFeature,
+          SESSION_ROLES_FEATURE,
         ]),
       ]);
     }
@@ -740,7 +745,6 @@ export class InMemoryExecutionStore
     );
     if (next === undefined) return null;
     const { status: _status, ...record } = next;
-    void _status;
     return copy(record);
   }
 
@@ -1033,7 +1037,10 @@ export class InMemoryExecutionStore
     return marked;
   }
 
-  async activeRunsOfActor(orgId: string, actorId: string): Promise<HarnessRun[]> {
+  async activeRunsOfActor(
+    orgId: string,
+    actorId: string,
+  ): Promise<HarnessRun[]> {
     return [...this.runs.values()]
       .filter(
         (run) =>
@@ -1149,10 +1156,12 @@ export class InMemoryExecutionStore
           : { kind: profile.engine.kind, version: profile.engine.version };
       if (
         (filter.orgId !== undefined && run.orgId !== filter.orgId) ||
-        (filter.sessionId !== undefined && run.sessionId !== filter.sessionId) ||
+        (filter.sessionId !== undefined &&
+          run.sessionId !== filter.sessionId) ||
         (filter.agentKey !== undefined && run.agentKey !== filter.agentKey) ||
         (filter.suspendedFor !== undefined &&
-          (run.status !== 'paused' || run.suspendedFor !== filter.suspendedFor)) ||
+          (run.status !== 'paused' ||
+            run.suspendedFor !== filter.suspendedFor)) ||
         (filter.engine !== undefined &&
           (engine?.kind !== filter.engine.kind ||
             engine.version !== filter.engine.version)) ||
@@ -1449,18 +1458,16 @@ export class InMemoryExecutionStore
     const firstEventSeq =
       command.legacyEvents.length > 0 ? storedEvents.length + 1 : null;
     const commitSeq = run.revision + 1;
-    const legacy = command.legacyEvents.map(
-      (event, index): HarnessEvent => ({
-        orgId: run.orgId,
-        sessionId: run.sessionId,
-        runId: run.runId,
-        eventSeq: storedEvents.length + index + 1,
-        commitSeq,
-        type: event.type,
-        data: copy(event.data),
-        createdAt: now,
-      }),
-    );
+    const legacy = command.legacyEvents.map((event, index): HarnessEvent => ({
+      orgId: run.orgId,
+      sessionId: run.sessionId,
+      runId: run.runId,
+      eventSeq: storedEvents.length + index + 1,
+      commitSeq,
+      type: event.type,
+      data: copy(event.data),
+      createdAt: now,
+    }));
 
     let holds = false;
     const waits =
@@ -1584,7 +1591,8 @@ export class InMemoryExecutionStore
       } catch (error) {
         throw new TranscriptProjectionError(error);
       }
-      if (!saved && !endsWithoutTranscript(ending)) throw new ConversationDeletedError();
+      if (!saved && !endsWithoutTranscript(ending))
+        throw new ConversationDeletedError();
     }
     this.keepLabel(run, transcript);
   }
@@ -1601,7 +1609,10 @@ export class InMemoryExecutionStore
   ): Promise<RunParent[]> {
     return [...this.runs.values()]
       .filter((run) => run.orgId === orgId && run.sessionId === sessionId)
-      .map((run) => ({ runId: run.runId, parentRunId: run.parent?.runId ?? null }));
+      .map((run) => ({
+        runId: run.runId,
+        parentRunId: run.parent?.runId ?? null,
+      }));
   }
 
   async answeredRun(
@@ -2200,7 +2211,8 @@ export class InMemoryExecutionStore
       const wasCancelling = run.status === 'cancelling';
       const deadlineElapsed = run.absoluteDeadlineAt <= now;
       // C4.10 `recovery.autoResume` off: the lost worker's run ends; the person sends again.
-      const lost = !wasCancelling && !deadlineElapsed && !resumesAfterLostWorker(run);
+      const lost =
+        !wasCancelling && !deadlineElapsed && !resumesAfterLostWorker(run);
       if (!wasCancelling && (deadlineElapsed || lost)) {
         const failure: SweptFailure = lost ? WORKER_LOST : 'deadline_exceeded';
         const data = lost ? { reason: WORKER_LOST } : {};

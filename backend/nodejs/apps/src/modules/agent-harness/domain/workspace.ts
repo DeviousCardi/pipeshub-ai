@@ -67,8 +67,7 @@ export const WRITER_LEASE_MIN_MS = 100;
 export const WRITER_LEASE_MAX_MS = 10 * 60_000;
 
 export type WorkspaceErrorCode =
-  | ErrorCodeOf<'workspace'>
-  | 'WORKSPACE_CONFLICT';
+  ErrorCodeOf<'workspace'> | 'WORKSPACE_CONFLICT';
 
 /** A typed workspace refusal; the transport maps the code to its status. */
 export class WorkspaceError extends Error {

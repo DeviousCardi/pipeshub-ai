@@ -46,7 +46,7 @@ export const auditEntry = (
 
 const entryOf = (record: AuditRecord): AuditEntry => {
   const { orgId, seq, prevHash, hash, ts, ...entry } = record;
-  void [orgId, seq, prevHash, hash, ts];
+  [orgId, seq, prevHash, hash, ts];
   return entry;
 };
 
@@ -254,7 +254,7 @@ export function describeAuditChainStoreContract<Tx>(
       };
       await audit.record(download);
       const { path: _path, ...whole } = download;
-      void _path;
+      _path;
       await audit.record({ ...whole, target: 'archive', files: 3, bytes: 4096 });
       const stored = await backend.store.read(AUDIT_ORG_1, 0, 10);
       expect(verifyAuditChain(stored, { head: await backend.store.head(AUDIT_ORG_1) }).ok).to.equal(true);

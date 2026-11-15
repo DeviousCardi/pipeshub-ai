@@ -55,7 +55,10 @@ export const reconcileKafkaLogin = (
 ): KafkaConfig | null => {
   if (!fromEnv.sasl) return null;
   const brokerSet = (brokers: string[] = []): string =>
-    brokers.map((b) => b.trim()).sort().join(',');
+    brokers
+      .map((b) => b.trim())
+      .sort()
+      .join(',');
   if (brokerSet(stored.brokers) !== brokerSet(fromEnv.brokers)) return null;
   const login = stored.sasl;
   if (
@@ -223,7 +226,10 @@ export class ConfigService {
         },
       }),
     };
-    const config = await this.getEncryptedConfig<KafkaConfig>(configPaths.broker.kafka, fromEnv);
+    const config = await this.getEncryptedConfig<KafkaConfig>(
+      configPaths.broker.kafka,
+      fromEnv,
+    );
     const reconciled = reconcileKafkaLogin(config, fromEnv);
     if (!reconciled) return config;
     await this.saveConfigToEtcd(configPaths.broker.kafka, reconciled);

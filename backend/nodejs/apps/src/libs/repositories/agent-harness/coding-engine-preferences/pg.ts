@@ -202,9 +202,8 @@ export class PgCodingEnginePreferences implements CodingEnginePreferences {
 
   private async liveOrg(orgId: string): Promise<void> {
     if (
-      (await inBoundOrgUnit(orgId, () =>
-        getOrgRepository().getLive(orgId),
-      )) === null
+      (await inBoundOrgUnit(orgId, () => getOrgRepository().getLive(orgId))) ===
+      null
     )
       throw new HarnessNotFoundError('Organization not found');
   }

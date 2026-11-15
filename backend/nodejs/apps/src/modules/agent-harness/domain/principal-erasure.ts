@@ -97,11 +97,7 @@ export const PRINCIPAL_ERASURES_PER_TICK = 5;
  * user and org hooks; `none` means the store holds nothing of an org.
  */
 export type OrgStoreCoverage =
-  | 'org_stores'
-  | 'principals'
-  | 'data_keys'
-  | 'audit'
-  | { none: string };
+  'org_stores' | 'principals' | 'data_keys' | 'audit' | { none: string };
 
 /**
  * Collections no model of this build defines that an install may still hold

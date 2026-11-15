@@ -30,7 +30,9 @@ export function modelDisplayName(
   const raw = entry['modelFriendlyName'];
   const friendly = typeof raw === 'string' ? raw.trim() : '';
   if (friendly.length > 0) {
-    return names.length > 1 && modelName ? `${friendly} (${modelName})` : friendly;
+    return names.length > 1 && modelName
+      ? `${friendly} (${modelName})`
+      : friendly;
   }
   return modelName || names[0] || UNAVAILABLE_MODEL;
 }

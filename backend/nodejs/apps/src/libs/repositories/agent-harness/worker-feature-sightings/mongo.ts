@@ -23,7 +23,9 @@ export class MongoWorkerFeatureSightings implements WorkerFeatureSightings {
           update: [
             {
               $set: {
-                seenAt: { $max: [{ $ifNull: ['$seenAt', 0] }, this.time.expr()] },
+                seenAt: {
+                  $max: [{ $ifNull: ['$seenAt', 0] }, this.time.expr()],
+                },
                 previousSeenAt: { $ifNull: ['$previousSeenAt', null] },
                 holdoffUntil: { $ifNull: ['$holdoffUntil', 0] },
               },

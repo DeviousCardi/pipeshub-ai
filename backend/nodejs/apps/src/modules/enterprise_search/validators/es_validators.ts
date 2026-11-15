@@ -346,15 +346,13 @@ export const withServedAssistantMode = <
   conversation: T,
 ): T => {
   const modelInfo = conversation?.modelInfo as
-    | { chatMode?: unknown }
-    | null
-    | undefined;
+    { chatMode?: unknown } | null | undefined;
   const stored = modelInfo?.chatMode;
   if (typeof stored !== 'string' || stored === '') return conversation;
   return {
     ...conversation,
     modelInfo: { ...modelInfo, chatMode: servedAssistantChatMode(stored) },
-  } as T;
+  };
 };
 
 /**
@@ -363,7 +361,7 @@ export const withServedAssistantMode = <
  */
 export const newChatCodingEngineSchema = z
   .string()
-  .regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/, 'Engine isn\'t in the right format')
+  .regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/, "Engine isn't in the right format")
   .optional();
 
 /**
@@ -434,9 +432,10 @@ export const conversationShareParamsSchema = conversationIdParamsSchema.extend({
 });
 
 /** POST /conversations/:id/unshare: only who to remove; any other field changes nothing, so it is dropped. */
-export const conversationUnshareParamsSchema = conversationIdParamsSchema.extend({
-  body: z.object({ userIds: userIdsSchema }),
-});
+export const conversationUnshareParamsSchema =
+  conversationIdParamsSchema.extend({
+    body: z.object({ userIds: userIdsSchema }),
+  });
 
 /** "Continue privately" (SS3): one fork per key; a repeat answers the same copy. */
 const forkBodySchema = z
@@ -992,7 +991,9 @@ const agentRoleModelFields = {
  */
 const agentHarnessFields = {
   gates: z.union([z.null(), z.record(z.string(), z.unknown())]).optional(),
-  environment: z.union([z.null(), z.record(z.string(), z.unknown())]).optional(),
+  environment: z
+    .union([z.null(), z.record(z.string(), z.unknown())])
+    .optional(),
 };
 
 const createAgentBodySchema = z.object({

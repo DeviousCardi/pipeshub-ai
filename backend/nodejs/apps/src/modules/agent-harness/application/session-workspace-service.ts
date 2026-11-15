@@ -319,10 +319,7 @@ export class SessionWorkspaceService {
         `Replace ${String(replaced.length)} file(s)? ${replaced.slice(0, 5).join(', ')}`,
       );
     }
-    const added = request.files.reduce(
-      (sum, file) => sum + file.sizeBytes,
-      0,
-    );
+    const added = request.files.reduce((sum, file) => sum + file.sizeBytes, 0);
     const kept = head.files
       .filter((entry) => !replaced.includes(entry.path))
       .reduce((sum, entry) => sum + entry.sizeBytes, 0);

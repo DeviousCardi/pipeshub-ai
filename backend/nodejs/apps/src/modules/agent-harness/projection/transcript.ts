@@ -172,14 +172,20 @@ export function approvalPart(
     ...(approval.reason !== undefined ? { reason: approval.reason } : {}),
     ...(approval.scope !== undefined ? { scope: approval.scope } : {}),
     ...(approval.effect !== undefined ? { effect: approval.effect } : {}),
-    ...(approval.denyReason !== undefined ? { denyReason: approval.denyReason } : {}),
-    ...(approval.editedArgs !== undefined ? { editedArgs: approval.editedArgs } : {}),
+    ...(approval.denyReason !== undefined
+      ? { denyReason: approval.denyReason }
+      : {}),
+    ...(approval.editedArgs !== undefined
+      ? { editedArgs: approval.editedArgs }
+      : {}),
     // UXINT-1: the chat anchors and orders the card by these, live and saved alike.
     seq: approval.seq,
     afterTurns: approval.afterTurns,
     decidedBefore: approval.decidedBefore,
     ...(approval.stepId !== undefined ? { stepId: approval.stepId } : {}),
-    ...(approval.requestedAt !== undefined ? { requestedAt: approval.requestedAt } : {}),
+    ...(approval.requestedAt !== undefined
+      ? { requestedAt: approval.requestedAt }
+      : {}),
     runId,
   };
 }
@@ -402,7 +408,8 @@ export function buildParts(timeline: Timeline): MessagePart[] {
     const limits = couldNotDoField(answer).limits;
     if (limits !== undefined) final['limits'] = limits;
     // WP-89: on the final part too, so a shared viewer's copy words the outcome as well.
-    if (answer.settled !== undefined) final['runOutcome'] = { ...answer.settled };
+    if (answer.settled !== undefined)
+      final['runOutcome'] = { ...answer.settled };
   }
   // Sent while the run ran but never taken (it stopped or ran out of turns): after the answer.
   inputsAfter(null);
@@ -441,7 +448,10 @@ export function buildCompletion(
   const names = toolNames(timeline);
   if (answer === null) {
     // A stop by an operator control ends as its run error, which says why (ADR-OPS-01 D5).
-    if (timeline.end?.status !== 'cancelled' || timeline.stoppedBy !== undefined) {
+    if (
+      timeline.end?.status !== 'cancelled' ||
+      timeline.stoppedBy !== undefined
+    ) {
       return null;
     }
     return { status: 'stopped', parts, answer: '', citations: [], ...names };
@@ -498,7 +508,9 @@ export function buildCompletion(
       ...cutShortField(answer),
       ...notFoundField(answer),
       ...couldNotDoField(answer),
-      ...(answer.settled !== undefined ? { runOutcome: { ...answer.settled } } : {}),
+      ...(answer.settled !== undefined
+        ? { runOutcome: { ...answer.settled } }
+        : {}),
     };
   }
   return {
@@ -776,7 +788,10 @@ export function failureParts(timeline: Timeline): MessagePart[] {
 export function finalAnswer(timeline: Timeline): AnswerRecord | null {
   const end = timeline.end;
   if (timeline.answer !== null)
-    return withOutcome(timeline, withEngineArtifacts(timeline, timeline.answer));
+    return withOutcome(
+      timeline,
+      withEngineArtifacts(timeline, timeline.answer),
+    );
   if (end?.status !== 'failed' || end.errorType !== DEADLINE_EXCEEDED) {
     return null;
   }
@@ -843,7 +858,9 @@ export function runFailure(timeline: Timeline): {
   }
   // WP-84: the labels the reader's words name, beside the worker's English that names them too.
   const servers =
-    end?.status === 'failed' && end.servers !== undefined ? { servers: end.servers } : {};
+    end?.status === 'failed' && end.servers !== undefined
+      ? { servers: end.servers }
+      : {};
   // A quarantined run's code is the one the web app words in the reader's
   // language (run-error-codes.json); its cause stays in the journal and the audit.
   const code =
@@ -862,7 +879,11 @@ export function runFailure(timeline: Timeline): {
   }
   if (end?.status === 'failed' && end.errorType === OUT_OF_MEMORY) {
     const limit = end.memoryLimitMb;
-    return { code, message: outOfMemoryMessage(limit), ...(limit !== undefined ? { memoryLimitMb: limit } : {}) };
+    return {
+      code,
+      message: outOfMemoryMessage(limit),
+      ...(limit !== undefined ? { memoryLimitMb: limit } : {}),
+    };
   }
   if (waitedForApproval(timeline)) {
     return { code: APPROVAL_EXPIRED, message: APPROVAL_EXPIRED_MESSAGE };
@@ -873,14 +894,19 @@ export function runFailure(timeline: Timeline): {
 let editionFailures: Readonly<Record<string, string>> = Object.freeze({});
 
 /** The run endings an edition adds (`HarnessEdition.runFailureMessages`), with their English; set when the harness is bound. */
-export function useRunFailureMessages(messages: Readonly<Record<string, string>>): void {
+export function useRunFailureMessages(
+  messages: Readonly<Record<string, string>>,
+): void {
   editionFailures = Object.freeze({ ...messages });
 }
 
 /** This build's words for a run ending, else an edition's; undefined: neither words it. */
 function failureMessage(code: string): string | undefined {
-  if (Object.prototype.hasOwnProperty.call(FAILURE_MESSAGES, code)) return FAILURE_MESSAGES[code];
-  return Object.prototype.hasOwnProperty.call(editionFailures, code) ? editionFailures[code] : undefined;
+  if (Object.prototype.hasOwnProperty.call(FAILURE_MESSAGES, code))
+    return FAILURE_MESSAGES[code];
+  return Object.prototype.hasOwnProperty.call(editionFailures, code)
+    ? editionFailures[code]
+    : undefined;
 }
 
 /**
@@ -912,7 +938,8 @@ export function childFailureMessage(
 ): string {
   const code = errorType ?? (status === 'cancelled' ? 'cancelled' : undefined);
   if (code === undefined) return CHILD_DEFAULT_FAILURE;
-  if (code === OUT_OF_MEMORY && memoryLimitMb !== undefined) return outOfMemoryMessage(memoryLimitMb);
+  if (code === OUT_OF_MEMORY && memoryLimitMb !== undefined)
+    return outOfMemoryMessage(memoryLimitMb);
   return (
     CHILD_FAILURE_MESSAGES[code] ??
     failureMessage(code) ??

@@ -58,7 +58,10 @@ export interface ConversationHistory {
 }
 
 /** A conversation's counter and ledger as a transaction that wrote its session holds them. */
-export type AccountedConversation = Pick<ConversationHistory, 'lastSeq' | 'ledger'>;
+export type AccountedConversation = Pick<
+  ConversationHistory,
+  'lastSeq' | 'ledger'
+>;
 
 export type ImportMismatch = 'changed' | 'interleaved' | 'untracked';
 
@@ -118,7 +121,10 @@ const turnsOf = (
   messages.filter((m) => m.seq > after).flatMap((m) => m.turns);
 
 /** What the model will read of the imported messages, labelled; a message it reads nothing of adds nothing. */
-export const importLabel = (messages: HistoryMessage[], after: number): TurnLabel =>
+export const importLabel = (
+  messages: HistoryMessage[],
+  after: number,
+): TurnLabel =>
   joinLabels(
     messages
       .filter((m) => m.seq > after && m.turns.length > 0)

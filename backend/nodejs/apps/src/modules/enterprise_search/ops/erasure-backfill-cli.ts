@@ -131,7 +131,7 @@ export function backfillBackend(): Omit<BackfillCliBackend, 'close'> {
     holderId: `${hostname()}:${String(process.pid)}:${randomUUID()}`,
   });
   return {
-    service: service as unknown as BackfillCliBackend['service'],
+    service: service,
     async prepareForExecute() {
       // A PostgreSQL unit is always a transaction, and its tables are the migrate job's.
       if (docStore() === 'postgres') return;

@@ -110,7 +110,6 @@ export class AttemptTokenAuthority {
       throw refuse('malformed', 'Attempt token claims are malformed');
     }
     const { iss, aud, exp, iat: _iat, ...claims } = payload.data;
-    void _iat;
     if (iss !== ATTEMPT_TOKEN_ISSUER) {
       throw refuse('issuer', 'Attempt token issuer refused');
     }

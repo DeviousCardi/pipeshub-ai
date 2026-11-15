@@ -80,7 +80,9 @@ export const orgErasureJobsAvailable = (
   env: AgentHarnessEnvironment = process.env,
   journal: JournalCapability | null = journalCapability,
 ): boolean =>
-  erasureOnDelete(env) && transactionsAvailable(env) && journal?.durable !== false;
+  erasureOnDelete(env) &&
+  transactionsAvailable(env) &&
+  journal?.durable !== false;
 
 const environmentReady = (env: AgentHarnessEnvironment): boolean =>
   transactionsAvailable(env) &&
@@ -138,7 +140,8 @@ export const claimFloorEvery = (
   env: AgentHarnessEnvironment = process.env,
 ): number => {
   const raw = env[CLAIM_FLOOR_EVERY_ENV]?.trim();
-  if (raw === undefined || !/^\d{1,6}$/.test(raw)) return DEFAULT_CLAIM_FLOOR_EVERY;
+  if (raw === undefined || !/^\d{1,6}$/.test(raw))
+    return DEFAULT_CLAIM_FLOOR_EVERY;
   return Number(raw);
 };
 

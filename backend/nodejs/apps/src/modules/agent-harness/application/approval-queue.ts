@@ -2,7 +2,11 @@ import { editionReasonFields } from '../projection/timeline';
 import type { PendingApprovals } from '../contracts/generated/ext/pipeshub/api/pending-approvals';
 import { HarnessRun } from '../domain/execution';
 import { ExecutionStore } from '../ports/execution-store';
-import { ApprovalReason, ApprovalView, ConnectView } from '../projection/timeline';
+import {
+  ApprovalReason,
+  ApprovalView,
+  ConnectView,
+} from '../projection/timeline';
 import { redactedArgs, redactTokens } from '../domain/token-redaction';
 import { approvalPattern, batchExclusion } from '../domain/approval-pattern';
 import { isUnknownEffectInteraction } from './unknown-effects';
@@ -75,7 +79,9 @@ export interface ApprovalQueueReach {
    * ADR-INBOX-02 D2: who besides the run's actor has its approvals in their
    * queue, so a change to its asks reaches their open pages. Absent: nobody.
    */
-  audience?(run: Pick<HarnessRun, 'orgId' | 'actorId' | 'runId'>): Promise<string[]>;
+  audience?(
+    run: Pick<HarnessRun, 'orgId' | 'actorId' | 'runId'>,
+  ): Promise<string[]>;
 }
 
 /** The default reach: the viewer's own runs, the approvals only they can give. */
@@ -197,21 +203,23 @@ export class ApprovalQueueService {
       standing,
       explained,
     );
-    return approvals.flatMap((approval) => {
-      const decide: DecisionAuthority = {
-        approve:
-          authority.approves?.(approval.interactionId) ?? authority.approve,
-        deny: authority.deny,
-      };
-      if (!decide.approve && !decide.deny) return [];
-      const showArgs = decide.approve || authority.participant;
-      return [
-        {
-          item: item(run, approval, decide, showArgs),
-          outsider: showArgs && !authority.participant,
-        },
-      ];
-    }).concat(connects);
+    return approvals
+      .flatMap((approval) => {
+        const decide: DecisionAuthority = {
+          approve:
+            authority.approves?.(approval.interactionId) ?? authority.approve,
+          deny: authority.deny,
+        };
+        if (!decide.approve && !decide.deny) return [];
+        const showArgs = decide.approve || authority.participant;
+        return [
+          {
+            item: item(run, approval, decide, showArgs),
+            outsider: showArgs && !authority.participant,
+          },
+        ];
+      })
+      .concat(connects);
   }
 
   /**
@@ -224,13 +232,19 @@ export class ApprovalQueueService {
     run: HarnessRun,
     open: ReadonlySet<string>,
   ): Promise<{ item: PendingApprovalItem; outsider: boolean }[]> {
-    if (this.timelines.connects === undefined || viewer.actorId !== run.actorId) {
+    if (
+      this.timelines.connects === undefined ||
+      viewer.actorId !== run.actorId
+    ) {
       return [];
     }
     const waits = (await this.timelines.connects(run)).filter(
       (view) => view.status === 'pending' && open.has(view.interactionId),
     );
-    return waits.map((view) => ({ item: connectItem(run, view), outsider: false }));
+    return waits.map((view) => ({
+      item: connectItem(run, view),
+      outsider: false,
+    }));
   }
 }
 
@@ -246,7 +260,9 @@ function connectItem(run: HarnessRun, view: ConnectView): PendingApprovalItem {
     runUpdatedAt: run.updatedAt,
     interactionId: view.interactionId,
     toolName: view.toolName ?? view.item,
-    ...(view.displayName !== undefined ? { displayName: view.displayName } : {}),
+    ...(view.displayName !== undefined
+      ? { displayName: view.displayName }
+      : {}),
     argsHidden: false,
     authority: { approve: true, deny: true },
     connect: {
@@ -281,13 +297,13 @@ function item(
       : {}),
     ...(approval.approvals !== undefined
       ? {
-          approvals: approval.approvals as NonNullable<
-            PendingApprovalItem['approvals']
-          >,
+          approvals: approval.approvals,
         }
       : {}),
     // WP-100: the inbox says since when it waits, as the chat does (WP-97).
-    ...(approval.requestedAt !== undefined ? { requestedAt: approval.requestedAt } : {}),
+    ...(approval.requestedAt !== undefined
+      ? { requestedAt: approval.requestedAt }
+      : {}),
     ...(showArgs
       ? {
           args: redactedArgs(approval.args),

@@ -30,7 +30,8 @@ const MAX_HOSTS = 50;
 /** The repository presets an admin may turn on (the release's `repositoryPresets`): id -> host. */
 export type RepositoryPresets = ReadonlyMap<string, string>;
 
-const norm = (prefix: string): string => prefix.toLowerCase().replace(/\/+$/, '');
+const norm = (prefix: string): string =>
+  prefix.toLowerCase().replace(/\/+$/, '');
 
 /**
  * Whether an agent's prefix stays inside its org's: an owner holds that
@@ -44,10 +45,7 @@ export function prefixWithin(inner: string, outer: string): boolean {
   return i === o;
 }
 
-function hostProblem(
-  host: string,
-  rules: WebsiteHostRules,
-): string | null {
+function hostProblem(host: string, rules: WebsiteHostRules): string | null {
   if (host.startsWith('*.') || host.includes('*')) {
     return 'Name one git host, like github.com; wildcards are not allowed';
   }
@@ -63,10 +61,18 @@ export function repositoriesProblem(
 ): RepositoryProblem | null {
   const hosts = (value as { hosts?: unknown } | null)?.hosts;
   if (typeof value !== 'object' || value === null || !Array.isArray(hosts)) {
-    return { code: 'invalid', field: 'repositories.hosts', reason: 'The allowed git hosts are a list' };
+    return {
+      code: 'invalid',
+      field: 'repositories.hosts',
+      reason: 'The allowed git hosts are a list',
+    };
   }
   if (hosts.length > MAX_HOSTS) {
-    return { code: 'invalid', field: 'repositories.hosts', reason: `At most ${String(MAX_HOSTS)} git hosts` };
+    return {
+      code: 'invalid',
+      field: 'repositories.hosts',
+      reason: `At most ${String(MAX_HOSTS)} git hosts`,
+    };
   }
   const seen = new Set<string>();
   for (const [index, entry] of (hosts as AllowedRepositoryHost[]).entries()) {
@@ -76,31 +82,61 @@ export function repositoriesProblem(
       field: `${at}.${field}`,
       reason,
     });
-    if (typeof entry !== 'object' || entry === null || typeof entry.host !== 'string') {
-      return { code: 'invalid', field: at, reason: 'Each entry names a git host' };
+    if (
+      typeof entry !== 'object' ||
+      entry === null ||
+      typeof entry.host !== 'string'
+    ) {
+      return {
+        code: 'invalid',
+        field: at,
+        reason: 'Each entry names a git host',
+      };
     }
     const problem = hostProblem(entry.host, rules);
     if (problem !== null) return invalid('host', problem);
     if (entry.preset !== undefined) {
       const presetHost = presets.get(entry.preset);
-      if (presetHost === undefined) return invalid('preset', `${entry.preset} is not a repository preset`);
+      if (presetHost === undefined)
+        return invalid('preset', `${entry.preset} is not a repository preset`);
       if (presetHost !== entry.host) {
-        return invalid('preset', `The ${entry.preset} preset is for ${presetHost}`);
+        return invalid(
+          'preset',
+          `The ${entry.preset} preset is for ${presetHost}`,
+        );
       }
     }
     for (const [i, prefix] of (entry.prefixes ?? []).entries()) {
-      if (typeof prefix !== 'string' || !PREFIX.test(prefix) || prefix.split('/').some((s) => s === '.' || s === '..')) {
-        return invalid(`prefixes.${String(i)}`, 'A prefix is an owner (onyx-dot-app/) or one repository (onyx-dot-app/onyx)');
+      if (
+        typeof prefix !== 'string' ||
+        !PREFIX.test(prefix) ||
+        prefix.split('/').some((s) => s === '.' || s === '..')
+      ) {
+        return invalid(
+          `prefixes.${String(i)}`,
+          'A prefix is an owner (onyx-dot-app/) or one repository (onyx-dot-app/onyx)',
+        );
       }
     }
-    if (entry.prefixes !== undefined && new Set(entry.prefixes.map(norm)).size !== entry.prefixes.length) {
+    if (
+      entry.prefixes !== undefined &&
+      new Set(entry.prefixes.map(norm)).size !== entry.prefixes.length
+    ) {
       return invalid('prefixes', 'A prefix is listed twice');
     }
-    if ((entry.note?.length ?? 0) > 200) return invalid('note', 'Keep the note under 200 characters');
-    if (entry.publicReadable !== undefined && typeof entry.publicReadable !== 'boolean') {
-      return invalid('publicReadable', 'Whether anyone can read the host is on or off');
+    if ((entry.note?.length ?? 0) > 200)
+      return invalid('note', 'Keep the note under 200 characters');
+    if (
+      entry.publicReadable !== undefined &&
+      typeof entry.publicReadable !== 'boolean'
+    ) {
+      return invalid(
+        'publicReadable',
+        'Whether anyone can read the host is on or off',
+      );
     }
-    if (seen.has(entry.host)) return invalid('host', `${entry.host} is listed twice`);
+    if (seen.has(entry.host))
+      return invalid('host', `${entry.host} is listed twice`);
     seen.add(entry.host);
   }
   return null;
@@ -126,7 +162,9 @@ function heldBy(
         outer.host === entry.host &&
         (outer.prefixes === undefined ||
           (entry.prefixes !== undefined &&
-            entry.prefixes.every((p) => outer.prefixes!.some((o) => prefixWithin(p, o))))),
+            entry.prefixes.every((p) =>
+              outer.prefixes!.some((o) => prefixWithin(p, o)),
+            ))),
     ) ?? null
   );
 }
@@ -149,7 +187,8 @@ export function repositoriesWidening(
   above: readonly RepositoriesAbove[],
 ): RepositoryProblem | null {
   for (const { layer, repositories } of above) {
-    const listed = repositories?.hosts ?? (layer === 'org' && scope === 'agent' ? [] : null);
+    const listed =
+      repositories?.hosts ?? (layer === 'org' && scope === 'agent' ? [] : null);
     if (listed === null) continue;
     for (const [index, entry] of value.hosts.entries()) {
       if (heldBy(entry, listed) !== null) continue;
@@ -157,7 +196,12 @@ export function repositoriesWidening(
       const whose = layer === 'org' ? 'Your organization' : 'This deployment';
       const host = listed.find((outer) => outer.host === entry.host);
       return host === undefined
-        ? { code: 'widening', field: `${field}.host`, layer, reason: `${whose} does not allow ${entry.host}` }
+        ? {
+            code: 'widening',
+            field: `${field}.host`,
+            layer,
+            reason: `${whose} does not allow ${entry.host}`,
+          }
         : {
             code: 'widening',
             field: `${field}.prefixes`,
@@ -178,7 +222,11 @@ export function repositoriesWidening(
 export function defaultRepositoryPolicy(
   presets: readonly { id: string; host: string; default?: boolean }[],
 ): RepositoryPolicy {
-  return { hosts: presets.filter((p) => p.default === true).map((p) => ({ host: p.host, preset: p.id })) };
+  return {
+    hosts: presets
+      .filter((p) => p.default === true)
+      .map((p) => ({ host: p.host, preset: p.id })),
+  };
 }
 
 /**

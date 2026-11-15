@@ -1,14 +1,20 @@
 import type { ClientSession, QueryFilter } from 'mongoose';
 import { escapeRegExp } from '../../../../utils/escape-regexp';
 import { isDuplicateKeyError } from '../../../utils/mongo.utils';
-import { CatalogItem, catalogItemSchema } from '../../../../modules/control-plane/domain/catalog-item';
+import {
+  CatalogItem,
+  catalogItemSchema,
+} from '../../../../modules/control-plane/domain/catalog-item';
 import { ItemExists } from '../../../../modules/control-plane/domain/catalog-errors';
 import {
   CatalogFilter,
   CatalogSortKey,
   nameKey,
 } from '../../../../modules/control-plane/domain/catalog-order';
-import type { CatalogWriteTx, OrgCatalogRows } from '../../../../modules/control-plane/ports/catalog-store';
+import type {
+  CatalogWriteTx,
+  OrgCatalogRows,
+} from '../../../../modules/control-plane/ports/catalog-store';
 import { CatalogItemDocument, CatalogItemModel } from './schema/catalog.schema';
 
 const idOf = (orgId: string, ref: string): string => `${orgId}|${ref}`;

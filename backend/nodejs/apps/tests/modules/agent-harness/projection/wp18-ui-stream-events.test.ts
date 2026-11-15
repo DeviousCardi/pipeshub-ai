@@ -121,7 +121,7 @@ describe('UX-01: ui-stream-events.json is all the harness sends the web app', ()
         const type = String(frame['type']);
         expect(vector.chat.frames, `${path} ${type}`).to.have.property(type);
         if (type === AGUI.CUSTOM) {
-          expect(vector.chat.custom, `${path}`).to.have.property(
+          expect(vector.chat.custom, path).to.have.property(
             String(frame['name']),
           );
         }

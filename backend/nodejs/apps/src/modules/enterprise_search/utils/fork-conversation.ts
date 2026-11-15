@@ -172,7 +172,7 @@ export function stubCollaboratorTurn(
   if (
     sender === undefined ||
     sender === null ||
-    String(sender as { toString(): string }) === forkerId
+    String(sender) === forkerId
   ) {
     return message;
   }
@@ -191,7 +191,7 @@ const senderOf = (message: object): string | null => {
   const sender: unknown = (message as { senderId?: unknown }).senderId;
   return sender === undefined || sender === null
     ? null
-    : String(sender as { toString(): string });
+    : String(sender);
 };
 
 function withExpiredApprovals(message: IMessage): IMessage {
@@ -307,7 +307,7 @@ function citationIdOf(link: unknown): string | null {
   const id: unknown = (link as { citationId?: unknown }).citationId;
   return id === undefined || id === null
     ? null
-    : String(id as { toString(): string });
+    : String(id);
 }
 
 /**

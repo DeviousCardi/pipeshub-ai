@@ -45,9 +45,12 @@ export function answerCitations(
     }
     out.push({
       chunkIndex,
-      content: typeof citation['content'] === 'string' ? citation['content'] : '',
+      content:
+        typeof citation['content'] === 'string' ? citation['content'] : '',
       citationType:
-        typeof citation['citationType'] === 'string' ? citation['citationType'] : '',
+        typeof citation['citationType'] === 'string'
+          ? citation['citationType']
+          : '',
       metadata: { ...citation['metadata'] },
     });
   }

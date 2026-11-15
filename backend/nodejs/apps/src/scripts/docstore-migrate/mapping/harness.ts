@@ -20,8 +20,7 @@ const DURABLE_RUN =
   'durable run state (runs, their journal, counters and queued work): a run resumed after the move needs it';
 const IDEMPOTENCY =
   'idempotency receipts kept while a run is open: a retried command or admission after the move would run twice without them';
-const LEDGER =
-  'the spend ledger: run budgets are enforced from it';
+const LEDGER = 'the spend ledger: run budgets are enforced from it';
 const AUDIT =
   'the hash-chained audit trail: records, chain head, unlinked entries and anchors move together or the chain no longer verifies';
 const EDITION =

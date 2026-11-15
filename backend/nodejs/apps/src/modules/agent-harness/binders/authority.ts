@@ -138,14 +138,17 @@ export const bindAuthority: HarnessBinder = ({
       .toDynamicValue(
         (context) =>
           new ComponentCredentialPublisher({
-            authority: context.container.get<HarnessAuthority>(AGENT_HARNESS_AUTHORITY),
+            authority: context.container.get<HarnessAuthority>(
+              AGENT_HARNESS_AUTHORITY,
+            ),
             documents: components,
             ring: () => secretKeyRing(),
             logins: new AllComponentLogins([
               new RedisComponentLogins(
                 getRedisProvider(),
                 (component) => componentKey(component),
-                loadConfigurationManagerConfig().redisConfig.keyPrefix ?? 'pipeshub:kv:',
+                loadConfigurationManagerConfig().redisConfig.keyPrefix ??
+                  'pipeshub:kv:',
               ),
               ...(kvLogins !== undefined ? [kvLogins] : []),
             ]),

@@ -37,8 +37,7 @@ export interface ResourceRef {
 }
 
 export type AuthzDecision =
-  | { readonly allow: true }
-  | { readonly allow: false; readonly reason: string };
+  { readonly allow: true } | { readonly allow: false; readonly reason: string };
 
 /**
  * Whether an actor may perform an action on a resource: the one port for every

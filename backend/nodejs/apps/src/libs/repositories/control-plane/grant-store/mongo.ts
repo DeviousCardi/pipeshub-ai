@@ -9,8 +9,14 @@ import {
 import { ObjectTooLarge } from '../../../../modules/control-plane/domain/store-errors';
 import type { GrantStore } from '../../../../modules/control-plane/ports/grant-store';
 import type { StoreTx } from '../../../../modules/control-plane/ports/store-tx';
-import { checkedObject, compareAndSet } from '../../../../modules/control-plane/adapters/store-checks';
-import { CpGrantModel, type GrantDocument } from '../installations/schema/installations.schema';
+import {
+  checkedObject,
+  compareAndSet,
+} from '../../../../modules/control-plane/adapters/store-checks';
+import {
+  CpGrantModel,
+  type GrantDocument,
+} from '../installations/schema/installations.schema';
 
 const rowId = (orgId: string, subject: string): string => `${orgId}:${subject}`;
 const sessionOf = (tx: StoreTx): ClientSession | undefined =>

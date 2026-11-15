@@ -129,4 +129,3 @@ export function workspaceDownloadView(
     dataDigest: record.dataDigest,
   };
 }
-

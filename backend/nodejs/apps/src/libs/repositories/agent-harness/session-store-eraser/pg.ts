@@ -210,7 +210,9 @@ export class PgSessionStoreEraser implements SessionStoreEraser {
           WHERE org_id = $1 AND session_id = $2 AND doc->>'idempotencyKey' IS NOT NULL`,
         [orgId, sessionId],
       );
-      const legacy = rows.filter((run) => !RUN_KEY_DIGEST_PATTERN.test(run.key));
+      const legacy = rows.filter(
+        (run) => !RUN_KEY_DIGEST_PATTERN.test(run.key),
+      );
       let digested = 0;
       for (const batch of chunks(legacy, ERASE_BATCH)) {
         const updated = await k.query(
@@ -291,7 +293,7 @@ export class PgSessionStoreEraser implements SessionStoreEraser {
       const plain = await this.cipher.open(
         event.orgId,
         'journal.data',
-        journalSealContext(event as unknown as JournalEvent, event.type),
+        journalSealContext(event, event.type),
         event.sealed,
       );
       return JSON.parse(plain.toString('utf8')) as unknown;
@@ -320,7 +322,7 @@ export class PgSessionStoreEraser implements SessionStoreEraser {
       const plain = await this.cipher.openBlob(
         orgId,
         'journal.payload',
-        journalPayloadSealContext(event as unknown as JournalEvent, event.type),
+        journalPayloadSealContext(event, event.type),
         bytes,
       );
       return JSON.parse(plain.toString('utf8')) as unknown;

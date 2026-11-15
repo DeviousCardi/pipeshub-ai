@@ -206,7 +206,7 @@ function timeRange(from: unknown, to: unknown): TimeRange | undefined {
 
 export const MAX_BULK_INVITE = 1000;
 export const USER_DEACTIVATE_NOT_FINISHED =
-  "The account is deactivated, but some of its work could not be stopped just now. Deactivate it again to finish.";
+  'The account is deactivated, but some of its work could not be stopped just now. Deactivate it again to finish.';
 export const USER_DEACTIVATE_NOT_RECORDED =
   "We couldn't deactivate this user just now. Nothing was changed; please try again in a moment.";
 export const USER_REACTIVATED_MESSAGE =
@@ -662,9 +662,9 @@ export class UserController {
     byUserId: string,
   ): Promise<{ cancelledRuns: number; pausedSchedules: number }> {
     try {
-      await (this.tokenRevoker ?? oauthUserTokenRevoker).revokeEveryTokenForUser(
-        userId,
-      );
+      await (
+        this.tokenRevoker ?? oauthUserTokenRevoker
+      ).revokeEveryTokenForUser(userId);
       return (
         (await this.deactivation?.deactivate(orgId, userId, byUserId)) ?? {
           cancelledRuns: 0,
@@ -672,11 +672,14 @@ export class UserController {
         }
       );
     } catch (error) {
-      this.logger.error('Deactivation not finished; the account stays disabled', {
-        orgId,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        'Deactivation not finished; the account stays disabled',
+        {
+          orgId,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
       throw markClientSafe(
         new ServiceUnavailableError(USER_DEACTIVATE_NOT_FINISHED),
       );

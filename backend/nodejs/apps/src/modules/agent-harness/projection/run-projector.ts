@@ -145,8 +145,7 @@ interface LiveAnswer {
 }
 
 export type Terminal =
-  | { kind: 'finished' }
-  | { kind: 'error'; code: string; message: string };
+  { kind: 'finished' } | { kind: 'error'; code: string; message: string };
 
 const hexId = (seed: string, length: number): string =>
   createHash('sha256').update(seed).digest('hex').slice(0, length);
@@ -189,7 +188,7 @@ export const INTERACTION_WAITING_FRAME = AGUI_CUSTOM.INTERACTION_WAITING;
 /** The status and words a client that cannot show a card reads when the run waits on a person's approval. */
 export const AWAITING_APPROVAL_STATUS = 'Waiting';
 export const AWAITING_APPROVAL_TEXT =
-  'This needs a person\'s approval before it can go on. Open this conversation in PipesHub to approve or ' +
+  "This needs a person's approval before it can go on. Open this conversation in PipesHub to approve or " +
   'decline it; the answer will be saved there.';
 /** A call waits for the run's owner to connect an item (G-12), and how that ended. */
 export const CONNECT_REQUESTED_FRAME = AGUI_CUSTOM.CONNECT_REQUESTED;
@@ -376,7 +375,9 @@ export class RunProjector {
   /** A card of the run waits on a person's decision, and the run has not ended. */
   get awaitingApproval(): boolean {
     if (this.terminalState !== null) return false;
-    const pending = this.timeline.timeline.approvals.filter((a) => a.status === 'pending').length;
+    const pending = this.timeline.timeline.approvals.filter(
+      (a) => a.status === 'pending',
+    ).length;
     return pending - this.heldAsks.count > 0;
   }
 
@@ -1021,7 +1022,7 @@ export class RunProjector {
     });
   }
 
-  private outcome(call: CallView, ts: string, out: ProjectedFrame[]): void {
+  private outcome(call: CallView, _ts: string, out: ProjectedFrame[]): void {
     if (!call.hidden) {
       const snapshot = this.timeline.timeline;
       for (const question of snapshot.questions) {
@@ -1060,7 +1061,6 @@ export class RunProjector {
     ) {
       this.turnDone(turn.turn);
     }
-    void ts;
   }
 
   /**
@@ -1280,7 +1280,10 @@ export class RunProjector {
     this.emit(out, 'j', {
       type: AGUI.CUSTOM,
       name: AGUI_CUSTOM.APPROVAL_COUNTED,
-      value: { interactionId: view.interactionId, approvals: { ...view.approvals } },
+      value: {
+        interactionId: view.interactionId,
+        approvals: { ...view.approvals },
+      },
       runId: this.context.runId,
     });
   }
@@ -1351,7 +1354,11 @@ export class RunProjector {
     const completion = buildCompletion(timeline);
     if (completion === null) {
       const failure = runFailure(timeline);
-      this.terminalState = { kind: 'error', code: failure.code, message: failure.message };
+      this.terminalState = {
+        kind: 'error',
+        code: failure.code,
+        message: failure.message,
+      };
       this.emit(out, 'j', this.runError(failure));
       return;
     }
@@ -1439,7 +1446,9 @@ export class RunProjector {
       ...(stop !== undefined ? { details: { ...stop } } : {}),
       // R31GVISO-FU-3: the memory limit an out-of-memory run met, which the web app names.
       ...(memoryLimitMb !== undefined ? { details: { memoryLimitMb } } : {}),
-      ...(servesOutcomeFrames(this.context.frames) ? { runOutcome: failedOutcome(failure) } : {}),
+      ...(servesOutcomeFrames(this.context.frames)
+        ? { runOutcome: failedOutcome(failure) }
+        : {}),
     };
   }
 
@@ -1921,7 +1930,12 @@ export class RunProjector {
       typeof data['errorType'] === 'string' ? data['errorType'] : undefined;
     const limit = data['memoryLimitMb'];
     const memoryLimitMb =
-      errorType === OUT_OF_MEMORY && typeof limit === 'number' && Number.isInteger(limit) && limit > 0 ? limit : undefined;
+      errorType === OUT_OF_MEMORY &&
+      typeof limit === 'number' &&
+      Number.isInteger(limit) &&
+      limit > 0
+        ? limit
+        : undefined;
     // WP62-ERR: `message` is for people; the child's machine name rides in `errorType`, as the saved part keeps it.
     this.emit(out, 'j', {
       type: AGUI.RUN_ERROR,
@@ -2014,7 +2028,9 @@ export function approvalCard(view: ApprovalView): Record<string, unknown> {
     decidedBefore: view.decidedBefore,
     ...(view.stepId !== undefined ? { stepId: view.stepId } : {}),
     // WP-97: the chat says since when it waits.
-    ...(view.requestedAt !== undefined ? { requestedAt: view.requestedAt } : {}),
+    ...(view.requestedAt !== undefined
+      ? { requestedAt: view.requestedAt }
+      : {}),
   };
 }
 

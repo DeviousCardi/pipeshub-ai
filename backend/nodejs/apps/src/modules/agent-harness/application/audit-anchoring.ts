@@ -174,15 +174,19 @@ export class AuditAnchorService {
           continue;
         }
         try {
-          await forEnumeratedOrg(head.orgId, 'agent-harness.audit-anchor', async () => {
-            await this.sink.write({
-              orgId: head.orgId,
-              seq: head.seq,
-              hash: head.hash,
-              anchoredAt: new Date(this.now()).toISOString(),
-            });
-            await this.chain.markAnchored(head.orgId, head.seq);
-          });
+          await forEnumeratedOrg(
+            head.orgId,
+            'agent-harness.audit-anchor',
+            async () => {
+              await this.sink.write({
+                orgId: head.orgId,
+                seq: head.seq,
+                hash: head.hash,
+                anchoredAt: new Date(this.now()).toISOString(),
+              });
+              await this.chain.markAnchored(head.orgId, head.seq);
+            },
+          );
           anchored += 1;
           this.logger.info(
             'audit.anchored',

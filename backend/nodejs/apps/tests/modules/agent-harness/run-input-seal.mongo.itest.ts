@@ -110,7 +110,7 @@ describe('LCFIX: the typed query rests sealed in the harness collections', funct
     const lcfix = (await h.admit({ input: input('second') })).run;
     const sealedQuery = (await db().collection('agentRuns').findOne({ runId: lcfix.runId }))!['input']['querySealed'];
     const { query: _unused, ...details } = input('unused');
-    void _unused;
+    _unused;
     await db().collection('agentRuns').updateOne(
       { runId: lcfix.runId },
       { $set: { input: { ...details, querySealed: sealedQuery } } },

@@ -1,5 +1,8 @@
 import { Types } from 'mongoose';
-import { EXCLUDE_AGENT, ONLY_AGENT } from '../../../../modules/enterprise_search/constants/constants';
+import {
+  EXCLUDE_AGENT,
+  ONLY_AGENT,
+} from '../../../../modules/enterprise_search/constants/constants';
 import { ChatSession } from '../../../../modules/enterprise_search/schema/chat.session.schema';
 import {
   SessionParticipants,
@@ -55,8 +58,13 @@ export class HarnessSessionRoles implements SessionRoleLookup {
     return sessionRoleOf(sessionParticipantsOf(session), scope.actorId);
   }
 
-  async isShared(scope: { orgId: string; sessionId: string }): Promise<boolean> {
-    if (![scope.sessionId, scope.orgId].every((id) => Types.ObjectId.isValid(id))) {
+  async isShared(scope: {
+    orgId: string;
+    sessionId: string;
+  }): Promise<boolean> {
+    if (
+      ![scope.sessionId, scope.orgId].every((id) => Types.ObjectId.isValid(id))
+    ) {
       return true;
     }
     const session = await ChatSession.findOne({

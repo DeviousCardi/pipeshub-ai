@@ -97,7 +97,9 @@ export class CitationAccess {
       return {
         ...message,
         citations: (message['citations'] as unknown[]).map((entry, index) =>
-          this.shows(data[index]) ? entry : withheldCitation(index, data[index]),
+          this.shows(data[index])
+            ? entry
+            : withheldCitation(index, data[index]),
         ),
       };
     }) as T;

@@ -204,7 +204,7 @@ describe('RunAdmissionService', () => {
         HarnessForbiddenError,
       );
       const { authorization: _drop, ...withoutCredential } = request;
-      void _drop;
+      _drop;
       expect(
         await rejection(service.submit(withoutCredential)),
       ).to.be.instanceOf(HarnessForbiddenError);
@@ -235,7 +235,7 @@ describe('RunAdmissionService', () => {
       const store = { answeredRun: async () => null, admit: sinon.stub().resolves({}) };
       const authorizeRun = sinon.stub();
       const { agentKey: _agent, ...chat } = request;
-      void _agent;
+      _agent;
       await new RunAdmissionService({
         store: store as never,
         rollout: fixedRollout(),

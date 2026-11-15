@@ -103,7 +103,11 @@ export class AiModelsConfigRepository {
     this.commit =
       commit ??
       ((expected, encrypted) =>
-        keyValueStore.compareAndSet<string>(configPaths.aiModels, expected, encrypted));
+        keyValueStore.compareAndSet<string>(
+          configPaths.aiModels,
+          expected,
+          encrypted,
+        ));
   }
 
   private cipher(): EncryptionService {

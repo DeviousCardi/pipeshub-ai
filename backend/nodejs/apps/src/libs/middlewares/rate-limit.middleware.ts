@@ -3,7 +3,10 @@ import { Request, Response, RequestHandler } from 'express';
 import rateLimit, { Options, ipKeyGenerator } from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { TokenScopes } from '../enums/token-scopes.enum';
-import { algorithmsFor, toVerificationKey } from '../services/authtoken.service';
+import {
+  algorithmsFor,
+  toVerificationKey,
+} from '../services/authtoken.service';
 import { stripTokenDisplayPrefix } from '../../modules/oauth_provider/constants/constants';
 import { Logger } from '../services/logger.service';
 import { TooManyRequestsError } from '../errors/http.errors';

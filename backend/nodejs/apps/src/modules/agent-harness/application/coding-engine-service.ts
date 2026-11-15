@@ -163,13 +163,16 @@ export class CodingEngineService {
   }
 
   async view(orgId: string, userId: string): Promise<CodingEngineView> {
-    const [engines, stored, vendorSignIn, belowFloor, syscallFilter] = await Promise.all([
-      this.engines(orgId).then((listed) => this.forPerson(orgId, userId, listed)),
-      this.stored(orgId, userId),
-      this.options.access.signInsCarried(),
-      this.runsBelowGvisor(),
-      this.gvisorSyscallFilter(),
-    ]);
+    const [engines, stored, vendorSignIn, belowFloor, syscallFilter] =
+      await Promise.all([
+        this.engines(orgId).then((listed) =>
+          this.forPerson(orgId, userId, listed),
+        ),
+        this.stored(orgId, userId),
+        this.options.access.signInsCarried(),
+        this.runsBelowGvisor(),
+        this.gvisorSyscallFilter(),
+      ]);
     return {
       engines,
       orgDefault: stored.org,
@@ -189,7 +192,9 @@ export class CodingEngineService {
   ): Promise<void> {
     const access = this.options.groupAccess;
     if (access === undefined) return;
-    if (!(await access.admits(orgId, userId, { kind: 'engine', engine: kind }))) {
+    if (
+      !(await access.admits(orgId, userId, { kind: 'engine', engine: kind }))
+    ) {
       throw new HarnessGroupAccessRefusedError('ENGINE_GROUP_REQUIRED');
     }
   }
@@ -211,8 +216,17 @@ export class CodingEngineService {
       return await Promise.all(
         engines.map(async (engine) =>
           engine.available &&
-          !(await access.admits(orgId, userId, { kind: 'engine', engine: engine.kind }, policy))
-            ? { ...engine, available: false, reason: { code: 'ENGINE_GROUP_REQUIRED' } }
+          !(await access.admits(
+            orgId,
+            userId,
+            { kind: 'engine', engine: engine.kind },
+            policy,
+          ))
+            ? {
+                ...engine,
+                available: false,
+                reason: { code: 'ENGINE_GROUP_REQUIRED' },
+              }
             : engine,
         ),
       );
@@ -227,7 +241,10 @@ export class CodingEngineService {
    */
   async autoRoute(orgId: string, userId: string): Promise<boolean> {
     try {
-      return (await this.options.preferences.read(orgId, userId)).orgAutoRoute !== false;
+      return (
+        (await this.options.preferences.read(orgId, userId)).orgAutoRoute !==
+        false
+      );
     } catch {
       return true;
     }

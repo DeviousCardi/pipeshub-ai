@@ -59,7 +59,6 @@ const DUPLICATE_KEY = 11000;
 
 const strip = <T extends { _id?: unknown }>(document: T): Omit<T, '_id'> => {
   const { _id: _ignored, ...rest } = document;
-  _ignored;
   return rest;
 };
 
@@ -370,7 +369,12 @@ export class MongoBudgetLedger implements BudgetLedgerStore {
         );
       }
       if (charge !== undefined && this.costs !== null) {
-        const modelRole = await this.costs.roleIn(mongoTx(session), orgId, runId, key);
+        const modelRole = await this.costs.roleIn(
+          mongoTx(session),
+          orgId,
+          runId,
+          key,
+        );
         await this.costs.insertIn(
           mongoTx(session),
           reconcileEntry(

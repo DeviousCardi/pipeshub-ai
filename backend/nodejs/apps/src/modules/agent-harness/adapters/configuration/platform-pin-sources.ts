@@ -24,7 +24,9 @@ export class AiModelsConfiguredLlms implements ConfiguredLlmSource {
   constructor(private readonly settings: OrgSettings) {}
 
   async read(orgId: string): Promise<ConfiguredModels> {
-    return configuredModels(await readStoredAiModelsConfig(this.settings.of(orgId)));
+    return configuredModels(
+      await readStoredAiModelsConfig(this.settings.of(orgId)),
+    );
   }
 }
 

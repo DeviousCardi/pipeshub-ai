@@ -63,7 +63,9 @@ export class MongoGroupRepository implements GroupRepository {
     orgId: string,
     ids: readonly string[],
   ): Promise<GroupSummaryDto[]> {
-    const valid = [...new Set(ids)].filter((id) => mongoose.isValidObjectId(id));
+    const valid = [...new Set(ids)].filter((id) =>
+      mongoose.isValidObjectId(id),
+    );
     if (valid.length === 0 || !mongoose.isValidObjectId(orgId)) return [];
     const rows = await UserGroups.find({
       _id: { $in: valid },

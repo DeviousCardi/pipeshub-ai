@@ -31,7 +31,8 @@ export function connectedWithin(
   connection: WatchedConnection,
   graceMs: number = RECONNECT_GRACE_MS,
 ): Promise<void> {
-  if (connection.readyState === ConnectionStates.connected) return Promise.resolve();
+  if (connection.readyState === ConnectionStates.connected)
+    return Promise.resolve();
   return new Promise((resolve, reject) => {
     const connected = (): void => {
       clearTimeout(timer);

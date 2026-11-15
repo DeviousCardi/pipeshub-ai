@@ -146,7 +146,9 @@ export const buildAiChatRequest = (
   const payload: Record<string, unknown> = {
     query: body.query,
     previousConversations: context.previousConversations,
-    ...(context.historyLabel !== undefined ? { historyLabel: context.historyLabel } : {}),
+    ...(context.historyLabel !== undefined
+      ? { historyLabel: context.historyLabel }
+      : {}),
     ...(context.isNewConversation ? { recordIds: body.recordIds || [] } : {}),
     filters: body.filters || {},
     attachments: body.attachments || [],

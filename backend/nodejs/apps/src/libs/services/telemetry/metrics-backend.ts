@@ -56,7 +56,7 @@ export class PrometheusBackend implements MetricsBackend {
       registers: [this.registry],
       ...(zeroSeries.length > 0
         ? {
-            collect(this: promClient.Counter<string>) {
+            collect(this: promClient.Counter) {
               for (const labels of zeroSeries) this.inc(labels, 0);
             },
           }

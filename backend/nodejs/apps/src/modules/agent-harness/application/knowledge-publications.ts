@@ -106,6 +106,10 @@ export class KnowledgePublicationGateway {
       reason: answer.code,
       status: answer.status,
     });
-    throw new PublicationRefusedError(answer.code, answer.message, answer.status);
+    throw new PublicationRefusedError(
+      answer.code,
+      answer.message,
+      answer.status,
+    );
   }
 }

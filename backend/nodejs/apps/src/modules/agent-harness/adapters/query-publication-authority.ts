@@ -78,9 +78,7 @@ export class QueryPublicationAuthority implements PublicationAuthority {
       undefined,
       2,
     );
-    return answer.ok
-      ? { ok: true, value: answer.value.publications }
-      : answer;
+    return answer.ok ? { ok: true, value: answer.value.publications } : answer;
   }
 
   revoke(

@@ -563,7 +563,7 @@ export function describeCommitCases(
       expect(written[0]!['parts']).to.deep.equal([
         { type: 'text', content: 'Twenty-five days.', isFinal: true },
       ]);
-      void shown;
+      shown;
     });
 
     it('EU-22 (QA21-F4): completing a run whose conversation was deleted is refused naming the cause', async () => {

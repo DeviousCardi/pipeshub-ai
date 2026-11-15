@@ -150,7 +150,10 @@ export class InMemoryMemoryStore implements MemoryStore, MemoryEraser {
     for (const [id, entry] of this.entries) {
       if (matches(entry)) {
         this.entries.delete(id);
-        erased.set(entry.orgId, [...(erased.get(entry.orgId) ?? []), entry.memoryId]);
+        erased.set(entry.orgId, [
+          ...(erased.get(entry.orgId) ?? []),
+          entry.memoryId,
+        ]);
       }
     }
     let count = 0;

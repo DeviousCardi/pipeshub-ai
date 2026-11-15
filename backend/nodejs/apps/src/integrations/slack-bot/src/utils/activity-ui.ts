@@ -1,7 +1,7 @@
-import type { SlackAGUICallbacks } from "./agui-stream";
-import { markdownToSlackMrkdwn } from "./md_to_mrkdwn";
-import { escapeSlackText } from "./slack-escape";
-import { toolActivityLabel, toolStatusLabel } from "./tool-display";
+import type { SlackAGUICallbacks } from './agui-stream';
+import { markdownToSlackMrkdwn } from './md_to_mrkdwn';
+import { escapeSlackText } from './slack-escape';
+import { toolActivityLabel, toolStatusLabel } from './tool-display';
 
 const MAX_REASONING_CHARS = 600;
 const MAX_NARRATION_CHARS = 800;
@@ -345,12 +345,12 @@ export class SlackActivityBuilder {
 
 export type SlackActivityCallbacks = Pick<
   SlackAGUICallbacks,
-  | "onStatus"
-  | "onReasoning"
-  | "onNarration"
-  | "onToolStart"
-  | "onToolResult"
-  | "onSubAgent"
+  | 'onStatus'
+  | 'onReasoning'
+  | 'onNarration'
+  | 'onToolStart'
+  | 'onToolResult'
+  | 'onSubAgent'
 >;
 
 /** The stream callbacks that build the activity timeline; `changed` schedules its next render. */
@@ -385,12 +385,12 @@ export function slackActivityCallbacks(
       builder.finishTool(
         toolName,
         toolActivityLabel(toolName, displayName),
-        status === "failed" || status === "blocked",
+        status === 'failed' || status === 'blocked',
       );
       changed();
     },
     onSubAgent: (role, phase) => {
-      if (phase === "started") {
+      if (phase === 'started') {
         builder.startSubAgent(role);
       } else {
         builder.finishSubAgent(role, phase);

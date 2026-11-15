@@ -15,8 +15,7 @@ export interface EngineProfileCeilings {
 
 /** What the admin route changes: a ceiling checked against this release before it is stored. */
 export interface EngineProfileSettings
-  extends EngineProfileCeilings,
-    Partial<PolicyRevisions> {
+  extends EngineProfileCeilings, Partial<PolicyRevisions> {
   /** Stores (null: clears) the org's ceiling; refuses one that is invalid or widens a release profile. `ifMatch`: QA-9. */
   write(
     orgId: string,

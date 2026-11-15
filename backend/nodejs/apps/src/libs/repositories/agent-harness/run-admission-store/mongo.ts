@@ -349,9 +349,7 @@ export class MongoRunAdmissionStore
             .session(mongoSession)
             .lean();
           if (active) {
-            const activeRun = runFromDocument(
-              active as unknown as Record<string, unknown>,
-            );
+            const activeRun = runFromDocument(active);
             // A `/run` is one at a time per chat (SLASH3): never steered into a reply, never queued behind one.
             if (
               command.nextRunId !== undefined ||
@@ -444,8 +442,7 @@ export class MongoRunAdmissionStore
             ...(asked.command !== undefined ? { command: asked.command } : {}),
             ...(asked.appliedFilters !== undefined
               ? {
-                  appliedFilters:
-                    asked.appliedFilters as RunInputSnapshot['appliedFilters'],
+                  appliedFilters: asked.appliedFilters,
                 }
               : {}),
           };
@@ -456,7 +453,11 @@ export class MongoRunAdmissionStore
           // authoritative transcript shape as the legacy stream and never
           // trusts a browser-supplied history array.
           const ref = { orgId: command.orgId, sessionId };
-          const history = await this.history.read(ref, mongoTx(mongoSession), accounted);
+          const history = await this.history.read(
+            ref,
+            mongoTx(mongoSession),
+            accounted,
+          );
           previousConversations = withoutSandboxCommands(
             history.messages.flatMap((m) => m.turns),
           );
@@ -674,7 +675,6 @@ export class MongoRunAdmissionStore
         }
 
         const { activeSessionKey: _active, ...publicRun } = run;
-        void _active;
         result = {
           sessionId,
           userMessageKey,
@@ -866,9 +866,7 @@ export class MongoRunAdmissionStore
     return {
       sessionId: active.sessionId,
       userMessageKey: '',
-      run: withoutInput(
-        runFromDocument(touched as unknown as Record<string, unknown>),
-      ),
+      run: withoutInput(runFromDocument(touched)),
       firstEventSeq: 0,
       lastEventSeq: 0,
       created: true,
@@ -1006,9 +1004,7 @@ export class MongoRunAdmissionStore
       { updatePipeline: true, new: true, session },
     ).lean();
     if (!updated) throw steeringConflict('cancelling');
-    const queued = runFromDocument(
-      updated as unknown as Record<string, unknown>,
-    );
+    const queued = runFromDocument(updated);
     const messageSeq = queued.inputSeq ?? 1;
     await this.journal.append(
       await this.journals.prepare(
@@ -1085,7 +1081,10 @@ export class MongoRunAdmissionStore
     const seen =
       ahead.length === 0
         ? []
-        : await AgentRunModel.find({ orgId: command.orgId, runId: { $in: ahead } })
+        : await AgentRunModel.find({
+            orgId: command.orgId,
+            runId: { $in: ahead },
+          })
             .select('runId')
             .session(session)
             .lean();
@@ -1094,7 +1093,7 @@ export class MongoRunAdmissionStore
       {
         orgActive: counts?.org ?? 0,
         userActive: counts?.user ?? 0,
-        seen: new Set(seen.map((run) => run.runId as string)),
+        seen: new Set(seen.map((run) => run.runId)),
       },
       now,
       quotas,
@@ -1133,10 +1132,7 @@ export class MongoRunAdmissionStore
       .lean();
     return stored === null
       ? null
-      : answeredRunFrom(
-          stored as unknown as StoredAskingRun,
-          runId !== undefined,
-        );
+      : answeredRunFrom(stored, runId !== undefined);
   }
 
   async labelledTurns(

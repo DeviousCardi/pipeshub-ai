@@ -100,17 +100,25 @@ const pick =
 function provenanceAudit(data: Data): AuditFields {
   const fields = pick('invocationId', 'toolId', 'rule')(data);
   const provenance = data['provenance'];
-  if (provenance === null || typeof provenance !== 'object' || Array.isArray(provenance)) return fields;
+  if (
+    provenance === null ||
+    typeof provenance !== 'object' ||
+    Array.isArray(provenance)
+  )
+    return fields;
   const { readers, integrity, sources } = provenance as Record<string, unknown>;
   if (typeof readers === 'string') fields['readers'] = readers;
   if (typeof integrity === 'string') fields['integrity'] = integrity;
   const list = Array.isArray(sources) ? sources : [];
   fields['sources'] = list.length;
   for (const source of list) {
-    const kind = source !== null && typeof source === 'object' ? (source as Record<string, unknown>)['kind'] : undefined;
+    const kind =
+      source !== null && typeof source === 'object'
+        ? (source as Record<string, unknown>)['kind']
+        : undefined;
     if (typeof kind !== 'string' || !/^[a-z]{1,16}$/.test(kind)) continue;
     const key = `${kind}Sources`;
-    fields[key] = (typeof fields[key] === 'number' ? (fields[key] as number) : 0) + 1;
+    fields[key] = (typeof fields[key] === 'number' ? fields[key] : 0) + 1;
   }
   return fields;
 }
@@ -164,7 +172,9 @@ export const AUDIT_EVENT_FIELDS: Readonly<
   ),
   // SEC2 O-2: a sandbox gateway's refusal; a host or field path, never a URL path, query or value.
   // WP-63: an allowed website's path (no query, tokens masked) is the one path an egress record holds.
-  'gateway.refused': withSite(pick('gateway', 'reason', 'status', 'host', 'param')),
+  'gateway.refused': withSite(
+    pick('gateway', 'reason', 'status', 'host', 'param'),
+  ),
   // OB-03: a destination the egress proxy let the run's sandbox reach; a bare host, never a path or query, but for
   // an allowed website (WP-63) its `site`: the path the run's activity shows.
   'egress.allowed': withSite(pick('host', 'via')),
@@ -185,7 +195,12 @@ export const AUDIT_EVENT_FIELDS: Readonly<
   'interaction.requested': pick('interactionId', 'kind'),
   'interaction.resolved': pick('interactionId', 'decision', 'by', 'channel'),
   // One approval of an ask that needs several, before the last one resolves it.
-  'x.pipeshub.approval.counted': pick('interactionId', 'by', 'counted', 'required'),
+  'x.pipeshub.approval.counted': pick(
+    'interactionId',
+    'by',
+    'counted',
+    'required',
+  ),
   // A grant that widens what the conversation may do without asking again (R2 F1).
   'interaction.granted': pick(
     'interactionId',
@@ -212,7 +227,13 @@ export const AUDIT_EVENT_FIELDS: Readonly<
     items: Array.isArray(data['items']) ? data['items'].length : 0,
   }),
   // WP-63 part A: a repository the worker fetched for the run; the host and path, never a URL or commit.
-  'x.pipeshub.repository.fetched': pick('host', 'repository', 'bytes', 'cached', 'full'),
+  'x.pipeshub.repository.fetched': pick(
+    'host',
+    'repository',
+    'bytes',
+    'cached',
+    'full',
+  ),
   // WP-63: a clone refused because its host is not on the org's list; the host and path only.
   'x.pipeshub.repository.unavailable': pick('host', 'path', 'reason'),
   // WP-96 (ADR-RUN-01 D3): a tool result's provenance by who may read it, who wrote it and how many sources of each

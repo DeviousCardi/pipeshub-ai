@@ -2,12 +2,7 @@ import type { EffectiveItem, EffectiveSet, Installation } from './objects';
 
 /** The `dimension` label of `pipeshub_cp_shadow_mismatch_total` (05 §1 rule 6). */
 export type ShadowDimension =
-  | 'toolset'
-  | 'mcp'
-  | 'skill'
-  | 'visibility'
-  | 'approval'
-  | 'unavailable';
+  'toolset' | 'mcp' | 'skill' | 'visibility' | 'approval' | 'unavailable';
 
 /** What today's resolver pinned for a run's catalog items: connector tool ids, MCP instances, skill names. */
 export interface LegacyPin {
@@ -91,8 +86,7 @@ export function shadowMismatches(
 
   const skillName = (item: EffectiveItem): string | null => {
     const config = installations.get(item.installation)?.config as
-      | { name?: unknown }
-      | undefined;
+      { name?: unknown } | undefined;
     return typeof config?.name === 'string' ? config.name : null;
   };
   const skills = set.items.filter((item) => kindOf(item) === 'skill');

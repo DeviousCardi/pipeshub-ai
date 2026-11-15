@@ -16,11 +16,7 @@ export type ChatSurface = 'agent' | 'assistant';
  * mid-stream (a durable run carries on without it and ends as one of the others).
  */
 export type ChatTurnOutcome =
-  | 'answered'
-  | 'needs_input'
-  | 'cancelled'
-  | 'failed'
-  | 'disconnected';
+  'answered' | 'needs_input' | 'cancelled' | 'failed' | 'disconnected';
 
 /** How a worker came to hold a durable run: first claim, or a resume after a lost lease. */
 export type ClaimSource = 'queued' | 'expired_lease';

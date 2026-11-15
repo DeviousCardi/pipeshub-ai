@@ -17,8 +17,10 @@ import {
 export const sharedBudgetGuardOf = (
   container: interfaces.Container,
 ): SharedBudgetGuard =>
-  boundOrNull<SharedBudgetGuard>(container, AGENT_HARNESS_SHARED_BUDGET_GUARD) ??
-  noSharedBudgets;
+  boundOrNull<SharedBudgetGuard>(
+    container,
+    AGENT_HARNESS_SHARED_BUDGET_GUARD,
+  ) ?? noSharedBudgets;
 
 /** What an edition binder bound for the spend records, else nothing to sweep or erase. */
 export const costEraserOf = (container: interfaces.Container): CostEraser =>

@@ -50,7 +50,6 @@ import {
   SessionRetentionDocument,
 } from '../../domain/session-retention';
 
-
 export { storedCiphertext };
 export type { SecretCipher };
 export type ConfigKeyValueStore = Pick<
@@ -150,9 +149,15 @@ export const componentDocumentSchema: z.ZodType<ComponentDocument> = z
   .object({
     role: z.enum(HARNESS_CREDENTIAL_ROLES),
     credential: workerCredentialSetSchema,
-    accepts: z.record(z.enum(HARNESS_CREDENTIAL_ROLES), z.array(acceptedDigestSchema)),
+    accepts: z.record(
+      z.enum(HARNESS_CREDENTIAL_ROLES),
+      z.array(acceptedDigestSchema),
+    ),
     egressSealing: z
-      .object({ state: z.array(nonEmpty).min(1), credentials: z.array(nonEmpty).min(1) })
+      .object({
+        state: z.array(nonEmpty).min(1),
+        credentials: z.array(nonEmpty).min(1),
+      })
       .strict()
       .optional(),
     endpoints: z
@@ -172,7 +177,9 @@ export const componentDocumentSchema: z.ZodType<ComponentDocument> = z
  * key, which the component holds instead of `SECRET_KEY`. Only components whose key this process holds have one.
  */
 /** Where Node keeps a component's sealed document. */
-export const componentDocumentPath = (component: SandboxPlaneComponent): string =>
+export const componentDocumentPath = (
+  component: SandboxPlaneComponent,
+): string =>
   component === 'egressProxy'
     ? configPaths.agentHarness.componentEgressProxy
     : configPaths.agentHarness.componentSandboxBroker;
@@ -181,13 +188,20 @@ export function createComponentDocumentStores(
   store: ConfigKeyValueStore,
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): ComponentDocumentStores {
-  const stores: Partial<Record<SandboxPlaneComponent, ConfigDocumentStore<ComponentDocument>>> = {};
-  for (const component of Object.keys(SANDBOX_PLANE_COMPONENTS) as SandboxPlaneComponent[]) {
+  const stores: Partial<
+    Record<SandboxPlaneComponent, ConfigDocumentStore<ComponentDocument>>
+  > = {};
+  for (const component of Object.keys(
+    SANDBOX_PLANE_COMPONENTS,
+  ) as SandboxPlaneComponent[]) {
     const key = componentKey(component, env);
     if (key === null) continue;
     stores[component] = new EncryptedConfigDocumentStore(
       store,
-      EncryptionService.withKey('aes-256-gcm', componentCipherKey(component, key)),
+      EncryptionService.withKey(
+        'aes-256-gcm',
+        componentCipherKey(component, key),
+      ),
       componentDocumentPath(component),
       componentDocumentSchema,
     );
@@ -199,7 +213,10 @@ export interface HarnessAuthorityStores {
   workerCredential: ConfigDocumentStore<WorkerCredentialSet>;
   /** SEC-C-10: the other machine roles' sets; absent (a test's world), only the worker role exists. */
   roleCredentials?: Readonly<
-    Record<'scrape' | 'egress-proxy' | 'sandbox-broker', ConfigDocumentStore<WorkerCredentialSet>>
+    Record<
+      'scrape' | 'egress-proxy' | 'sandbox-broker',
+      ConfigDocumentStore<WorkerCredentialSet>
+    >
   >;
   /** ADR-KEY-02: what Node seals for the sandbox-plane components it holds keys for. */
   components?: ComponentDocumentStores;
@@ -431,7 +448,9 @@ const modelAccessDocumentSchema = z.lazy(() =>
   z
     .object({
       orgs: z.record(
-        z.object({ ...modelAccessEntryBase, ...modelAccessEntryExtensions }).strict(),
+        z
+          .object({ ...modelAccessEntryBase, ...modelAccessEntryExtensions })
+          .strict(),
       ),
     })
     .strict(),

@@ -43,7 +43,10 @@ export interface WorkerFeatureAvailabilityOptions {
  */
 export class WorkerFeatureAvailability {
   private readonly written = new Map<WorkerFeature, number>();
-  private readonly cached = new Map<WorkerFeature, { at: number; live: boolean }>();
+  private readonly cached = new Map<
+    WorkerFeature,
+    { at: number; live: boolean }
+  >();
   private readonly known = new Map<WorkerFeature, boolean>();
   private writeFailed = false;
 
@@ -65,7 +68,9 @@ export class WorkerFeatureAvailability {
   async observe(features: readonly WorkerFeature[]): Promise<void> {
     const now = this.clock.now();
     const due = features.filter(
-      (feature) => now - (this.written.get(feature) ?? -Infinity) >= SIGHTING_WRITE_INTERVAL_MS,
+      (feature) =>
+        now - (this.written.get(feature) ?? -Infinity) >=
+        SIGHTING_WRITE_INTERVAL_MS,
     );
     if (due.length === 0) return;
     for (const feature of due) this.written.set(feature, now);
@@ -102,7 +107,9 @@ export class WorkerFeatureAvailability {
     try {
       const sighting = await this.sightings.sighting(feature);
       lastSeenAt = sighting.seenAt;
-      live = sighting.seenAt !== null && sighting.now - sighting.seenAt <= this.windowMs;
+      live =
+        sighting.seenAt !== null &&
+        sighting.now - sighting.seenAt <= this.windowMs;
     } catch (error) {
       this.logger.warn(
         'worker.sighting_unreadable',
@@ -117,14 +124,21 @@ export class WorkerFeatureAvailability {
     return live;
   }
 
-  private transition(feature: WorkerFeature, live: boolean, lastSeenAt: number | null): void {
+  private transition(
+    feature: WorkerFeature,
+    live: boolean,
+    lastSeenAt: number | null,
+  ): void {
     this.metrics.live(feature, live);
     const before = this.known.get(feature);
     this.known.set(feature, live);
     if (before === live) return;
     if (live) {
       if (before === false) {
-        this.logger.info('worker.feature_live', harnessLogMeta('worker.feature_live', { feature }));
+        this.logger.info(
+          'worker.feature_live',
+          harnessLogMeta('worker.feature_live', { feature }),
+        );
       }
       return;
     }
@@ -133,7 +147,8 @@ export class WorkerFeatureAvailability {
       harnessLogMeta('worker.feature_gap', {
         feature,
         reason: 'no_live_worker',
-        lastSeenAt: lastSeenAt === null ? null : new Date(lastSeenAt).toISOString(),
+        lastSeenAt:
+          lastSeenAt === null ? null : new Date(lastSeenAt).toISOString(),
         windowMs: this.windowMs,
       }),
     );

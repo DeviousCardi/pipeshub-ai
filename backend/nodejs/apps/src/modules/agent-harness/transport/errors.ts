@@ -159,7 +159,10 @@ export function transportError(error: unknown): unknown {
       error.message,
       ERROR_CODES.QUOTA_EXCEEDED.status,
       // Which quota, so a client says "one answers already" for the active-run cap, not "you sent too many" (QA-AUTO).
-      { retryAfter: String(error.retryAfterS), reasonCode: `${error.quota}_${error.scope}` },
+      {
+        retryAfter: String(error.retryAfterS),
+        reasonCode: `${error.quota}_${error.scope}`,
+      },
     );
   }
   if (storeTransient(error)) {

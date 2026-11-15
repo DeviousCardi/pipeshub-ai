@@ -446,7 +446,12 @@ export type TransitionDetail =
       checkpointRef?: string;
     }
   | { kind: 'quarantine'; attempts: number; lastErrorType?: string }
-  | { kind: 'fail'; message?: string; servers?: string[]; memoryLimitMb?: number };
+  | {
+      kind: 'fail';
+      message?: string;
+      servers?: string[];
+      memoryLimitMb?: number;
+    };
 
 export interface RunTransition {
   /** Required on v1; a v2 worker is fenced by its attempt and may omit it. */
@@ -1399,12 +1404,15 @@ export function transitionJournalEvents(
   if (transition.status === 'failed') {
     const message = detail?.kind === 'fail' ? detail.message : undefined;
     const servers = detail?.kind === 'fail' ? detail.servers : undefined;
-    const memoryLimitMb = detail?.kind === 'fail' ? detail.memoryLimitMb : undefined;
+    const memoryLimitMb =
+      detail?.kind === 'fail' ? detail.memoryLimitMb : undefined;
     return [
       event('run.failed', {
         errorType: transition.errorType ?? 'worker_failed',
         ...(message !== undefined ? { message } : {}),
-        ...(servers !== undefined && servers.length > 0 ? { servers: [...new Set(servers)] } : {}),
+        ...(servers !== undefined && servers.length > 0
+          ? { servers: [...new Set(servers)] }
+          : {}),
         ...(memoryLimitMb !== undefined ? { memoryLimitMb } : {}),
       }),
     ];
@@ -1544,10 +1552,7 @@ export function sweptJournalEvents(
   if (run.harnessMajor !== 2) return [];
   const closing = open.map(closingToolOutcome);
   if (nextStatus === 'failed') {
-    return [
-      ...closing,
-      nodeRunEvent('run.failed', { errorType }),
-    ];
+    return [...closing, nodeRunEvent('run.failed', { errorType })];
   }
   if (nextStatus === 'cancelled') {
     return [...closing, nodeRunEvent('run.cancelled', {})];

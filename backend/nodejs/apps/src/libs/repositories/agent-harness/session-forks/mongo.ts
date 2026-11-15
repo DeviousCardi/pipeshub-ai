@@ -97,13 +97,10 @@ export function sourceMessage(message: Json): ForkSourceMessage {
   const sender = message['senderId'];
   return {
     messageType: String(message['messageType']),
-    senderId:
-      sender === undefined || sender === null
-        ? null
-        : String(sender as { toString(): string }),
+    senderId: sender === undefined || sender === null ? null : String(sender),
     content: typeof message['content'] === 'string' ? message['content'] : '',
     citations,
-    fields: fields as ForkedMessageFields,
+    fields: fields,
     label: parseTurnLabel(message['label']),
   };
 }

@@ -305,10 +305,7 @@ export class SessionErasedError extends Error {
 }
 
 export type SealedContentFailure =
-  | 'corrupt'
-  | 'unsupported_version'
-  | 'shredded'
-  | 'unwrap_failed';
+  'corrupt' | 'unsupported_version' | 'shredded' | 'unwrap_failed';
 
 /** Raised by the envelope cipher; readers map it to missing (terminal) or unavailable. */
 export class SealedContentError extends Error {

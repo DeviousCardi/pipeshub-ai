@@ -58,7 +58,8 @@ const hexOf = (text: string, size: number): string => {
   return /^0+$/.test(digest) ? '1'.padStart(size, '0') : digest;
 };
 
-export const runTraceId = (runId: string): string => hexOf(RUN_PREFIX + runId, 32);
+export const runTraceId = (runId: string): string =>
+  hexOf(RUN_PREFIX + runId, 32);
 
 export const runRootSpanId = (runId: string): string =>
   hexOf(`${RUN_PREFIX}${runId}/admit`, 16);
@@ -83,10 +84,14 @@ export function admissionSpan(input: AdmissionSpanInput): HarnessSpan {
     'pipeshub.run_id': input.runId,
     'gen_ai.conversation.id': input.sessionId,
   };
-  if (input.profile !== undefined) attributes['pipeshub.profile'] = input.profile;
-  if (input.harnessMajor !== undefined) attributes['pipeshub.harness_major'] = input.harnessMajor;
-  if (input.replayed !== undefined) attributes['pipeshub.replayed'] = input.replayed;
-  if (input.agentKey !== undefined) attributes['gen_ai.agent.id'] = input.agentKey;
+  if (input.profile !== undefined)
+    attributes['pipeshub.profile'] = input.profile;
+  if (input.harnessMajor !== undefined)
+    attributes['pipeshub.harness_major'] = input.harnessMajor;
+  if (input.replayed !== undefined)
+    attributes['pipeshub.replayed'] = input.replayed;
+  if (input.agentKey !== undefined)
+    attributes['gen_ai.agent.id'] = input.agentKey;
   return {
     name: 'pipeshub.run.admit',
     kind: 'server',

@@ -14,7 +14,11 @@ export interface ApproverDirectory {
    * cannot both commit. `refuse` is what the decision fails with when the
    * standing is gone. Absent: the standing read before the transaction stands.
    */
-  approverFence?(orgId: string, userId: string, refuse: () => Error): CommitFence;
+  approverFence?(
+    orgId: string,
+    userId: string,
+    refuse: () => Error,
+  ): CommitFence;
   /**
    * The refusals' words where this directory names more approvers than the run's actor. Absent: the usual
    * rule's words (only the person the run acts for approves).

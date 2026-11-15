@@ -3,11 +3,7 @@
  * word a list shows, the filter a store applies, and the cursor a page continues from. Pure: the three execution
  * stores and the services decide from these.
  */
-import {
-  HarnessRun,
-  RunStatus,
-  TERMINAL_RUN_STATUSES,
-} from './execution';
+import { HarnessRun, RunStatus, TERMINAL_RUN_STATUSES } from './execution';
 
 /**
  * One meaning each: `working` (going, a person is not needed), `needs_you` (an open ask: an approval, a question,
@@ -66,29 +62,30 @@ export const isWorkingJob = (
   runListState(run) === 'working';
 
 /** The statuses a state can hold; `working` and `needs_you` also split on the open asks (`waitsOnPerson`). */
-export const STATE_STATUSES: Readonly<Record<RunListState, readonly RunStatus[]>> =
-  {
-    finished: ['completed'],
-    failed: ['failed'],
-    stopped: ['cancelled'],
-    needs_you: [
-      'queued',
-      'running',
-      'waiting_approval',
-      'paused',
-      'recovering',
-      'needs_reconciliation',
-      'cancelling',
-    ],
-    working: [
-      'queued',
-      'running',
-      'paused',
-      'recovering',
-      'needs_reconciliation',
-      'cancelling',
-    ],
-  };
+export const STATE_STATUSES: Readonly<
+  Record<RunListState, readonly RunStatus[]>
+> = {
+  finished: ['completed'],
+  failed: ['failed'],
+  stopped: ['cancelled'],
+  needs_you: [
+    'queued',
+    'running',
+    'waiting_approval',
+    'paused',
+    'recovering',
+    'needs_reconciliation',
+    'cancelling',
+  ],
+  working: [
+    'queued',
+    'running',
+    'paused',
+    'recovering',
+    'needs_reconciliation',
+    'cancelling',
+  ],
+};
 
 /** Where a page ends: the last run's creation time and id (newest first, ties broken by the id, descending). */
 export interface RunListCursor {
@@ -114,9 +111,12 @@ export function listedEngine(
     ?.engine?.kind;
   if (typeof fromProfile === 'string') return fromProfile;
   const executor = (
-    pinnedSpec as { executor?: { kind?: unknown; engine?: { kind?: unknown } } } | null
+    pinnedSpec as {
+      executor?: { kind?: unknown; engine?: { kind?: unknown } };
+    } | null
   )?.executor;
-  return executor?.kind === 'engine' && typeof executor.engine?.kind === 'string'
+  return executor?.kind === 'engine' &&
+    typeof executor.engine?.kind === 'string'
     ? executor.engine.kind
     : null;
 }
@@ -129,7 +129,9 @@ export interface ListedJob extends ListedRun {
 /** The earlier job a pinned spec continues (its `x.pipeshub.engineCarry`); null for anything else. */
 export function listedCarry(pinnedSpec: unknown): string | null {
   const carry = (
-    pinnedSpec as { extensions?: { 'x.pipeshub'?: { engineCarry?: { runId?: unknown } } } } | null
+    pinnedSpec as {
+      extensions?: { 'x.pipeshub'?: { engineCarry?: { runId?: unknown } } };
+    } | null
   )?.extensions?.['x.pipeshub']?.engineCarry?.runId;
   return typeof carry === 'string' && carry.length > 0 ? carry : null;
 }

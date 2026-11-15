@@ -33,10 +33,7 @@ import {
   toFiring,
   toSchedule,
 } from './mongo';
-import type {
-  ScheduleDocument,
-  ScheduleFiringDocument,
-} from './document';
+import type { ScheduleDocument, ScheduleFiringDocument } from './document';
 
 const REASON = 'schedules';
 

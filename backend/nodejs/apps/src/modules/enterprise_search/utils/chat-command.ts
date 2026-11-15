@@ -124,8 +124,7 @@ export const expandViaSkillsService =
       );
       const detail = (response.data as { detail?: unknown } | undefined)
         ?.detail as
-        | { code?: string; message?: string; names?: string[] }
-        | undefined;
+        { code?: string; message?: string; names?: string[] } | undefined;
       if (response.status === 200) {
         const expanded = expandedSchema.safeParse(response.data);
         if (expanded.success) return { kind: 'expanded', ...expanded.data };
@@ -314,7 +313,9 @@ export function regenerateChatCommand(
     res.locals[REGENERATE_QUERY_LOCAL] = result.expanded;
   };
   return (req, res, next) => {
-    handle(req, res).then(() => next(), next);
+    handle(req, res).then(() => {
+      next();
+    }, next);
   };
 }
 
@@ -352,8 +353,7 @@ export const storedRegenerateCommand: StoredCommandReader = async (req) => {
 export const expandedChatCommand = (res: Response): RunCommand | undefined =>
   // A handler test may pass a bare response; Express always sets `locals`.
   (res.locals as Record<string, unknown> | undefined)?.[COMMAND_LOCAL] as
-    | RunCommand
-    | undefined;
+    RunCommand | undefined;
 
 /** PipesHub's prompt commands for a chat route: the caller from the verified credential, the session from the path. */
 export const pipeshubCommandsFor =

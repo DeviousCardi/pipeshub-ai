@@ -100,7 +100,6 @@ export function getLogLevel(): LogLevel {
   return LogLevel.Info;
 }
 
-
 /**
  * Where Node's file logs go, or null for console only. Unset, a developer's
  * run keeps `error.log` and `combined.log` in the working directory; the

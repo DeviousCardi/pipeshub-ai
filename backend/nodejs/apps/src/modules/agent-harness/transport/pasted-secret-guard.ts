@@ -18,7 +18,11 @@ export const SECRETS_REMOVED_HEADER = 'x-pipeshub-secrets-removed';
  * Body fields a person types into: a chat message or steer, a denial's
  * reason, and a rating's comments (an object of texts, G-15's feedback).
  */
-export const PERSON_TEXT_FIELDS: readonly string[] = ['query', 'reason', 'comments'];
+export const PERSON_TEXT_FIELDS: readonly string[] = [
+  'query',
+  'reason',
+  'comments',
+];
 
 /** The longest text the guard scans: a chat message's own bound, so a valid message is never refused here. */
 export const PERSON_TEXT_MAX_CHARS = CHAT_QUERY_MAX_CHARS;
@@ -60,7 +64,11 @@ export function removePastedSecrets(
       return;
     }
     const body = raw as Record<string, unknown>;
-    const texts: Array<{ holder: Record<string, unknown>; key: string; text: string }> = [];
+    const texts: Array<{
+      holder: Record<string, unknown>;
+      key: string;
+      text: string;
+    }> = [];
     for (const field of fields) {
       const value = body[field];
       if (typeof value === 'string') {
@@ -68,7 +76,8 @@ export function removePastedSecrets(
         continue;
       }
       // One level of texts (`comments.negative`), never deeper: a person's fields are flat.
-      if (value === null || typeof value !== 'object' || Array.isArray(value)) continue;
+      if (value === null || typeof value !== 'object' || Array.isArray(value))
+        continue;
       const nested = value as Record<string, unknown>;
       for (const [key, text] of Object.entries(nested)) {
         if (typeof text === 'string') texts.push({ holder: nested, key, text });
@@ -100,7 +109,10 @@ export function removePastedSecrets(
 }
 
 /** The authenticators a router that takes a person's text uses; each runs the pasted-secret guard after it. */
-export type TextGuardedAuth = Pick<AuthMiddleware, 'authenticate' | 'scopedTokenValidator'>;
+export type TextGuardedAuth = Pick<
+  AuthMiddleware,
+  'authenticate' | 'scopedTokenValidator'
+>;
 
 /** Marks a handler that authenticates and then scans, so a structural test can find a route without one. */
 export const SCANS_AFTER_AUTH = Symbol('scansPastedSecretsAfterAuthentication');
@@ -135,7 +147,10 @@ export function scanAfterAuthentication(
   auth: TextGuardedAuth,
   guard: RequestHandler = removePastedSecrets(),
 ): TextGuardedAuth {
-  const authenticate = thenScan(auth.authenticate.bind(auth) as RequestHandler, guard);
+  const authenticate = thenScan(
+    auth.authenticate.bind(auth) as RequestHandler,
+    guard,
+  );
   return {
     authenticate: authenticate as AuthMiddleware['authenticate'],
     scopedTokenValidator: (scope: string, audience?: string) =>

@@ -120,7 +120,7 @@ const ROUTING_FIELDS = new Set([
  */
 export const LEGACY_ONLY_FIELDS: Readonly<Record<string, string>> = {
   compareTurn:
-    'Compare models answers one question with two models side by side, which only today\'s loop does',
+    "Compare models answers one question with two models side by side, which only today's loop does",
   toolApproval:
     "an answer to today's loop's parked approval card; a durable run's approvals resume through its interaction",
 };
@@ -224,7 +224,9 @@ export function chatTurnCodingEngine(body: unknown): string | undefined {
  * The repository a body names for the conversation it creates (GIT-FLOW); the route's validator checked its
  * format. An existing conversation's repository changes only through `PUT …/repository`.
  */
-export function chatTurnRepository(body: unknown): SessionRepository | undefined {
+export function chatTurnRepository(
+  body: unknown,
+): SessionRepository | undefined {
   const parsed = sessionRepositorySchema.safeParse(
     isObject(body) ? body[REPOSITORY_FIELD] : undefined,
   );
@@ -546,7 +548,9 @@ export function chatTurnMiddleware(
       }
       if (!admitted) {
         next(
-          transportError(new HarnessGroupAccessRefusedError('MODEL_GROUP_REQUIRED')),
+          transportError(
+            new HarnessGroupAccessRefusedError('MODEL_GROUP_REQUIRED'),
+          ),
         );
       }
       return admitted;

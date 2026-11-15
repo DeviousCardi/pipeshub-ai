@@ -67,9 +67,7 @@ export interface StoredReceipt {
  * run with its status only.
  */
 export type SweptTranscriptOutcome =
-  | 'written'
-  | 'session_missing'
-  | 'write_failed';
+  'written' | 'session_missing' | 'write_failed';
 
 export type SweepReason =
   | 'lease_expired'

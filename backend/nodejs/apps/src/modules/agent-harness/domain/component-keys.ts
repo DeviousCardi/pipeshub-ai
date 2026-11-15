@@ -4,7 +4,10 @@ import {
   SecretKeyRing,
   weakSecretReason,
 } from '../../../libs/encryptor/secret-key-ring';
-import { HarnessCredentialRole, SandboxPlaneComponent } from './credential-roles';
+import {
+  HarnessCredentialRole,
+  SandboxPlaneComponent,
+} from './credential-roles';
 import { WorkerCredentialSet } from './authority';
 
 /**
@@ -15,12 +18,15 @@ import { WorkerCredentialSet } from './authority';
  * `SECRET_KEY` ring. The component derives its Redis ACL login from the same key. Python's twin is
  * `app/utils/encryption/component_key.py`; both derive alike.
  */
-export const COMPONENT_NAMES: Readonly<Record<SandboxPlaneComponent, string>> = {
-  egressProxy: 'egress-proxy',
-  sandboxBroker: 'sandbox-broker',
-};
+export const COMPONENT_NAMES: Readonly<Record<SandboxPlaneComponent, string>> =
+  {
+    egressProxy: 'egress-proxy',
+    sandboxBroker: 'sandbox-broker',
+  };
 
-export const COMPONENT_KEY_ENV: Readonly<Record<SandboxPlaneComponent, string>> = {
+export const COMPONENT_KEY_ENV: Readonly<
+  Record<SandboxPlaneComponent, string>
+> = {
   egressProxy: 'EGRESS_PROXY_COMPONENT_KEY',
   sandboxBroker: 'SANDBOX_BROKER_COMPONENT_KEY',
 };
@@ -96,7 +102,10 @@ export function componentRedisLogin(
   key: string,
 ): { username: string; password: string } {
   const password = componentSubkey(component, key, 'redis').toString('hex');
-  const fingerprint = createHash('sha256').update(password, 'utf8').digest('hex').slice(0, 12);
+  const fingerprint = createHash('sha256')
+    .update(password, 'utf8')
+    .digest('hex')
+    .slice(0, 12);
   return {
     username: `pipeshub-${COMPONENT_NAMES[component]}-${fingerprint}`,
     password,
@@ -111,7 +120,10 @@ export interface AcceptedDigest {
 
 /** The sandbox-plane part of `/services/endpoints`, as `<service>: { <key>: url }` (R38IDENT-FU-10). */
 export type SealedEndpoints = Partial<
-  Record<'sandboxBroker' | 'egressProxy' | 'modelGateway' | 'toolGateway', Record<string, string>>
+  Record<
+    'sandboxBroker' | 'egressProxy' | 'modelGateway' | 'toolGateway',
+    Record<string, string>
+  >
 >;
 
 export interface ComponentDocument {
@@ -151,10 +163,15 @@ export function egressSealingKeys(ring: SecretKeyRing): {
   state: string[];
   credentials: string[];
 } {
-  const secrets = [ring.current, ...(ring.other !== null ? [ring.other.secret] : [])];
+  const secrets = [
+    ring.current,
+    ...(ring.other !== null ? [ring.other.secret] : []),
+  ];
   const derive = (label: string) =>
     secrets.map((secret) =>
-      createHmac('sha256', Buffer.from(secret, 'utf8')).update(label, 'utf8').digest('hex'),
+      createHmac('sha256', Buffer.from(secret, 'utf8'))
+        .update(label, 'utf8')
+        .digest('hex'),
     );
   return {
     state: derive(EGRESS_STATE_LABEL),

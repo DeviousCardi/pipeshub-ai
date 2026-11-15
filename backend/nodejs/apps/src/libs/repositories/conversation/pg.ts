@@ -2111,14 +2111,11 @@ export class PgConversationRepository
     const afterId = after !== null ? (oidOf(after) ?? null) : null;
     return jobsRead('conversation-backfill', async (k) => {
       const { rows } = await k.query<DeletionSqlRow>(
-        fill(
-          DELETION_STATES,
-          {
-            WHERE:
-              's.is_deleted AND ($1::text IS NULL OR s.org_id = $1) AND ($2::text IS NULL OR s.id > $2::text)',
-            TAIL: 'LIMIT $3',
-          },
-        ),
+        fill(DELETION_STATES, {
+          WHERE:
+            's.is_deleted AND ($1::text IS NULL OR s.org_id = $1) AND ($2::text IS NULL OR s.id > $2::text)',
+          TAIL: 'LIMIT $3',
+        }),
         [orgId, afterId, limit],
       );
       return rows.map(deletionDto);
@@ -2134,13 +2131,10 @@ export class PgConversationRepository
     return inUnit(undefined, { write: false }, async (k) => {
       assertOrg(k, orgId);
       const { rows } = await k.query<DeletionSqlRow>(
-        fill(
-          DELETION_STATES,
-          {
-            WHERE: 's.org_id = $1 AND s.id = ANY($2::text[])',
-            TAIL: '',
-          },
-        ),
+        fill(DELETION_STATES, {
+          WHERE: 's.org_id = $1 AND s.id = ANY($2::text[])',
+          TAIL: '',
+        }),
         [k.orgId, want],
       );
       return rows.map(deletionDto);

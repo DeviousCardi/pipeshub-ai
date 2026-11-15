@@ -42,7 +42,10 @@ import { planReplay, ReplayOptions } from './replay';
 import { RunProjector } from './run-projector';
 import { AUDIENCE_VIEWS } from './audiences';
 import { conversationLink } from '../domain/run-end-notice';
-import { RunJournalFollowing, RunJournalReader } from '../application/run-journal-reader';
+import {
+  RunJournalFollowing,
+  RunJournalReader,
+} from '../application/run-journal-reader';
 import {
   parseStreamId,
   positionalId,
@@ -527,7 +530,8 @@ class RunStream implements StreamHandle {
         goal: run.input?.query ?? '',
         audience: this.request.audience,
         // Only the owner's own client words a failure itself; every other audience keeps the legacy frame.
-        ...(this.request.frames !== undefined && this.request.audience === 'owner'
+        ...(this.request.frames !== undefined &&
+        this.request.audience === 'owner'
           ? { frames: this.request.frames }
           : {}),
         ...(run.parent !== undefined ? { parentRunId: run.parent.runId } : {}),
@@ -683,7 +687,9 @@ class RunStream implements StreamHandle {
           }),
         );
       },
-      ...(this.deps.costPushMs !== undefined ? { minMs: this.deps.costPushMs } : {}),
+      ...(this.deps.costPushMs !== undefined
+        ? { minMs: this.deps.costPushMs }
+        : {}),
     });
     this.cost.tick();
   }
@@ -875,11 +881,12 @@ class RunStream implements StreamHandle {
       return false;
     }
     const run = this.request.run;
-    const conversation =
-      (await this.deps.conversations.finishedConversation(run)) ?? {
-        _id: run.sessionId,
-        messages: [],
-      };
+    const conversation = (await this.deps.conversations.finishedConversation(
+      run,
+    )) ?? {
+      _id: run.sessionId,
+      messages: [],
+    };
     this.send(
       this.projector.handOff(conversation, {
         requestId: this.request.requestId ?? run.runId,

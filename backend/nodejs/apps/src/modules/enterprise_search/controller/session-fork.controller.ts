@@ -14,8 +14,7 @@ import { getCurrentOrgId } from '../../../libs/context/orgContext';
 
 /** The fork service while the harness infrastructure is ready; undefined otherwise. */
 export type SessionForkSource = () =>
-  | SessionForkService<StoreSession>
-  | undefined;
+  SessionForkService<StoreSession> | undefined;
 
 /**
  * POST /conversations/:conversationId/fork and

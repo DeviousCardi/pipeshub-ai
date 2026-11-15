@@ -118,7 +118,8 @@ export function optedIn(
   orgEngines: readonly string[] | undefined,
 ): PinnedEngineProfile[] {
   return releases.filter(
-    (r) => !isAcpKind(r.engine.kind) || engineAdmits(orgEngines ?? [], r.engine),
+    (r) =>
+      !isAcpKind(r.engine.kind) || engineAdmits(orgEngines ?? [], r.engine),
   );
 }
 
@@ -195,7 +196,9 @@ const PROFILE_LAYERS = [
   ['agentPolicy', 'agent'],
   ['agent', 'agent'],
   ['request', 'request'],
-] as const satisfies ReadonlyArray<readonly [keyof ProfileLayers, ProfileLayerName]>;
+] as const satisfies ReadonlyArray<
+  readonly [keyof ProfileLayers, ProfileLayerName]
+>;
 
 /**
  * The first release profile every layer's `engines` admits, narrowed by the

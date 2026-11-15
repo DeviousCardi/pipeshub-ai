@@ -51,7 +51,9 @@ const parseAgentHarnessSettings = (
 };
 
 /** A stored settings value decrypted; `{}` when none was saved or it cannot be read. */
-function decodeStoredPlatformSettings(encrypted: string | null): Record<string, unknown> {
+function decodeStoredPlatformSettings(
+  encrypted: string | null,
+): Record<string, unknown> {
   if (!encrypted) return {};
   const configManagerConfig = loadConfigurationManagerConfig();
   try {
@@ -60,11 +62,15 @@ function decodeStoredPlatformSettings(encrypted: string | null): Record<string, 
       configManagerConfig.secretKey,
     ).decrypt(encrypted);
     const stored: unknown = JSON.parse(decrypted);
-    return stored !== null && typeof stored === 'object' && !Array.isArray(stored)
+    return stored !== null &&
+      typeof stored === 'object' &&
+      !Array.isArray(stored)
       ? (stored as Record<string, unknown>)
       : {};
   } catch (e) {
-    logger.warn('Failed to decrypt/parse platform settings; using defaults', { error: e });
+    logger.warn('Failed to decrypt/parse platform settings; using defaults', {
+      error: e,
+    });
     return {};
   }
 }
@@ -79,7 +85,9 @@ export async function readStoredPlatformSettings(
 }
 
 /** The settings as every reader sees them: each flag's effective value; reading never writes (UX1). */
-export function platformSettingsOf(stored: Record<string, unknown>): PlatformSettings {
+export function platformSettingsOf(
+  stored: Record<string, unknown>,
+): PlatformSettings {
   const state = readFlagState(stored, PLATFORM_FEATURE_FLAGS);
   const size = stored['fileUploadMaxSizeBytes'];
   return {
@@ -101,7 +109,9 @@ export function platformSettingsOf(stored: Record<string, unknown>): PlatformSet
 export async function getPlatformSettingsFromStore(
   keyValueStoreService: Pick<KeyValueStoreService, 'get'>,
 ): Promise<PlatformSettings> {
-  return platformSettingsOf(await readStoredPlatformSettings(keyValueStoreService));
+  return platformSettingsOf(
+    await readStoredPlatformSettings(keyValueStoreService),
+  );
 }
 
 /** The AI models config as stored (decrypted), or null when none has been saved. */
@@ -122,7 +132,6 @@ export async function readStoredAiModelsConfig(
     ).decrypt(encryptedAIConfig),
   );
 }
-
 
 /** What the admin saw before a save (UX2): the value of each setting it sends, as its page showed it. */
 export interface PlatformSettingsExpected {
@@ -207,7 +216,8 @@ export async function savePlatformSettings(
     );
     const next: Record<string, unknown> = {
       ...stored,
-      fileUploadMaxSizeBytes: save.fileUploadMaxSizeBytes ?? current.fileUploadMaxSizeBytes,
+      fileUploadMaxSizeBytes:
+        save.fileUploadMaxSizeBytes ?? current.fileUploadMaxSizeBytes,
       featureFlagsVersion: FEATURE_FLAGS_VERSION,
       featureFlags: flags.overrides,
       notices: flags.notices,
@@ -228,7 +238,10 @@ export async function savePlatformSettings(
     if (await keyValueStoreService.compareAndSet<string>(key, raw, encrypted)) {
       return platformSettingsOf(next);
     }
-    logger.info('platform_settings.save_raced', { attempt, maxAttempts: MAX_SETTINGS_SAVE_ATTEMPTS });
+    logger.info('platform_settings.save_raced', {
+      attempt,
+      maxAttempts: MAX_SETTINGS_SAVE_ATTEMPTS,
+    });
   }
   throw new PlatformSettingsChanged([]);
 }

@@ -64,14 +64,19 @@ import { integerCheck } from '../../../libs/utils/zod-formats';
 // Validation Schemas
 // ============================================================================
 
-const githubInstanceParams = z.object({ instanceId: z.string().min(1).max(128) });
+const githubInstanceParams = z.object({
+  instanceId: z.string().min(1).max(128),
+});
 
 /** GIT-FLOW repository picker: a search over the caller's repositories, a page at a time. */
 const githubRepositoriesSchema = z.object({
   params: githubInstanceParams,
   query: z.object({
     search: z.string().max(200).optional(),
-    page: z.string().regex(/^[1-9][0-9]{0,3}$/).optional(),
+    page: z
+      .string()
+      .regex(/^[1-9][0-9]{0,3}$/)
+      .optional(),
   }),
 });
 
@@ -82,7 +87,9 @@ const githubBranchesSchema = z.object({
     repository: z
       .string()
       .max(201)
-      .regex(/^[A-Za-z0-9_][A-Za-z0-9._-]{0,99}\/[A-Za-z0-9_][A-Za-z0-9._-]{0,99}$/),
+      .regex(
+        /^[A-Za-z0-9_][A-Za-z0-9._-]{0,99}\/[A-Za-z0-9_][A-Za-z0-9._-]{0,99}$/,
+      ),
   }),
 });
 
@@ -624,14 +631,14 @@ export function createToolsetsRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.TOOLSET_READ),
     ValidationMiddleware.validate(githubRepositoriesSchema),
-    getGithubRepositoryListing(config, 'repositories')
+    getGithubRepositoryListing(config, 'repositories'),
   );
   router.get(
     '/instances/:instanceId/github/branches',
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.TOOLSET_READ),
     ValidationMiddleware.validate(githubBranchesSchema),
-    getGithubRepositoryListing(config, 'branches')
+    getGithubRepositoryListing(config, 'branches'),
   );
 
   /**

@@ -34,9 +34,7 @@ const BEARER = /^Bearer\s+(\S+)$/i;
  * run's attempt token) itself.
  */
 export type HarnessRouteGuard =
-  | 'worker-credential'
-  | 'attempt-token'
-  | 'run-token';
+  'worker-credential' | 'attempt-token' | 'run-token';
 
 export const HARNESS_ROUTE_GUARD: unique symbol = Symbol.for(
   'pipeshub.agentHarness.routeGuard',
@@ -207,16 +205,19 @@ export function requireRoleCredential(
     roles.length === 1 && roles[0] === 'worker'
       ? authority.verifyWorker(credential)
       : authority.verifyRole(roles, credential);
-  const handler = guarded((req: Request, _res: Response, next: NextFunction): void => {
-    verify(bearer(req)).then(
-      () => {
-        next();
-      },
-      (error: unknown) => {
-        next(authFailure(error, req, logger));
-      },
-    );
-  }, 'worker-credential');
+  const handler = guarded(
+    (req: Request, _res: Response, next: NextFunction): void => {
+      verify(bearer(req)).then(
+        () => {
+          next();
+        },
+        (error: unknown) => {
+          next(authFailure(error, req, logger));
+        },
+      );
+    },
+    'worker-credential',
+  );
   (handler as GuardedHandler)[HARNESS_ROUTE_ROLES] = [...roles];
   return handler;
 }
@@ -236,7 +237,10 @@ export function requireAttemptToken(
         if (typeof claims.orgId !== 'string' || claims.orgId === '') {
           next(
             harnessUnauthorized(
-              new HarnessUnauthorizedError('claims', 'Attempt token names no org'),
+              new HarnessUnauthorizedError(
+                'claims',
+                'Attempt token names no org',
+              ),
             ),
           );
           return;
@@ -297,7 +301,10 @@ export function runTokenRoute(handler: RequestHandler): RequestHandler[] {
       next(
         bearer(req) === undefined
           ? harnessUnauthorized(
-              new HarnessUnauthorizedError('malformed', 'A run token is required'),
+              new HarnessUnauthorizedError(
+                'malformed',
+                'A run token is required',
+              ),
             )
           : undefined,
       );

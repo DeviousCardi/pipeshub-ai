@@ -71,7 +71,7 @@ export class PgHarnessConversationWriter implements ConversationWriter<Tx> {
     const message = {
       ...buildUserQueryMessage(
         turn.query,
-        turn.appliedFilters as Parameters<typeof buildUserQueryMessage>[1],
+        turn.appliedFilters,
         turn.chatMode,
         turn.attachments as unknown as Parameters<
           typeof buildUserQueryMessage

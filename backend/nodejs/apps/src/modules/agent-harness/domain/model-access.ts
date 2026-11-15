@@ -33,7 +33,8 @@ export type RouteKind = AccessRouteKind;
 type RuleStatus = VendorRuleStatus;
 
 export const VENDOR_RULES_SCHEMA = 'pipeshub.vendor-rules/1';
-export const VENDOR_RULES_EXTENSION_SCHEMA = 'pipeshub.vendor-rules-extension/1';
+export const VENDOR_RULES_EXTENSION_SCHEMA =
+  'pipeshub.vendor-rules-extension/1';
 const EXTENSION_FIELDS = ['offering', 'rules', 'schema', 'version'];
 const ROW_FIELDS = new Set([
   'id',
@@ -232,7 +233,10 @@ function signatureOf(text: string): { keyId: string; sig: Buffer } {
  * offering no row names and the rows that offering may use, and opens only those:
  * no status changes and no row is added, so a core offering is never widened.
  */
-export function extendVendorRules(rules: VendorRules, text: string): VendorRules {
+export function extendVendorRules(
+  rules: VendorRules,
+  text: string,
+): VendorRules {
   let raw: unknown;
   try {
     raw = JSON.parse(text);
@@ -245,12 +249,18 @@ export function extendVendorRules(rules: VendorRules, text: string): VendorRules
     Array.isArray(raw) ||
     Object.keys(raw).sort().join(',') !== EXTENSION_FIELDS.join(',')
   ) {
-    throw invalid('malformed', 'the vendor rules extension is not an extension document');
+    throw invalid(
+      'malformed',
+      'the vendor rules extension is not an extension document',
+    );
   }
   const body = raw as Record<string, unknown>;
   const { version, offering } = body;
   if (body['schema'] !== VENDOR_RULES_EXTENSION_SCHEMA || !isName(version)) {
-    throw invalid('malformed', 'the vendor rules extension has no schema or version');
+    throw invalid(
+      'malformed',
+      'the vendor rules extension has no schema or version',
+    );
   }
   const named = new Set(rules.rules.flatMap((rule) => rule.offering));
   if (!oneOf(OFFERINGS, offering) || named.has(offering)) {
@@ -261,14 +271,23 @@ export function extendVendorRules(rules: VendorRules, text: string): VendorRules
   }
   const ids = names(body['rules'], 'rules');
   const known = new Set(rules.rules.map((rule) => rule.id));
-  if (ids.length === 0 || new Set(ids).size !== ids.length || !ids.every((id) => known.has(id))) {
-    throw invalid('malformed', 'the vendor rules extension names a rule the rules do not have');
+  if (
+    ids.length === 0 ||
+    new Set(ids).size !== ids.length ||
+    !ids.every((id) => known.has(id))
+  ) {
+    throw invalid(
+      'malformed',
+      'the vendor rules extension names a rule the rules do not have',
+    );
   }
   const opened = new Set(ids);
   return {
     version: `${rules.version}+${version}`,
     rules: rules.rules.map((rule) =>
-      opened.has(rule.id) ? { ...rule, offering: [...rule.offering, offering] } : rule,
+      opened.has(rule.id)
+        ? { ...rule, offering: [...rule.offering, offering] }
+        : rule,
     ),
   };
 }
@@ -319,11 +338,17 @@ export function verifiedDocument(
 /** The shipped rules with each shipped extension, every document verified by `keys`. */
 export function shippedVendorRules(
   keys: Readonly<Record<string, string>>,
-  extensions: ReadonlyArray<{ readonly text: string; readonly signature: string | null }> = VENDOR_RULE_EXTENSIONS,
+  extensions: ReadonlyArray<{
+    readonly text: string;
+    readonly signature: string | null;
+  }> = VENDOR_RULE_EXTENSIONS,
 ): VendorRules {
   return extensions.reduce(
     (rules, extension) =>
-      extendVendorRules(rules, verifiedDocument(extension.text, extension.signature, keys)),
+      extendVendorRules(
+        rules,
+        verifiedDocument(extension.text, extension.signature, keys),
+      ),
     verifyVendorRules(VENDOR_RULES_TEXT, VENDOR_RULES_SIGNATURE_TEXT, keys),
   );
 }

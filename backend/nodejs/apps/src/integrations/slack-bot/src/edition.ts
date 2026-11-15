@@ -4,7 +4,10 @@
  * the bot is copied. The default here serves the install's only organisation and keeps the thread map in the
  * configured document store.
  */
-import { makeOrgContext, runWithOrgContext } from '../../../libs/context/orgContext';
+import {
+  makeOrgContext,
+  runWithOrgContext,
+} from '../../../libs/context/orgContext';
 import {
   setSlackThreadRepository,
   type SlackThreadRepository,
@@ -43,9 +46,12 @@ export function installSlackBotEdition(edition: SlackBotEditionInstall): void {
   installed = {
     ...defaultSlackBotEdition,
     ...(edition.orgOfBot ? { orgOfBot: edition.orgOfBot } : {}),
-    ...(edition.budgetStopNotice ? { budgetStopNotice: edition.budgetStopNotice } : {}),
+    ...(edition.budgetStopNotice
+      ? { budgetStopNotice: edition.budgetStopNotice }
+      : {}),
   };
-  if (edition.threadRepository) setSlackThreadRepository(edition.threadRepository);
+  if (edition.threadRepository)
+    setSlackThreadRepository(edition.threadRepository);
 }
 
 export function slackBotEdition(): SlackBotEdition {
@@ -61,7 +67,12 @@ export function resetSlackBotEditionForTests(): void {
 /** Runs `fn` as the organisation the bot serves, so the thread map it reads or writes is that organisation's. */
 export function asBotOrg<T>(orgId: string, fn: () => Promise<T>): Promise<T> {
   return runWithOrgContext(
-    makeOrgContext({ orgId, userId: null, kind: 'service', source: 'slack-bot' }),
+    makeOrgContext({
+      orgId,
+      userId: null,
+      kind: 'service',
+      source: 'slack-bot',
+    }),
     fn,
   );
 }

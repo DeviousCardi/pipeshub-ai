@@ -1,7 +1,10 @@
 import { Types } from 'mongoose';
 import { ChatSession } from '../../../../modules/enterprise_search/schema/chat.session.schema';
 import { Users } from '../../../../modules/user_management/schema/users.schema';
-import { asMongoSession, type StoreSession } from '../durable-transaction/mongo';
+import {
+  asMongoSession,
+  type StoreSession,
+} from '../durable-transaction/mongo';
 
 /**
  * The reads and writes a person's deletion (CLEANUP-G2) and deactivation make on the platform's own user and

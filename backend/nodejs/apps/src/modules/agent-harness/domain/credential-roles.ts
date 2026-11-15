@@ -37,7 +37,10 @@ export type SandboxPlaneComponent = keyof typeof SANDBOX_PLANE_COMPONENTS;
  * accepted credentials, never the credentials themselves (so the proxy cannot present the broker's).
  */
 export const COMPONENT_ACCEPTS: Readonly<
-  Record<SandboxPlaneComponent, Readonly<Record<'control' | 'metrics', readonly HarnessCredentialRole[]>>>
+  Record<
+    SandboxPlaneComponent,
+    Readonly<Record<'control' | 'metrics', readonly HarnessCredentialRole[]>>
+  >
 > = {
   egressProxy: { control: ['worker', 'sandbox-broker'], metrics: ['scrape'] },
   sandboxBroker: { control: ['worker'], metrics: ['scrape'] },

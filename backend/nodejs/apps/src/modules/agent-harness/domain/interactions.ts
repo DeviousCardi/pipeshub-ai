@@ -29,7 +29,10 @@ import {
   grantedEvent,
 } from './conversation-grants';
 import type { SessionRole } from './session-roles';
-import { APPROVAL_EDITS_WORKER_FEATURE, type WorkerFeature } from './worker-compat';
+import {
+  APPROVAL_EDITS_WORKER_FEATURE,
+  type WorkerFeature,
+} from './worker-compat';
 
 /** The layer a journaled reason names (`interaction.explained`, QA6-F6), or undefined for none this build knows. */
 export const ruleLayer = (value: unknown): RuleLayer | undefined =>
@@ -267,7 +270,9 @@ export function resolutionJournalEvents(
     const resolved: JournalEventInput = {
       ...nodeRunEvent('interaction.resolved', data),
       // AP-06: the audit chain keeps the edit's hash beside the call's own (`tool.intent` `argsDigest`).
-      ...(edited !== undefined ? { auditFields: { editedArgsDigest: edited } } : {}),
+      ...(edited !== undefined
+        ? { auditFields: { editedArgsDigest: edited } }
+        : {}),
     };
     if (resolution.scope !== undefined && resolution.decision === 'approved') {
       return [

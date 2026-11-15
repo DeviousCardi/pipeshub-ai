@@ -19,7 +19,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 function withoutRetiredKeys(raw: unknown): unknown {
   if (!isRecord(raw) || !isRecord(raw['rollout'])) return raw;
   const rollout = Object.fromEntries(
-    Object.entries(raw['rollout']).filter(([key]) => !RETIRED_ROLLOUT_KEYS.includes(key)),
+    Object.entries(raw['rollout']).filter(
+      ([key]) => !RETIRED_ROLLOUT_KEYS.includes(key),
+    ),
   );
   const { rollout: _stored, ...rest } = raw;
   return Object.keys(rollout).length > 0 ? { ...rest, rollout } : rest;

@@ -33,7 +33,10 @@ export class HarnessAttachmentCarriers implements AttachmentCarriers {
     )
       .read('primary')
       .lean<
-        Array<{ sessionId: Types.ObjectId; attachments?: Array<{ recordId: string }> }>
+        Array<{
+          sessionId: Types.ObjectId;
+          attachments?: Array<{ recordId: string }>;
+        }>
       >();
     for (const message of messages) {
       for (const attachment of message.attachments ?? []) {

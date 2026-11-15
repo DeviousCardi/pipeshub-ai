@@ -231,17 +231,10 @@ export class PgRunAdmissionStore
     command: AdmitRunCommand,
     callerNow: number,
   ): Promise<RunAdmissionResult> {
-    if (
-      ![command.orgId, command.actorId].every((value) =>
-        isValidId(value),
-      )
-    ) {
+    if (![command.orgId, command.actorId].every((value) => isValidId(value))) {
       throw new HarnessNotFoundError();
     }
-    if (
-      command.sessionId !== null &&
-      !isValidId(command.sessionId)
-    ) {
+    if (command.sessionId !== null && !isValidId(command.sessionId)) {
       throw new HarnessNotFoundError();
     }
     return inRunOrg(command.orgId, () => this.admitInOrg(command, callerNow));
@@ -478,8 +471,7 @@ export class PgRunAdmissionStore
         ...(asked.command !== undefined ? { command: asked.command } : {}),
         ...(asked.appliedFilters !== undefined
           ? {
-              appliedFilters:
-                asked.appliedFilters as RunInputSnapshot['appliedFilters'],
+              appliedFilters: asked.appliedFilters,
             }
           : {}),
       };
@@ -670,7 +662,6 @@ export class PgRunAdmissionStore
     }
 
     const { activeSessionKey: _active, ...publicRun } = run;
-    void _active;
     const result: RunAdmissionResult = {
       sessionId,
       userMessageKey,
@@ -924,7 +915,6 @@ export class PgRunAdmissionStore
         const { command: _command, ...document } = decodeDoc<
           Record<string, unknown>
         >(rows[0].doc);
-        void _command;
         await k.query(
           `/* pipeshub:harness.next_runs_settle */ UPDATE harness.next_runs SET doc = $3::jsonb WHERE org_id = $1 AND id = $2`,
           [
@@ -986,7 +976,7 @@ export class PgRunAdmissionStore
       pendingInputs: [...(run.pendingInputs ?? []), inputSeq],
       // From now on only a worker that folds queued input may take it (RU-2).
       requires: {
-        ...((active['requires'] as object | undefined) ?? {}),
+        ...(active['requires'] ?? {}),
         ...withSteering(run, command.input),
       },
     };
@@ -1053,7 +1043,10 @@ export class PgRunAdmissionStore
       {
         orgActive: Number(counts?.org ?? 0),
         userActive: Number(counts?.actor ?? 0),
-        seen: ahead.length === 0 ? new Set() : await this.committedRuns(k, command.orgId, ahead),
+        seen:
+          ahead.length === 0
+            ? new Set()
+            : await this.committedRuns(k, command.orgId, ahead),
       },
       now,
       quotas,

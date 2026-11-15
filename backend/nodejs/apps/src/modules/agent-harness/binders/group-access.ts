@@ -35,7 +35,9 @@ export const bindGroupAccess: HarnessBinder = ({ container, dependencies }) => {
       ? { models: dependencies.modelAccess.models }
       : {}),
   });
-  container.bind<GroupAccess>(AGENT_HARNESS_GROUP_ACCESS).toConstantValue(access);
+  container
+    .bind<GroupAccess>(AGENT_HARNESS_GROUP_ACCESS)
+    .toConstantValue(access);
   container
     .bind<ChatModelGroups>(AGENT_HARNESS_CHAT_MODEL_GROUPS)
     .toConstantValue(new ChatModelGroups(access, dependencies.agentAccess));
@@ -60,5 +62,7 @@ export const withGroupAccess = (
   decider: RoutingDecider,
 ): RoutingDecider => {
   const access = groupAccessOf(container);
-  return access === undefined ? decider : new GroupAccessRouting(decider, access);
+  return access === undefined
+    ? decider
+    : new GroupAccessRouting(decider, access);
 };

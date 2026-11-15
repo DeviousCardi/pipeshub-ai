@@ -241,12 +241,7 @@ export class MongoSessionRunLookup implements SessionRunLookup {
     orgId: string,
     sessionId: string,
   ): Promise<
-    Array<
-      Pick<
-        HarnessRun,
-        'runId' | 'status' | 'revision' | 'harnessMajor'
-      >
-    >
+    Array<Pick<HarnessRun, 'runId' | 'status' | 'revision' | 'harnessMajor'>>
   > {
     return AgentRunModel.find(
       { orgId, sessionId },

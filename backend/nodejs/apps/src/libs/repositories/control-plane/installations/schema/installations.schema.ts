@@ -151,8 +151,7 @@ export const CpInstallationModel: Model<InstallationDocument> =
   mongoose.model<InstallationDocument>('CpInstallation', installationSchema);
 export const CpInstallationHistoryModel: Model<InstallationHistoryDocument> =
   (mongoose.models.CpInstallationHistory as
-    | Model<InstallationHistoryDocument>
-    | undefined) ??
+    Model<InstallationHistoryDocument> | undefined) ??
   mongoose.model<InstallationHistoryDocument>(
     'CpInstallationHistory',
     historySchema,

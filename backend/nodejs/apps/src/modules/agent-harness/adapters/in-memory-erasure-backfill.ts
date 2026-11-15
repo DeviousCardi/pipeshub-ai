@@ -12,9 +12,7 @@ const sameCursor = (a: BackfillCursor, b: BackfillCursor): boolean =>
   a.org === b.org && a.batch === b.batch && a.phase === b.phase;
 
 /** Backfill plans, items and markers in memory, on an injected clock. */
-export class InMemoryErasureBackfillStore
-  implements ErasureBackfillStore<unknown>
-{
+export class InMemoryErasureBackfillStore implements ErasureBackfillStore<unknown> {
   private readonly plans = new Map<string, BackfillPlan>();
   private readonly planItems = new Map<string, Map<string, BackfillItem>>();
   private readonly orgMarkers = new Map<string, BackfillMarker>();

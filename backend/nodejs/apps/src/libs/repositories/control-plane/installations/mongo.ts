@@ -1,14 +1,23 @@
 import type { ClientSession, QueryFilter } from 'mongoose';
 import { isDuplicateKeyError } from '../../../utils/mongo.utils';
-import { installationSchema, type Installation } from '../../../../modules/control-plane/domain/objects';
-import { ObjectExists, ObjectNotFound } from '../../../../modules/control-plane/domain/store-errors';
+import {
+  installationSchema,
+  type Installation,
+} from '../../../../modules/control-plane/domain/objects';
+import {
+  ObjectExists,
+  ObjectNotFound,
+} from '../../../../modules/control-plane/domain/store-errors';
 import type {
   InstallationFilter,
   InstallationRevision,
   InstallationStore,
 } from '../../../../modules/control-plane/ports/installation-store';
 import type { StoreTx } from '../../../../modules/control-plane/ports/store-tx';
-import { checkedObject, compareAndSet } from '../../../../modules/control-plane/adapters/store-checks';
+import {
+  checkedObject,
+  compareAndSet,
+} from '../../../../modules/control-plane/adapters/store-checks';
 import {
   CpInstallationHistoryModel,
   CpInstallationModel,

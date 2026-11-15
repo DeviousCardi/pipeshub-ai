@@ -90,8 +90,10 @@ interface RememberedRule {
 }
 
 /** DECIDE409: one decision on several interactions of the run ("Allow all N", "Deny all"), one request. */
-export interface DecideInteractions
-  extends Omit<DecideInteraction, 'interactionId'> {
+export interface DecideInteractions extends Omit<
+  DecideInteraction,
+  'interactionId'
+> {
   interactionIds: readonly string[];
 }
 
@@ -566,9 +568,12 @@ export class SessionInteractionService {
     const without =
       interactionIds
         .map((id) =>
-          approverOnlyRefusal(decider, command.decision, (who, decision) =>
-            refusalFor(rules, who, decision, id, this.approvers.refusalWords)
-              ?.code ?? null,
+          approverOnlyRefusal(
+            decider,
+            command.decision,
+            (who, decision) =>
+              refusalFor(rules, who, decision, id, this.approvers.refusalWords)
+                ?.code ?? null,
           ),
         )
         .find((refusal) => refusal !== null) ?? null;
@@ -707,7 +712,9 @@ export class SessionInteractionService {
         scope.agentKey === undefined || scope.agentKey === run.agentKey;
       if (
         !sameAgent ||
-        (!standing.isApprover && !standing.isOrgAdmin && rules?.reaches !== true)
+        (!standing.isApprover &&
+          !standing.isOrgAdmin &&
+          rules?.reaches !== true)
       ) {
         return null;
       }

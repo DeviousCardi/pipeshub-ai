@@ -35,7 +35,8 @@ export interface StoredFlagState {
 type Registry = readonly PlatformFeatureFlagDef[];
 
 const booleans = (value: unknown): Record<string, boolean> => {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return {};
+  if (value === null || typeof value !== 'object' || Array.isArray(value))
+    return {};
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>).filter(
       (entry): entry is [string, boolean] => typeof entry[1] === 'boolean',
@@ -43,7 +44,12 @@ const booleans = (value: unknown): Record<string, boolean> => {
   );
 };
 
-const NOTICE_STATES: ReadonlySet<string> = new Set(['pending', 'adopted', 'kept', 'dismissed']);
+const NOTICE_STATES: ReadonlySet<string> = new Set([
+  'pending',
+  'adopted',
+  'kept',
+  'dismissed',
+]);
 
 const storedNotices = (value: unknown): PlatformNotices => {
   const notice =
@@ -55,7 +61,10 @@ const storedNotices = (value: unknown): PlatformNotices => {
     : {};
 };
 
-export const releaseDefault = (key: string, registry: Registry): boolean | undefined => {
+export const releaseDefault = (
+  key: string,
+  registry: Registry,
+): boolean | undefined => {
   const def = registry.find((flag) => flag.key === key);
   return def === undefined ? undefined : !!def.defaultEnabled;
 };
@@ -66,7 +75,11 @@ export const releaseDefault = (key: string, registry: Registry): boolean | undef
  * kill switch that was on reads as the harness off for the org, so retiring the switch never turns it back on.
  */
 export function readFlagState(
-  stored: { featureFlagsVersion?: unknown; featureFlags?: unknown; notices?: unknown },
+  stored: {
+    featureFlagsVersion?: unknown;
+    featureFlags?: unknown;
+    notices?: unknown;
+  },
   registry: Registry,
 ): StoredFlagState {
   const state = readListedFlagState(stored, registry);
@@ -77,20 +90,31 @@ export function readFlagState(
 }
 
 function readListedFlagState(
-  stored: { featureFlagsVersion?: unknown; featureFlags?: unknown; notices?: unknown },
+  stored: {
+    featureFlagsVersion?: unknown;
+    featureFlags?: unknown;
+    notices?: unknown;
+  },
   registry: Registry,
 ): StoredFlagState {
   const flags = Object.fromEntries(
-    Object.entries(booleans(stored.featureFlags)).filter(([key]) => releaseDefault(key, registry) !== undefined),
+    Object.entries(booleans(stored.featureFlags)).filter(
+      ([key]) => releaseDefault(key, registry) !== undefined,
+    ),
   );
   if (stored.featureFlagsVersion === FEATURE_FLAGS_VERSION) {
-    return { overrides: flags, notices: storedNotices(stored.notices), legacy: false };
+    return {
+      overrides: flags,
+      notices: storedNotices(stored.notices),
+      legacy: false,
+    };
   }
   const overrides: Record<string, boolean> = {};
   let ambiguousDurable = false;
   for (const [key, value] of Object.entries(flags)) {
     const def = registry.find((flag) => flag.key === key);
-    if (def !== undefined && value !== !!def.defaultEnabled) overrides[key] = value;
+    if (def !== undefined && value !== !!def.defaultEnabled)
+      overrides[key] = value;
     if (
       key === DURABLE_AGENT_FLAG &&
       def?.previousDefault !== undefined &&
@@ -114,7 +138,8 @@ export function effectiveFlags(
 ): Record<string, boolean> {
   const flags: Record<string, boolean> = { ...overrides };
   for (const def of registry) {
-    if (typeof flags[def.key] !== 'boolean') flags[def.key] = !!def.defaultEnabled;
+    if (typeof flags[def.key] !== 'boolean')
+      flags[def.key] = !!def.defaultEnabled;
   }
   return flags;
 }

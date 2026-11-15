@@ -191,8 +191,8 @@ describe('O-1 envelope encryption of the journal', () => {
         const h = setup();
         for (const event of golden.events) {
           const { seq: _seq, ts: _ts, ...rest } = event;
-          void _seq;
-          void _ts;
+          _seq;
+          _ts;
           await h.journal.append(
             {
               orgId: rest.orgId,

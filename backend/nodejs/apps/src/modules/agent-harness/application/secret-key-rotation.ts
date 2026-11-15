@@ -122,7 +122,11 @@ export class SecretKeyRotation {
     if (this.options.ring.other === 'next') {
       return 'SECRET_KEY_NEXT is set: finish the switch first (SECRET_KEY the new key, SECRET_KEY_PREVIOUS the old one) and restart every service';
     }
-    if (mode === 'rotate' && this.options.ring.other === null && this.options.ring.cipherMove !== true) {
+    if (
+      mode === 'rotate' &&
+      this.options.ring.other === null &&
+      this.options.ring.cipherMove !== true
+    ) {
       return 'SECRET_KEY_PREVIOUS is not set: set it to the key being retired, next to the new SECRET_KEY, on every service';
     }
     return null;

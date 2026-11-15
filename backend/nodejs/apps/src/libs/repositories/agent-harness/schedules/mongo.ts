@@ -61,11 +61,7 @@ export async function toSchedule(
     input:
       input === null
         ? null
-        : await seal.openInput(
-            rest.orgId,
-            { scheduleId: _id },
-            input as StoredQueryInput,
-          ),
+        : await seal.openInput(rest.orgId, { scheduleId: _id }, input),
     id: _id,
     ...(agentKey !== undefined ? { agentKey } : {}),
     ...(maxCostUsd !== undefined ? { maxCostUsd } : {}),

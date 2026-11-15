@@ -68,9 +68,7 @@ export class GroupAccess {
     try {
       return await this.options.membership.memberOfAny(orgId, userId, groups);
     } catch {
-      throw new HarnessUnavailableError(
-        'Group membership could not be read',
-      );
+      throw new HarnessUnavailableError('Group membership could not be read');
     }
   }
 
@@ -86,7 +84,11 @@ export class GroupAccess {
     for (const [modelKey, groups] of Object.entries(limited)) {
       let member: boolean;
       try {
-        member = await this.options.membership.memberOfAny(orgId, userId, groups);
+        member = await this.options.membership.memberOfAny(
+          orgId,
+          userId,
+          groups,
+        );
       } catch {
         throw new HarnessUnavailableError('Group membership could not be read');
       }
@@ -148,7 +150,9 @@ export class GroupAccess {
   private async defaultModelKey(orgId: string): Promise<string | null> {
     if (this.options.models === undefined) return null;
     try {
-      return (await this.options.models.find(orgId, undefined))?.modelKey ?? null;
+      return (
+        (await this.options.models.find(orgId, undefined))?.modelKey ?? null
+      );
     } catch {
       throw new HarnessUnavailableError(
         "The organization's default model could not be read",

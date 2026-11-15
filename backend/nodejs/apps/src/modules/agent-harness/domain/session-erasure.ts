@@ -158,9 +158,7 @@ export const erasureCancelCommandId = (
  * not listed and on a step the runner does not have.
  */
 export type ErasureCoverage =
-  | { step: ErasureStep }
-  | { kept: string }
-  | { deferred: string };
+  { step: ErasureStep } | { kept: string } | { deferred: string };
 
 export interface SessionDataStore {
   store: string;
@@ -484,7 +482,11 @@ export const SESSION_DATA_STORES: readonly SessionDataStore[] = [
   // Records, files, edges, mapping and stored bytes, through the query service; the upload writes no vectors.
   // Uploads no message carried go at the artifacts step (by the conversation they were made in) or, never
   // carried, a day on (CLEANUP-G5).
-  { store: 'chatAttachments', kind: 'graph', coverage: { step: 'conversation' } },
+  {
+    store: 'chatAttachments',
+    kind: 'graph',
+    coverage: { step: 'conversation' },
+  },
 ];
 
 /**
@@ -555,7 +557,8 @@ export const PRINCIPAL_DATA_STORES: readonly PrincipalDataStore[] = [
     // sandbox still signed in. A service account can never turn it on, so its removal has nothing to end.
     store: 'engineSignIns',
     kind: 'mongo',
-    location: 'agentEngineSignIns (<orgId>:u:<userId>, <orgId>:org); live sandboxes through the sign-in relay',
+    location:
+      'agentEngineSignIns (<orgId>:u:<userId>, <orgId>:org); live sandboxes through the sign-in relay',
     field: 'engineSignIns',
     onUserDeletion: 'eraseUser',
     onOrgDeletion: 'eraseOrg',

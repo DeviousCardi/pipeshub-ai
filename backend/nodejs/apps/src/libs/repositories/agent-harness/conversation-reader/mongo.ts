@@ -1,7 +1,10 @@
 import { HarnessRun } from '../../../../modules/agent-harness/domain/execution';
 import { ConversationReader } from '../../../../modules/agent-harness/ports/conversation-reader';
 import { ChatSession } from '../../../../modules/enterprise_search/schema/chat.session.schema';
-import { attachPopulatedCitations, getMessages } from '../../../../modules/enterprise_search/utils/utils';
+import {
+  attachPopulatedCitations,
+  getMessages,
+} from '../../../../modules/enterprise_search/utils/utils';
 
 const ANSWER_TYPES = new Set(['bot_response', 'error']);
 

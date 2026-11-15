@@ -82,7 +82,10 @@ export class HarnessAuthority {
     }
     throw refusal instanceof HarnessUnauthorizedError
       ? refusal
-      : new HarnessUnauthorizedError('credential', 'Agent harness worker credential refused');
+      : new HarnessUnauthorizedError(
+          'credential',
+          'Agent harness worker credential refused',
+        );
   }
 
   private authorityOf(

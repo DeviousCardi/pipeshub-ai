@@ -252,9 +252,7 @@ export class ConversationGrantReach<Tx> {
       writer: 'node',
       events: [
         ...grants.map((grant) => grantedEvent(from, grant, given.runId)),
-        ...declines.map((decline) =>
-          declinedEvent(from, decline, given.runId),
-        ),
+        ...declines.map((decline) => declinedEvent(from, decline, given.runId)),
       ],
     });
     await this.transaction((tx) => this.store.append(prepared, tx));
@@ -284,7 +282,10 @@ export class ConversationGrantReach<Tx> {
   ): Promise<number> {
     const open = asks.filter(
       ({ interactionId }) =>
-        !(run.runId === given.runId && given.interactionIds.includes(interactionId)),
+        !(
+          run.runId === given.runId &&
+          given.interactionIds.includes(interactionId)
+        ),
     );
     let answered = 0;
     for (const [index, { interactionId, decline }] of open.entries()) {

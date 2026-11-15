@@ -201,7 +201,10 @@ export const platformCipherKey = (secret: string): string =>
  * Every AES key the platform cipher reads with, the writer's first: per
  * secret its HKDF key, then the SHA-256 key it replaces (SEC-D-05).
  */
-export function cipherRing(ring: SecretKeyRing, env: Env = process.env): string[] {
+export function cipherRing(
+  ring: SecretKeyRing,
+  env: Env = process.env,
+): string[] {
   const secrets = [
     ring.current,
     ...(ring.other !== null ? [ring.other.secret] : []),
@@ -242,7 +245,10 @@ export function weakSecretReason(secret: string): WeakSecretReason | null {
   if (decoded !== null && bitsPerChar([...decoded]) < MIN_BITS_PER_CHAR) {
     return 'low_entropy';
   }
-  if (decoded !== null && decoded.every((byte) => byte >= 0x20 && byte < 0x7f)) {
+  if (
+    decoded !== null &&
+    decoded.every((byte) => byte >= 0x20 && byte < 0x7f)
+  ) {
     return 'encoded_text';
   }
   return null;
@@ -273,7 +279,8 @@ function requireStrong(name: string, secret: string, env: Env): void {
 
 function bitsPerChar(symbols: readonly (string | number)[]): number {
   const counts = new Map<string | number, number>();
-  for (const symbol of symbols) counts.set(symbol, (counts.get(symbol) ?? 0) + 1);
+  for (const symbol of symbols)
+    counts.set(symbol, (counts.get(symbol) ?? 0) + 1);
   const total = symbols.length;
   let bits = 0;
   for (const count of counts.values()) {

@@ -71,8 +71,7 @@ export function engineCarry(deps: EngineCarryDeps): EngineCarrySource {
       if (checkpoint === undefined) return null;
       const taken = last('engine.snapshotted');
       const snapshot =
-        taken === undefined ||
-        snapshotExpired(taken.ts, snapshotTtlDays, now())
+        taken === undefined || snapshotExpired(taken.ts, snapshotTtlDays, now())
           ? undefined
           : taken.data;
       return {

@@ -26,8 +26,7 @@ export function conversationRunStatesMiddleware(
   return (req: Request, res: Response, next: NextFunction): void => {
     const runs = enabled() ? service() : null;
     const user = (req as AuthenticatedUserRequest).user as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     const orgId = identityString(user?.['orgId']);
     const actorId = identityString(user?.['userId']);
     if (runs === null || orgId === null || actorId === null) {

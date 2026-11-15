@@ -611,9 +611,7 @@ export class ErasureBackfillService<Tx> {
     }
     const states = open.map((sessionId) => ({
       sessionId,
-      state: (jobs.has(sessionId)
-        ? 'erased'
-        : 'withdrawn') as BackfillItemState,
+      state: jobs.has(sessionId) ? 'erased' : 'withdrawn',
     }));
     await this.deps.store.setItemStates(digest, states);
     this.logger.info(

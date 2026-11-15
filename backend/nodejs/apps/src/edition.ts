@@ -50,10 +50,27 @@ export const EXTRA_AI_PUBLIC_CONFIG_KEYS: readonly string[] = [];
  * one's shape, and what it may carry, when it loads.
  */
 export interface EditionDocstoreCoverage {
-  held: ReadonlyArray<{ collection: string; reason: string; tables: readonly string[] }>;
-  ignored: ReadonlyArray<{ collection: string; reason: string; tables?: readonly string[] }>;
-  heldFields: ReadonlyArray<{ collection: string; path: string; reason: string }>;
+  held: ReadonlyArray<{
+    collection: string;
+    reason: string;
+    tables: readonly string[];
+  }>;
+  ignored: ReadonlyArray<{
+    collection: string;
+    reason: string;
+    tables?: readonly string[];
+  }>;
+  heldFields: ReadonlyArray<{
+    collection: string;
+    path: string;
+    reason: string;
+  }>;
   carriers: readonly unknown[];
 }
 
-export const EDITION_DOCSTORE_COVERAGE: EditionDocstoreCoverage = { held: [], ignored: [], heldFields: [], carriers: [] };
+export const EDITION_DOCSTORE_COVERAGE: EditionDocstoreCoverage = {
+  held: [],
+  ignored: [],
+  heldFields: [],
+  carriers: [],
+};

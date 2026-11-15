@@ -10,9 +10,13 @@ export async function namedAgents(
   container: Container,
   orgId: string,
   keys: ReadonlyArray<string | null | undefined>,
-): Promise<{ names: { agents: Record<string, string> } } | Record<string, never>> {
+): Promise<
+  { names: { agents: Record<string, string> } } | Record<string, never>
+> {
   if (!container.isBound(AGENT_HARNESS_ADMIN_LIST_NAMES)) return {};
-  const held = keys.filter((key): key is string => typeof key === 'string' && key !== '');
+  const held = keys.filter(
+    (key): key is string => typeof key === 'string' && key !== '',
+  );
   return {
     names: {
       agents: await container

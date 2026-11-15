@@ -273,7 +273,10 @@ export function createConversationalRouter(container: Container): Router {
       : undefined,
   );
   // Turns today's loop serves, counted beside the durable path's (DUR3).
-  const legacyChatTurn = legacyTurnMetrics('assistant', prometheusChatPathMetrics);
+  const legacyChatTurn = legacyTurnMetrics(
+    'assistant',
+    prometheusChatPathMetrics,
+  );
   // Every turn, web, API/PAT or MCP, is routed by the server in this one request (LAT1).
   const chatTurn = createChatTurnMiddleware(container, {
     kind: 'chat',
@@ -515,7 +518,11 @@ export function createConversationalRouter(container: Container): Router {
     requireScopes(OAuthScopeNames.CONVERSATION_WRITE),
     ValidationMiddleware.validate(conversationIdParamsSchema),
     purgeBranchArtifacts(compareArtifacts),
-    deleteConversationByIdWith(appConfig, sessionErasures(container), sessionRunStopper(container)),
+    deleteConversationByIdWith(
+      appConfig,
+      sessionErasures(container),
+      sessionRunStopper(container),
+    ),
   );
 
   /**
@@ -1223,7 +1230,11 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_WRITE),
     ValidationMiddleware.validate(deleteAgentConversationParamsSchema),
-    deleteAgentConversationByIdWith(appConfig, sessionErasures(container), sessionRunStopper(container)),
+    deleteAgentConversationByIdWith(
+      appConfig,
+      sessionErasures(container),
+      sessionRunStopper(container),
+    ),
   );
 
   /**

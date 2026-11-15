@@ -171,7 +171,7 @@ export const INITIAL_BACKFILL_CURSOR: BackfillCursor = Object.freeze({
   org: 0,
   batch: 0,
   phase: 'next',
-}) as BackfillCursor;
+});
 
 /** Points where execution has made a durable record; crash tests stop at each. */
 export const BACKFILL_CHECKPOINTS = [

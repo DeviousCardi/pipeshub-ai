@@ -11,14 +11,23 @@ import {
   bindingCursorParts,
   isLiveBinding,
 } from '../../../../modules/control-plane/domain/bindings';
-import { ObjectExists, ObjectNotFound } from '../../../../modules/control-plane/domain/store-errors';
+import {
+  ObjectExists,
+  ObjectNotFound,
+} from '../../../../modules/control-plane/domain/store-errors';
 import type {
   BindingStore,
   PageRequest,
   RefreshClaimant,
 } from '../../../../modules/control-plane/ports/binding-store';
-import type { Page, StoreTx } from '../../../../modules/control-plane/ports/store-tx';
-import { checkedObject, compareAndSet } from '../../../../modules/control-plane/adapters/store-checks';
+import type {
+  Page,
+  StoreTx,
+} from '../../../../modules/control-plane/ports/store-tx';
+import {
+  checkedObject,
+  compareAndSet,
+} from '../../../../modules/control-plane/adapters/store-checks';
 import {
   BINDING_INSTALLATION_INDEX,
   CpBindingModel,

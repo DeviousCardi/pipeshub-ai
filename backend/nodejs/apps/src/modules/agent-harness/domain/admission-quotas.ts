@@ -55,7 +55,9 @@ export function cappedQuotas(
 
 /** The caps a run's pin resolved (`effectiveConfig.dimensions`); none for dimensions it does not hold. */
 export function quotaCapsOfPin(resolved: {
-  effectiveConfig: { dimensions: Record<string, { value?: unknown } | undefined> };
+  effectiveConfig: {
+    dimensions: Record<string, { value?: unknown } | undefined>;
+  };
 }): AdmissionQuotaCaps {
   const org = resolved.effectiveConfig.dimensions[QUOTA_ACTIVE_PER_ORG]?.value;
   const user =
@@ -239,7 +241,10 @@ const twinOf = (
 ): QuotaHold | undefined =>
   request.admission === undefined
     ? undefined
-    : holds.find((hold) => hold.admission === request.admission && hold.id !== request.id);
+    : holds.find(
+        (hold) =>
+          hold.admission === request.admission && hold.id !== request.id,
+      );
 
 /**
  * Takes a place in the window for admission `id`, or none when the window is
@@ -265,7 +270,9 @@ export function reserveQuota(
     runId,
     at: now,
     windowStart,
-    ...(request.admission !== undefined ? { admission: request.admission } : {}),
+    ...(request.admission !== undefined
+      ? { admission: request.admission }
+      : {}),
   };
   return {
     windowStart,
@@ -321,12 +328,18 @@ export interface HeldQuotas {
  * admissions as their active quota are already ahead of this one: every snapshot counts those, so it is refused.
  * A steering message, which adds no run, asks the org in its transaction instead (`orgNeeded`).
  */
-export const asksOrg = (user: QuotaReservation, quotas: AdmissionQuotas): boolean =>
-  user.window.count <= quotas.admissionsPerUser && user.ahead.length < quotas.activeRunsPerUser;
+export const asksOrg = (
+  user: QuotaReservation,
+  quotas: AdmissionQuotas,
+): boolean =>
+  user.window.count <= quotas.admissionsPerUser &&
+  user.ahead.length < quotas.activeRunsPerUser;
 
 /** A steering message counts in the org's window even when the actor's admissions ahead fill their active quota. */
-export const orgNeeded = (user: QuotaReservation, quotas: AdmissionQuotas): boolean =>
-  user.window.count <= quotas.admissionsPerUser;
+export const orgNeeded = (
+  user: QuotaReservation,
+  quotas: AdmissionQuotas,
+): boolean => user.window.count <= quotas.admissionsPerUser;
 
 /** Why an admission the org was not asked for is refused, on the actor's own quota. */
 export function actorRefusal(
@@ -336,7 +349,11 @@ export function actorRefusal(
 ): HarnessQuotaExceededError {
   return user.window.count > quotas.admissionsPerUser
     ? rateRefusal('user', user.window, now, quotas.windowMs)
-    : new HarnessQuotaExceededError('user', 'active_runs', quotas.activeRetryAfterS);
+    : new HarnessQuotaExceededError(
+        'user',
+        'active_runs',
+        quotas.activeRetryAfterS,
+      );
 }
 
 /** The runs ahead of an admission in either window: whether its snapshot holds them decides its active counts. */
@@ -374,8 +391,16 @@ export function assertHeldQuotas(
   assertAdmissionQuotas(
     {
       ...windows,
-      orgActive: activeWithAhead(counts.orgActive, held.org.ahead, seenOf(held.org.ahead, counts.seen)),
-      userActive: activeWithAhead(counts.userActive, held.user.ahead, seenOf(held.user.ahead, counts.seen)),
+      orgActive: activeWithAhead(
+        counts.orgActive,
+        held.org.ahead,
+        seenOf(held.org.ahead, counts.seen),
+      ),
+      userActive: activeWithAhead(
+        counts.userActive,
+        held.user.ahead,
+        seenOf(held.user.ahead, counts.seen),
+      ),
     },
     now,
     quotas,

@@ -36,9 +36,7 @@ export const KNOWLEDGE_PUBLICATIONS_LABS_FLAG = 'ENABLE_KNOWLEDGE_PUBLICATIONS';
  * an operator control in the deployment's store stops the org or the instance
  * (ADR-OPS-01); the default chat's Agent mode comes with the harness.
  */
-export class PlatformHarnessRolloutSettings
-  implements HarnessRolloutSettingsSource
-{
+export class PlatformHarnessRolloutSettings implements HarnessRolloutSettingsSource {
   constructor(
     private readonly store: KeyValueStoreService,
     private readonly environment: AgentHarnessEnvironment = process.env,
@@ -61,10 +59,12 @@ export class PlatformHarnessRolloutSettings
   }
 
   async read(orgId: string): Promise<HarnessRolloutSettings> {
-    const [{ featureFlags, agentHarness }, operatorStopped] = await Promise.all([
-      getPlatformSettingsFromStore(this.orgSettings.of(orgId)),
-      this.operatorStopped(orgId),
-    ]);
+    const [{ featureFlags, agentHarness }, operatorStopped] = await Promise.all(
+      [
+        getPlatformSettingsFromStore(this.orgSettings.of(orgId)),
+        this.operatorStopped(orgId),
+      ],
+    );
     return {
       infrastructureReady: isAgentHarnessInfrastructureReady(this.environment),
       killSwitch:
@@ -99,7 +99,9 @@ export class PlatformScheduledRuns implements ScheduledRunsSetting {
   constructor(private readonly settings: OrgSettings) {}
 
   async enabled(orgId: string): Promise<boolean> {
-    const { featureFlags } = await getPlatformSettingsFromStore(this.settings.of(orgId));
+    const { featureFlags } = await getPlatformSettingsFromStore(
+      this.settings.of(orgId),
+    );
     return featureFlags[SCHEDULED_RUNS_LABS_FLAG] === true;
   }
 }
@@ -109,13 +111,13 @@ export class PlatformScheduledRuns implements ScheduledRunsSetting {
  * publications. Read at each request; anything but `true` is off. The query
  * service reads the same flag again before it acts.
  */
-export class PlatformKnowledgePublications
-  implements KnowledgePublicationsSetting
-{
+export class PlatformKnowledgePublications implements KnowledgePublicationsSetting {
   constructor(private readonly settings: OrgSettings) {}
 
   async enabled(orgId: string): Promise<boolean> {
-    const { featureFlags } = await getPlatformSettingsFromStore(this.settings.of(orgId));
+    const { featureFlags } = await getPlatformSettingsFromStore(
+      this.settings.of(orgId),
+    );
     return featureFlags[KNOWLEDGE_PUBLICATIONS_LABS_FLAG] === true;
   }
 }

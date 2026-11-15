@@ -139,7 +139,8 @@ export function namedDecline(
   const toolId = str(data['toolId']);
   const key = str(data['key']);
   const by = str(data['by']);
-  if (toolId === undefined || key === undefined || by === undefined) return null;
+  if (toolId === undefined || key === undefined || by === undefined)
+    return null;
   const reason = str(data['reason']);
   return { toolId, key, by, ...(reason !== undefined ? { reason } : {}) };
 }
@@ -557,7 +558,10 @@ export function conversationGrantList(
       });
       origins.set(
         key,
-        askKey(isSharedGrant(data) ? String(data['fromRunId']) : event.runId, id),
+        askKey(
+          isSharedGrant(data) ? String(data['fromRunId']) : event.runId,
+          id,
+        ),
       );
       continue;
     }
@@ -599,12 +603,16 @@ export function conversationGrantList(
   }
   return [...listed.entries()]
     .map(([key, grant]) => {
-      const destination = explained.get(origins.get(key) ?? '')?.['destination'];
+      const destination = explained.get(origins.get(key) ?? '')?.[
+        'destination'
+      ];
       const label =
         typeof destination === 'object' && destination !== null
           ? str((destination as Record<string, unknown>)['label'])
           : undefined;
       return { ...grant, destination: label ?? null };
     })
-    .sort((a, b) => (a.grantedAt < b.grantedAt ? -1 : a.grantedAt > b.grantedAt ? 1 : 0));
+    .sort((a, b) =>
+      a.grantedAt < b.grantedAt ? -1 : a.grantedAt > b.grantedAt ? 1 : 0,
+    );
 }

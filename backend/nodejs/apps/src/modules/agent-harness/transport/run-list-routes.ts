@@ -89,7 +89,9 @@ export function createAgentHarnessRunsRouter(container: Container): Router {
         const orgId = identityString(user?.['orgId']);
         const actorId = identityString(user?.['userId']);
         if (orgId === null || actorId === null) {
-          throw new UnauthorizedError('Authenticated user identity is incomplete');
+          throw new UnauthorizedError(
+            'Authenticated user identity is incomplete',
+          );
         }
         const { query } = listPersonRunsSchema.parse({ query: req.query });
         const after =
@@ -97,14 +99,18 @@ export function createAgentHarnessRunsRouter(container: Container): Router {
             ? decodeRunListCursor(query.cursor)
             : undefined;
         if (after === null) {
-          throw new BadRequestError('The page cursor is not one this server handed out');
+          throw new BadRequestError(
+            'The page cursor is not one this server handed out',
+          );
         }
         const filter = states(query.state);
         const page = await service().personRuns(
           { orgId, actorId },
           {
             ...(filter !== undefined ? { states: filter } : {}),
-            ...(query.agentKey !== undefined ? { agentKey: query.agentKey } : {}),
+            ...(query.agentKey !== undefined
+              ? { agentKey: query.agentKey }
+              : {}),
             ...(query.kind !== undefined ? { kind: query.kind } : {}),
             ...(query.from !== undefined ? { createdFrom: query.from } : {}),
             ...(query.to !== undefined ? { createdTo: query.to } : {}),

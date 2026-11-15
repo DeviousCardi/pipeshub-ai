@@ -4,7 +4,11 @@
  * shares, mentions, connector news). This module is pure: kinds, filters, ordering, pause times and cursors.
  */
 import type { NotificationRow } from '../../../libs/repositories/notification/types';
-import { firedScheduleOf, workflowRefusalOf, type WorkflowRefusal } from './schedules';
+import {
+  firedScheduleOf,
+  workflowRefusalOf,
+  type WorkflowRefusal,
+} from './schedules';
 import type { HarnessRun } from './execution';
 import {
   INBOX_ITEM_KINDS,
@@ -67,7 +71,12 @@ export type InboxPointer =
  */
 export interface InboxSubject {
   /** `tool` and `destination` (ADR-INBOX-02): the client words the call from them as its approval card does. */
-  action?: { name: string; app: string | null; tool?: string; destination?: string };
+  action?: {
+    name: string;
+    app: string | null;
+    tool?: string;
+    destination?: string;
+  };
   connect?: string;
   question?: string;
   skill?: string;
@@ -76,7 +85,14 @@ export interface InboxSubject {
   workflow?: string;
   sharedBy?: string;
   deadlineAt?: number;
-  outcome?: 'finished' | 'cut_short' | 'not_finished' | 'ran' | 'failed' | 'refused' | 'waiting';
+  outcome?:
+    | 'finished'
+    | 'cut_short'
+    | 'not_finished'
+    | 'ran'
+    | 'failed'
+    | 'refused'
+    | 'waiting';
   reason?: WorkflowRefusal;
   source?: string;
 }
@@ -266,7 +282,10 @@ export function pauseFor(
  * `waiting` lists the asks only (Needs you), so it never reads a notice source.
  */
 const FILTER_KINDS: Readonly<
-  Record<Exclude<InboxFilter, 'all' | 'unread' | 'waiting'>, ReadonlySet<InboxItemKind>>
+  Record<
+    Exclude<InboxFilter, 'all' | 'unread' | 'waiting'>,
+    ReadonlySet<InboxItemKind>
+  >
 > = {
   mentions: new Set(['mention']),
   workflows: new Set(['schedule_ran', 'schedule_failed', 'schedule_waiting']),
@@ -430,7 +449,11 @@ export function noticeSubject(
   row: Pick<NotificationRow, 'payload' | 'originService' | 'type'>,
 ): InboxSubject {
   const p = row.payload ?? {};
-  const set = <K extends keyof InboxSubject>(out: InboxSubject, key: K, value: InboxSubject[K] | undefined) => {
+  const set = <K extends keyof InboxSubject>(
+    out: InboxSubject,
+    key: K,
+    value: InboxSubject[K] | undefined,
+  ) => {
     if (value !== undefined) out[key] = value;
   };
   const out: InboxSubject = {};
@@ -448,11 +471,18 @@ export function noticeSubject(
     case 'schedule_waiting':
       set(out, 'workflow', subjectText(p['scheduleName'], 200));
       out.outcome =
-        OUTCOMES[kind] ?? (row.type === SCHEDULE_FIRING_REFUSED ? 'refused' : 'failed');
+        OUTCOMES[kind] ??
+        (row.type === SCHEDULE_FIRING_REFUSED ? 'refused' : 'failed');
       if (out.outcome === 'refused') {
-        out.reason = workflowRefusalOf(typeof p['reason'] === 'string' ? p['reason'] : '');
+        out.reason = workflowRefusalOf(
+          typeof p['reason'] === 'string' ? p['reason'] : '',
+        );
       }
-      if (typeof p['deadlineAt'] === 'number' && Number.isSafeInteger(p['deadlineAt']) && p['deadlineAt'] >= 0) {
+      if (
+        typeof p['deadlineAt'] === 'number' &&
+        Number.isSafeInteger(p['deadlineAt']) &&
+        p['deadlineAt'] >= 0
+      ) {
         out.deadlineAt = p['deadlineAt'];
       }
       break;

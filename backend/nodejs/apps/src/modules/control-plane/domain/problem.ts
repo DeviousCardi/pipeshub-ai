@@ -9,11 +9,7 @@ import {
 
 /** The first rule a body breaks (FR-38); the same names in Python and the frontend. */
 export type ProblemRefusal =
-  | 'schema'
-  | 'unknown_code'
-  | 'status'
-  | 'retryable'
-  | 'remediation';
+  'schema' | 'unknown_code' | 'status' | 'retryable' | 'remediation';
 
 export type ProblemReading =
   | { problem: Problem; refusal: null }

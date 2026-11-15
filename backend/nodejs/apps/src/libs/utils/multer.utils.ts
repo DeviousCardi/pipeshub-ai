@@ -31,7 +31,9 @@ const defaultTooLarge = (maxBytes: number): Error =>
     `The upload is larger than ${Math.ceil(maxBytes / (1024 * 1024)).toLocaleString('en-US')} MiB. Send fewer or smaller files.`,
   );
 
-export function requestByteCap(options: MeteredMulterOptions): number | undefined {
+export function requestByteCap(
+  options: MeteredMulterOptions,
+): number | undefined {
   if (options.maxRequestBytes !== undefined) return options.maxRequestBytes;
   const files = options.limits?.files;
   const fileSize = options.limits?.fileSize;
@@ -81,7 +83,11 @@ export function meterRequestBytes(
   };
 }
 
-const meteredMulter = (inner: multer.Multer, maxBytes: number | undefined, tooLarge?: (n: number) => Error): multer.Multer => {
+const meteredMulter = (
+  inner: multer.Multer,
+  maxBytes: number | undefined,
+  tooLarge?: (n: number) => Error,
+): multer.Multer => {
   if (maxBytes === undefined) return inner;
   const wrap =
     <A extends unknown[]>(make: (...args: A) => RequestHandler) =>
@@ -93,19 +99,25 @@ const meteredMulter = (inner: multer.Multer, maxBytes: number | undefined, tooLa
     fields: wrap(inner.fields.bind(inner)),
     any: wrap(inner.any.bind(inner)),
     none: wrap(inner.none.bind(inner)),
-  } as multer.Multer;
+  };
 };
 
 // multer decodes the multipart `filename` as Latin-1 unless told otherwise,
 // turning "résumé.pdf" into "rÃ©sumÃ©.pdf". Browsers send it as raw UTF-8.
 // @types/multer does not declare `defParamCharset`, hence the widened type.
-export function createMulter(options: MeteredMulterOptions = {}): multer.Multer {
+export function createMulter(
+  options: MeteredMulterOptions = {},
+): multer.Multer {
   const { maxRequestBytes: _cap, tooLarge, ...rest } = options;
   const withUtf8Names: multer.Options & { defParamCharset: string } = {
     ...rest,
     defParamCharset: 'utf8',
   };
-  return meteredMulter(multer(withUtf8Names), requestByteCap(options), tooLarge);
+  return meteredMulter(
+    multer(withUtf8Names),
+    requestByteCap(options),
+    tooLarge,
+  );
 }
 
 /** The folder a request's uploaded files are streamed into, removed with everything in it once the response ends. */

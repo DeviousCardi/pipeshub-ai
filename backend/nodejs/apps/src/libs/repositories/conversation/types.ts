@@ -797,7 +797,10 @@ export interface ConversationRepository {
     recordIds: readonly string[],
   ): Promise<Map<string, string>>;
   /** The titles of the org's chats among `ids` (plain and agent chats alike) that are not deleted, by id; for display only. */
-  listTitles(orgId: string, ids: readonly string[]): Promise<Map<string, string>>;
+  listTitles(
+    orgId: string,
+    ids: readonly string[],
+  ): Promise<Map<string, string>>;
 
   // ---- an org's or a person's deletion (ORGDEL, CLEANUP-G1, G2)
   /** The person's own sessions that are not deleted, by id; `shared` when someone else holds a share of it. */

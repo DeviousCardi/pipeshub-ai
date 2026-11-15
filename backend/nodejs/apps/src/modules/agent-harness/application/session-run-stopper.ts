@@ -5,7 +5,8 @@ import type { ExecutionService } from './execution-service';
 import { cancelOpenRuns } from './run-stopper';
 
 /** The conversation module's token: what deleting a chat calls to stop its run at once (R30-LAT). */
-export const AGENT_HARNESS_SESSION_RUN_STOPPER = 'AgentHarnessSessionRunStopper';
+export const AGENT_HARNESS_SESSION_RUN_STOPPER =
+  'AgentHarnessSessionRunStopper';
 
 export interface SessionRunStopperPort {
   /** Cancels the session's open run (its children through it); how many runs it cancelled. */

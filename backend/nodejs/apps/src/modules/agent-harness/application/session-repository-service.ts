@@ -121,7 +121,13 @@ export class SessionRepositoryService {
     }
     await this.assertEngine(caller, scope.sessionId);
     await this.assertUsable(caller, repository);
-    await this.persist(caller.orgId, caller.actorId, scope.sessionId, stored, repository);
+    await this.persist(
+      caller.orgId,
+      caller.actorId,
+      scope.sessionId,
+      stored,
+      repository,
+    );
     return this.viewOf(scope, repository, cloned);
   }
 
@@ -133,7 +139,13 @@ export class SessionRepositoryService {
     ]);
     if (stored === null) return;
     if (cloned) throw this.locked(stored);
-    await this.persist(scope.orgId, scope.actorId, scope.sessionId, stored, null);
+    await this.persist(
+      scope.orgId,
+      scope.actorId,
+      scope.sessionId,
+      stored,
+      null,
+    );
   }
 
   /**

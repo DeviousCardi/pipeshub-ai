@@ -14,7 +14,10 @@ import { GOVERNED_MEMORY_FEATURE, type MemoryPin } from './memory';
 import { RUN_GATES_FEATURE } from './run-gates';
 import { ENVIRONMENT_PIN_FEATURE } from './agent-environment';
 import { OUTPUT_LOCALE_FEATURE } from './output-locale';
-import { guardedInputFeatures, KEYWORD_SEARCH_BUDGET_FEATURE } from './worker-input';
+import {
+  guardedInputFeatures,
+  KEYWORD_SEARCH_BUDGET_FEATURE,
+} from './worker-input';
 import {
   CODE_TASK_TOOL_FEATURE,
   DELIVERABLE_PIN_FEATURE,
@@ -214,7 +217,6 @@ export const NO_COMPATIBLE_WORKER = 'no_compatible_worker';
 
 const KNOWN = new Set<string>(KNOWN_WORKER_FEATURES);
 
-
 export interface RunRequirements {
   /** The pinned spec's schemaVersion; absent until pinned. */
   schemaVersion?: number;
@@ -321,7 +323,8 @@ export function admissionRequirements(
   if (run.input?.caller !== undefined) features.push('caller');
   if (run.input?.command !== undefined) features.push('command_input');
   // An older worker would refuse the input; a newer one runs it without a model (SLASH3 `/run`).
-  if (run.input?.sandboxCommand !== undefined) features.push(SANDBOX_COMMAND_FEATURE);
+  if (run.input?.sandboxCommand !== undefined)
+    features.push(SANDBOX_COMMAND_FEATURE);
   // An older worker would drop the request and run on the full context.
   if (run.input?.compact !== undefined) features.push('compact_request');
   // An older worker would refuse the input (its model forbids unknown fields).
@@ -336,7 +339,7 @@ export function admissionRequirements(
     features.push(TURN_LABELS_FEATURE);
   }
   // Only this run's spec pins it: not a session feature.
-  if (memory !== null) features.push(GOVERNED_MEMORY_FEATURE as WorkerFeature);
+  if (memory !== null) features.push(GOVERNED_MEMORY_FEATURE);
   // An older worker's durable path registers run_code without its hooks; not a session feature (no new event).
   if (agentCode) features.push(AGENT_CODE_FEATURE);
   // Only this run's spec pins its engine authority: not a session feature.

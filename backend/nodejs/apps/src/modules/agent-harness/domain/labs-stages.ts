@@ -21,9 +21,7 @@ export const WORKER_STAGES = [
 ] as const;
 
 /** Read by Node at admission and on its routes (`platform-rollout-settings.ts`). */
-export const NODE_STAGES = [
-  'ENABLE_SCHEDULED_RUNS',
-] as const;
+export const NODE_STAGES = ['ENABLE_SCHEDULED_RUNS'] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);

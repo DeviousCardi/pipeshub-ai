@@ -187,7 +187,8 @@ function artifactsOf(timeline: Timeline): DigestArtifact[] {
       ...(artifact.recordId !== undefined
         ? { recordId: artifact.recordId }
         : {}),
-      ...(artifact.mimeType !== '' && artifact.mimeType !== 'application/octet-stream'
+      ...(artifact.mimeType !== '' &&
+      artifact.mimeType !== 'application/octet-stream'
         ? { mimeType: artifact.mimeType }
         : {}),
       ...(artifact.sizeBytes > 0 ? { sizeBytes: artifact.sizeBytes } : {}),

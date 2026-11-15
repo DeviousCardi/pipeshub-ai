@@ -112,8 +112,10 @@ export class NextRunService {
   async drainDue(limit: number): Promise<number> {
     let admitted = 0;
     for (const { orgId, sessionId } of await this.store.drainable(limit)) {
-      const outcome = await forEnumeratedOrg(orgId, 'agent-harness.next-runs', () =>
-        this.drain(orgId, sessionId),
+      const outcome = await forEnumeratedOrg(
+        orgId,
+        'agent-harness.next-runs',
+        () => this.drain(orgId, sessionId),
       );
       if (outcome === 'admitted') admitted += 1;
     }

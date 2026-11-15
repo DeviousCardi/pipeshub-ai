@@ -94,7 +94,7 @@ export async function joinParent(
     { updatePipeline: true, new: true, session },
   ).lean();
   if (updated === null) return;
-  const parent = runFromDocument(updated as unknown as Record<string, unknown>);
+  const parent = runFromDocument(updated);
   if (TERMINAL_RUN_STATUSES.has(parent.status)) return;
   const wakes = joinWakes(parent, parent.children?.open ?? 0);
   await deps.journal.append(
@@ -204,9 +204,7 @@ export class MongoChildRunStore implements ChildRunStore {
           'Only a running attempt admits children',
         );
       }
-      const parent = runFromDocument(
-        parentDocument as unknown as Record<string, unknown>,
-      );
+      const parent = runFromDocument(parentDocument);
       const existing = await AgentRunModel.findOne({
         orgId: command.orgId,
         runId: command.childRunId,
@@ -214,9 +212,7 @@ export class MongoChildRunStore implements ChildRunStore {
         .session(session)
         .lean();
       if (existing !== null) {
-        const known = runFromDocument(
-          existing as unknown as Record<string, unknown>,
-        );
+        const known = runFromDocument(existing);
         if (
           known.payloadHash !== command.requestHash ||
           known.parent?.runId !== parent.runId

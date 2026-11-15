@@ -4,10 +4,19 @@
  * by signing in, matched on Slack team id and user id. A Slack profile email never picks the account.
  */
 
-export type SlackRefusal = 'external' | 'shared_channel' | 'guest' | 'deactivated' | 'bot' | 'unverified';
+export type SlackRefusal =
+  | 'external'
+  | 'shared_channel'
+  | 'guest'
+  | 'deactivated'
+  | 'bot'
+  | 'unverified';
 
 /** What the person is told, in Slack, privately. A bot is never answered, so it cannot start a loop. */
-export const SLACK_REFUSAL_TEXT: Record<Exclude<SlackRefusal, 'bot'>, string> = {
+export const SLACK_REFUSAL_TEXT: Record<
+  Exclude<SlackRefusal, 'bot'>,
+  string
+> = {
   external:
     'I only answer people in this Slack workspace. Messages from other organisations, ' +
     'including people in shared Slack Connect channels, are not run.',
@@ -18,7 +27,8 @@ export const SLACK_REFUSAL_TEXT: Record<Exclude<SlackRefusal, 'bot'>, string> = 
     "Guest accounts can't use PipesHub from Slack. If you need access, ask an admin of this Slack workspace " +
     'to make you a full member.',
   deactivated: 'This Slack account is deactivated, so I cannot answer it.',
-  unverified: "I couldn't verify your Slack account right now. Please try again in a moment.",
+  unverified:
+    "I couldn't verify your Slack account right now. Please try again in a moment.",
 };
 
 export function slackLinkPromptText(linkUrl: string): string {
@@ -33,7 +43,9 @@ export function slackLinkPromptText(linkUrl: string): string {
 type Json = Record<string, unknown>;
 
 function record(value: unknown): Json | undefined {
-  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Json) : undefined;
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Json)
+    : undefined;
 }
 
 /**
@@ -42,11 +54,18 @@ function record(value: unknown): Json | undefined {
  * names any other workspace came through Slack Connect. The comparison is exact: a case or Unicode variant of the
  * home id is another workspace.
  */
-export function slackEventRefusal(payload: Json | undefined): SlackRefusal | null {
+export function slackEventRefusal(
+  payload: Json | undefined,
+): SlackRefusal | null {
   if (!payload || payload.type !== 'event_callback') return null;
   const event = record(payload.event);
   if (!event) return null;
-  if (event.bot_id !== undefined || event.bot_profile !== undefined || event.subtype === 'bot_message') return 'bot';
+  if (
+    event.bot_id !== undefined ||
+    event.bot_profile !== undefined ||
+    event.subtype === 'bot_message'
+  )
+    return 'bot';
   const home = payload.team_id;
   if (typeof home !== 'string' || home === '') return 'external';
   for (const field of ['user_team', 'source_team', 'team'] as const) {
@@ -78,8 +97,10 @@ export function slackPersonRefusal(
   if (person.is_bot === true || person.is_app_user === true) return 'bot';
   if (person.deleted === true) return 'deactivated';
   if (person.is_stranger === true) return 'external';
-  if (eventTeamId !== botTeamId || person.team_id !== botTeamId) return 'external';
-  if (person.is_restricted === true || person.is_ultra_restricted === true) return 'guest';
+  if (eventTeamId !== botTeamId || person.team_id !== botTeamId)
+    return 'external';
+  if (person.is_restricted === true || person.is_ultra_restricted === true)
+    return 'guest';
   return null;
 }
 

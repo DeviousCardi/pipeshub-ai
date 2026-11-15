@@ -99,7 +99,7 @@ export class PgHarnessSessionForkStore implements SessionForkStore<Tx> {
         agentKey: isAgent ? (row.session.agentKey ?? null) : null,
         title: row.session.title ?? '',
         modelInfo: isObject(row.session.modelInfo)
-          ? (row.session.modelInfo as Record<string, unknown>)
+          ? row.session.modelInfo
           : null,
         durable: sessionIs.durable(row),
         messages: messages.map((message) =>

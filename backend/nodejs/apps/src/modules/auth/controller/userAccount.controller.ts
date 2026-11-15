@@ -1547,7 +1547,9 @@ export class UserAccountController {
   }
 
   /** The refresh token that replaces the presented one; a replayed token ends its family, recorded here. */
-  protected async rotateSession(req: AuthenticatedServiceRequest): Promise<string> {
+  protected async rotateSession(
+    req: AuthenticatedServiceRequest,
+  ): Promise<string> {
     const payload = req.tokenPayload ?? {};
     try {
       const rotated = await this.sessions.rotate(req.verifiedToken ?? '', {
@@ -1592,7 +1594,8 @@ export class UserAccountController {
       this.logger.error('Recording a replayed session failed', {
         orgId,
         userId,
-        error: auditError instanceof Error ? auditError.message : String(auditError),
+        error:
+          auditError instanceof Error ? auditError.message : String(auditError),
       });
     }
   }
@@ -2000,10 +2003,13 @@ export class UserAccountController {
       await this.sessionService.completeAuthentication(sessionInfo);
       // Every credential is proven; only now may the lifecycle hook say why the account cannot sign in.
       const refusal =
-        (await orgLifecycle().orgLifecycleHook?.signInRefusal(String(user._id), {
-          frontendUrl: this.config.frontendUrl,
-          scopedJwtSecret: this.config.scopedJwtSecret,
-        })) ?? null;
+        (await orgLifecycle().orgLifecycleHook?.signInRefusal(
+          String(user._id),
+          {
+            frontendUrl: this.config.frontendUrl,
+            scopedJwtSecret: this.config.scopedJwtSecret,
+          },
+        )) ?? null;
       if (refusal !== null) {
         res.status(refusal.status).json(refusal.body);
         return;

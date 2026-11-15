@@ -28,11 +28,7 @@ export interface ScopedLayer {
 }
 
 export type PolicyRefusalCode =
-  | 'widening'
-  | 'not_exposed'
-  | 'outside_ceiling'
-  | 'invalid'
-  | 'locked';
+  'widening' | 'not_exposed' | 'outside_ceiling' | 'invalid' | 'locked';
 
 export interface PolicyRefusal {
   code: PolicyRefusalCode;
@@ -103,7 +99,11 @@ export const scoped = (layer: PolicyLayer): ScopedLayer => ({
  * the dimension's section to the locking layer or one above it (an org's rules
  * written into an agent layer, 02-lld §11.1).
  */
-const carries = (layer: ScopedLayer, path: string, lock: LayerName): boolean => {
+const carries = (
+  layer: ScopedLayer,
+  path: string,
+  lock: LayerName,
+): boolean => {
   const owner = read(layer.values, `lockedBy.${path.split('.')[0]}`);
   return (
     typeof owner === 'string' &&
@@ -127,7 +127,8 @@ export class PolicyResolver {
     const locks = new Map(from.locks);
     for (const layer of layers) {
       const refusal =
-        this.applyValues(entries, locks, layer) ?? this.applyLocks(locks, layer);
+        this.applyValues(entries, locks, layer) ??
+        this.applyLocks(locks, layer);
       if (refusal !== null) return { prefix: null, refusal };
     }
     return { prefix: new FoldedPrefix(entries, locks), refusal: null };

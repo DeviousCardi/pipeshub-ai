@@ -195,7 +195,9 @@ const nonStreamingTurn =
         request: buildAiChatRequest(target, body, {
           conversationId,
           previousConversations,
-          ...(previousLabel !== undefined ? { historyLabel: previousLabel } : {}),
+          ...(previousLabel !== undefined
+            ? { historyLabel: previousLabel }
+            : {}),
           isNewConversation: mode === 'create',
           project,
         }),

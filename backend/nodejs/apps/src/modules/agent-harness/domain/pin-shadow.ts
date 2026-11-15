@@ -122,7 +122,9 @@ export function requestLayer(
  * 1M token cap with USD 4.87 of 5 left.
  */
 export const workTokens = (maxTokens: number, engineWork: boolean): number =>
-  engineWork ? maxTokens : Math.min(maxTokens, RELEASE_DEFAULTS.budgets.loopMaxTokens);
+  engineWork
+    ? maxTokens
+    : Math.min(maxTokens, RELEASE_DEFAULTS.budgets.loopMaxTokens);
 
 const value = (config: EffectiveRunConfig, path: string): unknown =>
   config.dimensions[path]?.value;
@@ -304,8 +306,7 @@ export function codeTaskAuthority(spec: {
   extensions?: Record<string, unknown> | null;
 }): PinnedEngineProfile | null {
   const extension = spec.extensions?.['x.pipeshub'] as
-    | { codeTask?: { profile?: unknown } }
-    | undefined;
+    { codeTask?: { profile?: unknown } } | undefined;
   const parsed = pinnedEngineProfileSchema.safeParse(
     extension?.codeTask?.profile,
   );

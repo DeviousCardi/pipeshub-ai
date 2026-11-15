@@ -14,8 +14,8 @@ export interface SessionHeadRevisions extends HeadRevisions {
 
 export const createHeadRevisions = (): SessionHeadRevisions =>
   pickHarnessStore<SessionHeadRevisions>('control-plane/head-revisions', {
-    mongo: () => new MongoHeadRevisions() as SessionHeadRevisions,
-    postgres: () => new PgHeadRevisions() as SessionHeadRevisions,
+    mongo: () => new MongoHeadRevisions(),
+    postgres: () => new PgHeadRevisions(),
   });
 
 export const createDeploymentRevision = (): DeploymentRevision =>

@@ -5,7 +5,12 @@ export class InMemoryConversationSeenMarks implements ConversationSeenMarks {
   private readonly marks = new Map<string, Map<string, number>>();
 
   /** `exists`: whether the conversation is the org's; a mark on any other is refused (null), as the stores refuse it. */
-  constructor(private readonly exists: (orgId: string, sessionId: string) => boolean = () => true) {}
+  constructor(
+    private readonly exists: (
+      orgId: string,
+      sessionId: string,
+    ) => boolean = () => true,
+  ) {}
 
   async mark(
     orgId: string,

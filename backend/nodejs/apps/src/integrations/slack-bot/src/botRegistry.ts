@@ -1,13 +1,12 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 // import axios from "axios";
 
-import { slackJwtGenerator } from "../../../libs/utils/createJwt";
-import { ConfigService } from "../../../modules/tokens_manager/services/cm.service";
-import axios from "axios";
-import { TokenScopes } from "../../../libs/enums/token-scopes.enum";
-import type { SlackCaller, SlackCallerQuery } from "./caller-identity";
-import { withHome } from "./identity/home";
-
+import { slackJwtGenerator } from '../../../libs/utils/createJwt';
+import { ConfigService } from '../../../modules/tokens_manager/services/cm.service';
+import axios from 'axios';
+import { TokenScopes } from '../../../libs/enums/token-scopes.enum';
+import type { SlackCaller, SlackCallerQuery } from './caller-identity';
+import { withHome } from './identity/home';
 
 export interface SlackBotConfig {
   botToken: string;
@@ -196,22 +195,44 @@ export function getCurrentMatchedSlackBot(): SlackBotConfig | null {
   return slackRequestContext.getStore()?.matchedBot || null;
 }
 
-const SLACK_CALLER_API_URL = "/api/v1/configurationManager/internal/slack-bot/identity";
+const SLACK_CALLER_API_URL =
+  '/api/v1/configurationManager/internal/slack-bot/identity';
 
 /** Node's answer to "who is this Slack person": their linked PipesHub account, or a sign-in link to send them. */
-export async function askWhoIsSlackCaller(query: SlackCallerQuery): Promise<SlackCaller> {
+export async function askWhoIsSlackCaller(
+  query: SlackCallerQuery,
+): Promise<SlackCaller> {
   const configService = ConfigService.getInstance();
-  const token = slackJwtGenerator("", await configService.getScopedJwtSecret(), [TokenScopes.SLACK_BOT_VERIFY]);
-  const response = await axios.post(`${backendUrl}${SLACK_CALLER_API_URL}`, query, {
-    headers: { Authorization: `Bearer ${token}` },
-    timeout: 5000,
-  });
+  const token = slackJwtGenerator(
+    '',
+    await configService.getScopedJwtSecret(),
+    [TokenScopes.SLACK_BOT_VERIFY],
+  );
+  const response = await axios.post(
+    `${backendUrl}${SLACK_CALLER_API_URL}`,
+    query,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 5000,
+    },
+  );
   const data = (response.data ?? {}) as Record<string, unknown>;
-  if (data.linked === true && typeof data.email === "string" && data.email !== "") {
-    return { linked: true, email: data.email, fullName: typeof data.fullName === "string" ? data.fullName : null };
+  if (
+    data.linked === true &&
+    typeof data.email === 'string' &&
+    data.email !== ''
+  ) {
+    return {
+      linked: true,
+      email: data.email,
+      fullName: typeof data.fullName === 'string' ? data.fullName : null,
+    };
   }
   if (data.linked === false) {
-    return { linked: false, linkUrl: typeof data.linkUrl === "string" ? data.linkUrl : null };
+    return {
+      linked: false,
+      linkUrl: typeof data.linkUrl === 'string' ? data.linkUrl : null,
+    };
   }
-  throw new Error("Unexpected answer from PipesHub about the Slack caller");
+  throw new Error('Unexpected answer from PipesHub about the Slack caller');
 }

@@ -378,10 +378,10 @@ export class ModelAccessService {
   async modelChoices(
     orgId: string,
     org: OrgModelPolicy = {},
-  ): Promise<
-    | Pick<Required<ModelAccessView>, 'modelChoices' | 'roleCostCeilings'>
-    | null
-  > {
+  ): Promise<Pick<
+    Required<ModelAccessView>,
+    'modelChoices' | 'roleCostCeilings'
+  > | null> {
     const models = this.options.models;
     if (models?.list === undefined) return null;
     const { routes } = org;
@@ -592,7 +592,10 @@ export class ModelAccessService {
         : { ...subject, model: { ...subject.model, ...claude } },
     );
     const model = configured.model;
-    if (configured.route.provider !== CLAUDE_PLAN_PROVIDER || model === undefined) {
+    if (
+      configured.route.provider !== CLAUDE_PLAN_PROVIDER ||
+      model === undefined
+    ) {
       const names = await this.claudeModelNames(subject.orgId);
       throw refuse(
         'route_not_configured',
@@ -783,9 +786,7 @@ export class ModelAccessService {
     }
     // With no key named, a name picks among the default entry's models only: the entry the group check reads.
     const modelName =
-      choice.model?.modelName ??
-      subject.model.modelName ??
-      entry.modelNames[0];
+      choice.model?.modelName ?? subject.model.modelName ?? entry.modelNames[0];
     if (modelName === undefined || !entry.modelNames.includes(modelName)) {
       throw refuse('route_not_configured', notConfigured(entry));
     }

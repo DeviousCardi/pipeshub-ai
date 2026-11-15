@@ -20,7 +20,12 @@ import {
   SlackLinkRequestError,
   isSlackId,
 } from './slack-identity-links';
-import { LinkedAccount, LinkedAccountUsers, accountOf, liveLinkedAccount } from './slack-linked-account';
+import {
+  LinkedAccount,
+  LinkedAccountUsers,
+  accountOf,
+  liveLinkedAccount,
+} from './slack-linked-account';
 
 /** Where a person approves a link; also in Node's unframeable pages. */
 export const SLACK_LINK_PAGE_PATH = '/slack/link';
@@ -60,8 +65,11 @@ export const SLACK_LINK_OTHER_ORG_CODE = 'SLACK_LINK_OTHER_ORG';
 
 function refusal(error: unknown): unknown {
   if (!(error instanceof SlackLinkRequestError)) return error;
-  if (error.problem === 'other_org') return new HttpError(SLACK_LINK_OTHER_ORG_CODE, error.message, 403);
-  return error.problem === 'unknown' ? new BadRequestError(error.message) : new GoneError(error.message);
+  if (error.problem === 'other_org')
+    return new HttpError(SLACK_LINK_OTHER_ORG_CODE, error.message, 403);
+  return error.problem === 'unknown'
+    ? new BadRequestError(error.message)
+    : new GoneError(error.message);
 }
 
 /**
@@ -77,11 +85,15 @@ export interface SlackIdentityOrgs {
   adminOrg(req: AuthenticatedUserRequest): Promise<string>;
 }
 
-export function soleOrgSlackIdentityOrgs(kv?: KeyValueStoreService): SlackIdentityOrgs {
+export function soleOrgSlackIdentityOrgs(
+  kv?: KeyValueStoreService,
+): SlackIdentityOrgs {
   return {
     botOf: async (configId) => {
       if (!kv) return null;
-      const bot = (await getSlackBotStore(kv)).configs.find((config) => config.id === configId);
+      const bot = (await getSlackBotStore(kv)).configs.find(
+        (config) => config.id === configId,
+      );
       return bot ? { orgId: await resolveSoleOrgId(), name: bot.name } : null;
     },
     personOrg: () => resolveSoleOrgId(),
@@ -98,15 +110,25 @@ async function linkingPerson(
 ): Promise<LinkedAccount> {
   const { orgId, userId } = req.user ?? {};
   if (!orgId || !userId || req.user?.isServiceAccount) {
-    throw new ForbiddenError('Sign in to PipesHub as yourself to link your Slack account.');
+    throw new ForbiddenError(
+      'Sign in to PipesHub as yourself to link your Slack account.',
+    );
   }
   const account = await accountOf(
-    { orgId: String(orgId), userId: String(userId), teamId: '', slackUserId: '', linkedAt: '' },
+    {
+      orgId: String(orgId),
+      userId: String(userId),
+      teamId: '',
+      slackUserId: '',
+      linkedAt: '',
+    },
     await orgs.personOrg(req),
     users,
   );
   if (!account) {
-    throw new ForbiddenError('This PipesHub account cannot be linked to Slack.');
+    throw new ForbiddenError(
+      'This PipesHub account cannot be linked to Slack.',
+    );
   }
   return account;
 }
@@ -123,25 +145,54 @@ export const resolveSlackCaller =
     users?: LinkedAccountUsers,
     orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(kv),
   ) =>
-  async (req: AuthenticatedServiceRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedServiceRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
-      const { orgId: askedOrg, configId, teamId, slackUserId, slackName, issueLink } =
-        req.body as z.infer<typeof slackCallerSchema>['body'];
+      const {
+        orgId: askedOrg,
+        configId,
+        teamId,
+        slackUserId,
+        slackName,
+        issueLink,
+      } = req.body as z.infer<typeof slackCallerSchema>['body'];
       const bot = await orgs.botOf(configId);
       if (!bot) throw new NotFoundError('Slack Bot configuration not found');
       const orgId = bot.orgId;
       // The bot names the organisation it serves; an answer from another organisation's links is never given.
-      if (askedOrg !== orgId) throw new ForbiddenError('This Slack bot does not serve that organization');
-      const account = await liveLinkedAccount(links, { teamId, slackUserId }, orgId, users ?? getUserRepository());
+      if (askedOrg !== orgId)
+        throw new ForbiddenError(
+          'This Slack bot does not serve that organization',
+        );
+      const account = await liveLinkedAccount(
+        links,
+        { teamId, slackUserId },
+        orgId,
+        users ?? getUserRepository(),
+      );
       if (account) {
-        res.status(200).json({ linked: true, email: account.email, fullName: account.fullName ?? null });
+        res.status(200).json({
+          linked: true,
+          email: account.email,
+          fullName: account.fullName ?? null,
+        });
         return;
       }
       if (issueLink === false) {
         res.status(200).json({ linked: false, linkUrl: null });
         return;
       }
-      const { token, expiresAt } = await links.request({ orgId, configId, teamId, slackUserId, slackName, botName: bot.name });
+      const { token, expiresAt } = await links.request({
+        orgId,
+        configId,
+        teamId,
+        slackUserId,
+        slackName,
+        botName: bot.name,
+      });
       const base = frontendUrl().replace(/\/+$/, '');
       res.status(200).json({
         linked: false,
@@ -154,19 +205,36 @@ export const resolveSlackCaller =
   };
 
 export const inspectSlackLinkRequest =
-  (links: SlackIdentityLinks, users?: LinkedAccountUsers, orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs()) =>
+  (
+    links: SlackIdentityLinks,
+    users?: LinkedAccountUsers,
+    orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(),
+  ) =>
   async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
     try {
-      const person = await linkingPerson(req, users ?? getUserRepository(), orgs);
-      const request = await links.inspect((req.body as { token: string }).token, person.orgId);
+      const person = await linkingPerson(
+        req,
+        users ?? getUserRepository(),
+        orgs,
+      );
+      const request = await links.inspect(
+        (req.body as { token: string }).token,
+        person.orgId,
+      );
       const existing = await links.find(person.orgId, request);
       res.status(200).json({
-        slack: { teamId: request.teamId, userId: request.slackUserId, name: request.slackName ?? null },
+        slack: {
+          teamId: request.teamId,
+          userId: request.slackUserId,
+          name: request.slackName ?? null,
+        },
         botName: request.botName ?? null,
         expiresAt: new Date(request.expiresAt).toISOString(),
         account: { email: person.email, fullName: person.fullName ?? null },
         alreadyLinkedToYou: existing?.userId === person.userId,
-        linkedToAnotherAccount: Boolean(existing && existing.userId !== person.userId),
+        linkedToAnotherAccount: Boolean(
+          existing && existing.userId !== person.userId,
+        ),
       });
     } catch (error) {
       next(refusal(error));
@@ -174,18 +242,35 @@ export const inspectSlackLinkRequest =
   };
 
 export const decideSlackLinkRequest =
-  (links: SlackIdentityLinks, users?: LinkedAccountUsers, orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs()) =>
+  (
+    links: SlackIdentityLinks,
+    users?: LinkedAccountUsers,
+    orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(),
+  ) =>
   async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
     try {
-      const person = await linkingPerson(req, users ?? getUserRepository(), orgs);
-      const { token, action } = req.body as z.infer<typeof slackLinkDecisionSchema>['body'];
+      const person = await linkingPerson(
+        req,
+        users ?? getUserRepository(),
+        orgs,
+      );
+      const { token, action } = req.body as z.infer<
+        typeof slackLinkDecisionSchema
+      >['body'];
       if (action === 'deny') {
         await links.decline(token, person.orgId);
         res.status(200).json({ linked: false });
         return;
       }
-      const link = await links.complete(token, { orgId: person.orgId, userId: person.userId, email: person.email });
-      res.status(200).json({ linked: true, slack: { teamId: link.teamId, userId: link.slackUserId } });
+      const link = await links.complete(token, {
+        orgId: person.orgId,
+        userId: person.userId,
+        email: person.email,
+      });
+      res.status(200).json({
+        linked: true,
+        slack: { teamId: link.teamId, userId: link.slackUserId },
+      });
     } catch (error) {
       next(refusal(error));
     }
@@ -193,13 +278,21 @@ export const decideSlackLinkRequest =
 
 /** Admin view: every linked Slack person and the account they act as; a link whose account is gone shows inactive. */
 export const listSlackIdentityLinks =
-  (links: SlackIdentityLinks, users?: LinkedAccountUsers, orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs()) =>
+  (
+    links: SlackIdentityLinks,
+    users?: LinkedAccountUsers,
+    orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(),
+  ) =>
   async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
     try {
       const orgId = await orgs.adminOrg(req);
       const rows = [];
       for (const link of await links.list(orgId)) {
-        const account = await accountOf(link, orgId, users ?? getUserRepository());
+        const account = await accountOf(
+          link,
+          orgId,
+          users ?? getUserRepository(),
+        );
         rows.push({
           teamId: link.teamId,
           slackUserId: link.slackUserId,
@@ -218,13 +311,26 @@ export const listSlackIdentityLinks =
   };
 
 export const revokeSlackIdentityLink =
-  (links: SlackIdentityLinks, orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs()) =>
+  (
+    links: SlackIdentityLinks,
+    orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(),
+  ) =>
   async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
     try {
-      const { teamId, slackUserId } = req.params as { teamId: string; slackUserId: string };
+      const { teamId, slackUserId } = req.params as {
+        teamId: string;
+        slackUserId: string;
+      };
       const adminId = req.user?.userId;
-      if (!adminId) throw new ForbiddenError('Sign in as an admin to remove a Slack link.');
-      if (!(await links.revoke(await orgs.adminOrg(req), { teamId, slackUserId }, { by: 'admin', adminId: String(adminId) }))) {
+      if (!adminId)
+        throw new ForbiddenError('Sign in as an admin to remove a Slack link.');
+      if (
+        !(await links.revoke(
+          await orgs.adminOrg(req),
+          { teamId, slackUserId },
+          { by: 'admin', adminId: String(adminId) },
+        ))
+      ) {
         throw new NotFoundError('No linked Slack account with that id');
       }
       res.status(200).json({ revoked: true });

@@ -171,7 +171,11 @@ export function createAgentConfigRouter(container: Container): Router {
     }),
   );
 
-  mountEditionRoutes(router, container, harnessEditionOf(container).agentRoutes);
+  mountEditionRoutes(
+    router,
+    container,
+    harnessEditionOf(container).agentRoutes,
+  );
 
   return router;
 }

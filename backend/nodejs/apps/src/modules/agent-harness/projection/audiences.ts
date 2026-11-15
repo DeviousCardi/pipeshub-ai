@@ -279,7 +279,11 @@ export function sharedCompletion(
   const parts = Array.isArray(completion['parts'])
     ? (completion['parts'] as Array<Record<string, unknown>>)
         .filter((part) => part['type'] === 'text' && part['isFinal'] === true)
-        .map((part) => ('notFound' in part ? { ...part, notFound: sharedNotFound(part['notFound']) } : part))
+        .map((part) =>
+          'notFound' in part
+            ? { ...part, notFound: sharedNotFound(part['notFound']) }
+            : part,
+        )
     : [];
   const kept: Record<string, unknown> = {};
   for (const key of [
@@ -297,7 +301,8 @@ export function sharedCompletion(
   ]) {
     if (key in completion) kept[key] = completion[key];
   }
-  if ('notFound' in completion) kept['notFound'] = sharedNotFound(completion['notFound']);
+  if ('notFound' in completion)
+    kept['notFound'] = sharedNotFound(completion['notFound']);
   if ('citations' in kept)
     kept['citations'] = access.citations(kept['citations']);
   return artifacts.completion({ ...kept, parts });
@@ -329,7 +334,6 @@ function sharedRunFinished(
     ? (conversation['messages'] as Array<Record<string, unknown>>).map(
         (message) => {
           const { reasoning: _reasoning, parts, ...rest } = message;
-          void _reasoning;
           return {
             ...rest,
             ...(Array.isArray(parts)

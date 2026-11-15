@@ -276,7 +276,7 @@ describe('AttemptTokenAuthority', () => {
     expect(await refusal(authority.verify(hs256))).to.equal('algorithm');
     const unknown = `${segment({ alg: 'EdDSA', typ: 'JWT', kid: 'hak_other' })}.${payload}.${token.split('.')[2]}`;
     expect(await refusal(authority.verify(unknown))).to.equal('unknown_key');
-    void header;
+    header;
   });
 
   it('A-7: refuses a validly signed token with the wrong audience or issuer', async () => {

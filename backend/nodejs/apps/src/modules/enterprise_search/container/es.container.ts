@@ -5,7 +5,10 @@ import {
   createMemberProfiles,
 } from '../../../libs/repositories/agent-harness/audit-names';
 import { Container } from 'inversify';
-import { createLegacySecurityStore, createPolicyWebhookSettingsStore } from '../../agent-harness/adapters/configuration/encrypted-config-document-store';
+import {
+  createLegacySecurityStore,
+  createPolicyWebhookSettingsStore,
+} from '../../agent-harness/adapters/configuration/encrypted-config-document-store';
 import { orgPrincipalErasers } from '../../agent-harness/binders/erasure';
 import type { OrgSettings } from '../../agent-harness/ports/org-settings';
 import { singleStoreOrgSettings } from '../../agent-harness/adapters/configuration/single-store-org-settings';

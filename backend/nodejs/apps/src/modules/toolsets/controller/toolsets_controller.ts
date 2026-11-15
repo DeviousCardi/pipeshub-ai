@@ -1164,7 +1164,7 @@ export const getGithubRepositoryListing =
   async (
     req: AuthenticatedUserRequest,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> => {
     try {
       const { instanceId } = req.params;
@@ -1177,11 +1177,19 @@ export const getGithubRepositoryListing =
       const connectorResponse = await executeConnectorCommand(
         `${appConfig.connectorBackend}/api/v1/toolsets/instances/${encodeURIComponent(instanceId)}/github/${listing}?${query.toString()}`,
         HttpMethod.GET,
-        { ...(req.headers as Record<string, string>) }
+        { ...(req.headers as Record<string, string>) },
       );
-      handleConnectorResponse(connectorResponse, res, `Listing GitHub ${listing}`, `GitHub ${listing} not found`);
+      handleConnectorResponse(
+        connectorResponse,
+        res,
+        `Listing GitHub ${listing}`,
+        `GitHub ${listing} not found`,
+      );
     } catch (error: any) {
-      logger.error(`Error listing GitHub ${listing}`, { error: error.message, instanceId: req.params.instanceId });
+      logger.error(`Error listing GitHub ${listing}`, {
+        error: error.message,
+        instanceId: req.params.instanceId,
+      });
       next(handleBackendError(error, `list GitHub ${listing}`));
     }
   };

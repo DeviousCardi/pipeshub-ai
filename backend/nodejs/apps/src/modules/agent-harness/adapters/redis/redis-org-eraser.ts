@@ -17,7 +17,7 @@ export class RedisOrgEraser implements OrgRedisEraser {
 
   async eraseOrg(orgId: string): Promise<number> {
     if (!/^[A-Za-z0-9_.:-]+$/.test(orgId)) return 0;
-    const client = this.provider.getClient() as Redis | Cluster;
+    const client = this.provider.getClient();
     const nodes: Redis[] = this.provider.isCluster
       ? (client as Cluster).nodes('master')
       : [client as Redis];

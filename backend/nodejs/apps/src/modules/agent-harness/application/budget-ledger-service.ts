@@ -33,10 +33,7 @@ import {
   RunTokenUse,
 } from '../domain/run-token-standing';
 import { BudgetLedgerStore } from '../ports/budget-ledger';
-import {
-  noSharedBudgets,
-  type SharedBudgetGuard,
-} from '../ports/cost-ledger';
+import { noSharedBudgets, type SharedBudgetGuard } from '../ports/cost-ledger';
 import { GatewayTokenAuthority } from './gateway-token-authority';
 import { HarnessAuthority } from './harness-authority';
 import {

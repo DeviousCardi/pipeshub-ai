@@ -42,7 +42,8 @@ export interface WebsiteProblem {
 
 const LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 const LAST_LABEL = /^[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
-const PATH = /^\/[A-Za-z0-9._~!$&'()*+,;=:@-][A-Za-z0-9._~!$&'()*+,;=:@/-]{0,199}$/;
+const PATH =
+  /^\/[A-Za-z0-9._~!$&'()*+,;=:@-][A-Za-z0-9._~!$&'()*+,;=:@/-]{0,199}$/;
 const MAX_SITES = 100;
 /**
  * Names that never leave a private network or that a cloud answers with its
@@ -116,7 +117,9 @@ const isIpLiteral = (host: string): boolean =>
   /^(?:0x[0-9a-f]+|[0-9]+)$/.test(host.split('.').at(-1) ?? '');
 
 const privateName = (host: string): boolean =>
-  PRIVATE_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`));
+  PRIVATE_SUFFIXES.some(
+    (suffix) => host === suffix || host.endsWith(`.${suffix}`),
+  );
 
 /** Why `host` is not a site an admin may list, in words the editor shows; null when it is one. */
 export function websiteHostProblem(
@@ -143,13 +146,14 @@ export function websiteHostProblem(
   if (bare.includes('*')) {
     return 'A wildcard is allowed only at the start, like *.example.com';
   }
-  if (/^[^:[\]]+:[0-9]+$/.test(bare)) return 'Sites are reached on port 443 only';
+  if (/^[^:[\]]+:[0-9]+$/.test(bare))
+    return 'Sites are reached on port 443 only';
   if (isIpLiteral(bare)) {
-    return 'IP addresses cannot be allowed; use the site\'s name (the deployment can list a private name)';
+    return "IP addresses cannot be allowed; use the site's name (the deployment can list a private name)";
   }
   if (bare.endsWith('.')) return 'Remove the trailing dot';
   if (/[^\x20-\x7e]/.test(bare)) {
-    return 'Use the site\'s ASCII name (xn--…)';
+    return "Use the site's ASCII name (xn--…)";
   }
   const labels = bare.split('.');
   if (
@@ -168,14 +172,16 @@ export function websiteHostProblem(
     (name) => hostCovers(text, name) || hostCovers(name, bare),
   );
   if (own !== undefined) {
-    return 'PipesHub\'s own address cannot be an allowed website';
+    return "PipesHub's own address cannot be an allowed website";
   }
   if (isPublicSuffix(bare)) {
     return text.startsWith('*.')
       ? `${text} would allow every site under ${bare}; name one site`
       : `${bare} is shared by many sites; name one site under it`;
   }
-  if (rules.gitHosts.some((git) => hostCovers(git, bare) || hostCovers(text, git))) {
+  if (
+    rules.gitHosts.some((git) => hostCovers(git, bare) || hostCovers(text, git))
+  ) {
     return 'Git hosts are never websites: agents clone repositories with ph git clone, which asks first';
   }
   return null;
@@ -213,7 +219,10 @@ function entryProblem(
     );
   }
   if (site.access === 'read' && site.readWriteConfirmed !== undefined) {
-    return invalid('readWriteConfirmed', 'Only read and write access is confirmed');
+    return invalid(
+      'readWriteConfirmed',
+      'Only read and write access is confirmed',
+    );
   }
   const relay = (rules.relayHosts ?? []).find(
     (listed) => hostCovers(listed, site.host) || hostCovers(site.host, listed),
@@ -241,27 +250,47 @@ function entryProblem(
   }
   if (site.opaque === true) {
     if (site.access !== 'read-write') {
-      return invalid('opaque', 'Host-level only access is read and write by nature; confirm read and write');
+      return invalid(
+        'opaque',
+        'Host-level only access is read and write by nature; confirm read and write',
+      );
     }
     if (site.host.startsWith('*.')) {
-      return invalid('opaque', 'Host-level only access names one site, not a wildcard');
+      return invalid(
+        'opaque',
+        'Host-level only access names one site, not a wildcard',
+      );
     }
     if (rules.presetHosts.has(site.host)) {
-      return invalid('opaque', `${site.host} can be inspected; host-level only access is for sites that cannot`);
+      return invalid(
+        'opaque',
+        `${site.host} can be inspected; host-level only access is for sites that cannot`,
+      );
     }
     if (site.paths !== undefined) {
-      return invalid('paths', 'Paths cannot be limited on a host-level only site');
+      return invalid(
+        'paths',
+        'Paths cannot be limited on a host-level only site',
+      );
     }
   }
   for (const [index, path] of (site.paths ?? []).entries()) {
-    if (!PATH.test(path) || path.split('/').some((s) => s === '.' || s === '..') || /%2f|%5c/i.test(path)) {
-      return invalid(`paths.${String(index)}`, 'A path starts with / and holds no . or .. segment, like /onyx-dot-app/');
+    if (
+      !PATH.test(path) ||
+      path.split('/').some((s) => s === '.' || s === '..') ||
+      /%2f|%5c/i.test(path)
+    ) {
+      return invalid(
+        `paths.${String(index)}`,
+        'A path starts with / and holds no . or .. segment, like /onyx-dot-app/',
+      );
     }
   }
   if (new Set(site.paths ?? []).size !== (site.paths ?? []).length) {
     return invalid('paths', 'A path is listed twice');
   }
-  if ((site.note?.length ?? 0) > 200) return invalid('note', 'Keep the note under 200 characters');
+  if ((site.note?.length ?? 0) > 200)
+    return invalid('note', 'Keep the note under 200 characters');
   return null;
 }
 
@@ -272,21 +301,41 @@ export function websitesProblem(
 ): WebsiteProblem | null {
   const sites = (value as { sites?: unknown } | null)?.sites;
   if (typeof value !== 'object' || value === null || !Array.isArray(sites)) {
-    return { code: 'invalid', field: 'websites.sites', reason: 'The allowed websites are a list' };
+    return {
+      code: 'invalid',
+      field: 'websites.sites',
+      reason: 'The allowed websites are a list',
+    };
   }
   if (sites.length > MAX_SITES) {
-    return { code: 'invalid', field: 'websites.sites', reason: `At most ${String(MAX_SITES)} sites` };
+    return {
+      code: 'invalid',
+      field: 'websites.sites',
+      reason: `At most ${String(MAX_SITES)} sites`,
+    };
   }
   const seen = new Set<string>();
   for (const [index, site] of (sites as AllowedWebsite[]).entries()) {
     const at = `websites.sites.${String(index)}`;
-    if (typeof site !== 'object' || site === null || typeof site.host !== 'string') {
-      return { code: 'invalid', field: at, reason: 'Each site has a name and an access' };
+    if (
+      typeof site !== 'object' ||
+      site === null ||
+      typeof site.host !== 'string'
+    ) {
+      return {
+        code: 'invalid',
+        field: at,
+        reason: 'Each site has a name and an access',
+      };
     }
     const problem = entryProblem(site, at, rules);
     if (problem !== null) return problem;
     if (seen.has(site.host)) {
-      return { code: 'invalid', field: `${at}.host`, reason: `${site.host} is listed twice` };
+      return {
+        code: 'invalid',
+        field: `${at}.host`,
+        reason: `${site.host} is listed twice`,
+      };
     }
     seen.add(site.host);
   }
@@ -294,14 +343,19 @@ export function websitesProblem(
 }
 
 const MAX_ORG_ONLY = 100;
-const IPV4_ADDRESS = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$/;
+const IPV4_ADDRESS =
+  /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$/;
 
 /** 4 or 6 for an IP address in its normal form (an IPv6 one as the WHATWG URL parser writes it), else 0. */
 function ipFamily(text: string): { family: 0 | 4 | 6; normal: string } {
   if (IPV4_ADDRESS.test(text)) return { family: 4, normal: text };
-  if (!text.includes(':') || !/^[0-9a-f:.]+$/.test(text)) return { family: 0, normal: text };
+  if (!text.includes(':') || !/^[0-9a-f:.]+$/.test(text))
+    return { family: 0, normal: text };
   try {
-    return { family: 6, normal: new URL(`http://[${text}]/`).hostname.slice(1, -1) };
+    return {
+      family: 6,
+      normal: new URL(`http://[${text}]/`).hostname.slice(1, -1),
+    };
   } catch {
     return { family: 0, normal: text };
   }
@@ -322,14 +376,20 @@ export function orgOnlyAddress(raw: string): string | null {
   if (family !== 0) {
     if (slash === -1) return normal;
     const bits = text.slice(slash + 1);
-    if (!/^[0-9]{1,3}$/.test(bits) || Number(bits) > (family === 4 ? 32 : 128)) return null;
+    if (!/^[0-9]{1,3}$/.test(bits) || Number(bits) > (family === 4 ? 32 : 128))
+      return null;
     return `${normal}/${String(Number(bits))}`;
   }
   if (slash !== -1) return null;
   const name = text.startsWith('*.') ? text.slice(2) : text;
   const labels = name.split('.');
   const last = labels[labels.length - 1];
-  if (last === undefined || !LAST_LABEL.test(last) || !labels.slice(0, -1).every((l) => LABEL.test(l))) return null;
+  if (
+    last === undefined ||
+    !LAST_LABEL.test(last) ||
+    !labels.slice(0, -1).every((l) => LABEL.test(l))
+  )
+    return null;
   if (text.startsWith('*.') && labels.length < 2) return null;
   return text;
 }
@@ -339,16 +399,30 @@ export function orgOnlyAddress(raw: string): string | null {
  * one an address `orgOnlyAddress` reads, none twice, and only at the org's
  * own layer (it says what the whole organization can reach).
  */
-export function orgOnlyProblem(value: unknown, scope: 'org' | 'agent' | 'deployment'): WebsiteProblem | null {
-  const listed = (value as { orgOnlyAddresses?: unknown } | null)?.orgOnlyAddresses;
+export function orgOnlyProblem(
+  value: unknown,
+  scope: 'org' | 'agent' | 'deployment',
+): WebsiteProblem | null {
+  const listed = (value as { orgOnlyAddresses?: unknown } | null)
+    ?.orgOnlyAddresses;
   if (listed === undefined) return null;
   const field = 'websites.orgOnlyAddresses';
   if (scope !== 'org') {
-    return { code: 'invalid', field, reason: 'Addresses only your organization can reach are set for the whole organization' };
+    return {
+      code: 'invalid',
+      field,
+      reason:
+        'Addresses only your organization can reach are set for the whole organization',
+    };
   }
-  if (!Array.isArray(listed)) return { code: 'invalid', field, reason: 'The addresses are a list' };
+  if (!Array.isArray(listed))
+    return { code: 'invalid', field, reason: 'The addresses are a list' };
   if (listed.length > MAX_ORG_ONLY) {
-    return { code: 'invalid', field, reason: `At most ${String(MAX_ORG_ONLY)} addresses` };
+    return {
+      code: 'invalid',
+      field,
+      reason: `At most ${String(MAX_ORG_ONLY)} addresses`,
+    };
   }
   const seen = new Set<string>();
   for (const [index, entry] of (listed as unknown[]).entries()) {
@@ -358,13 +432,19 @@ export function orgOnlyProblem(value: unknown, scope: 'org' | 'agent' | 'deploym
       return {
         code: 'invalid',
         field: at,
-        reason: 'Name a host (intranet.example.com or *.corp.example.com), an IP address or a range like 10.20.0.0/16',
+        reason:
+          'Name a host (intranet.example.com or *.corp.example.com), an IP address or a range like 10.20.0.0/16',
       };
     }
     if (normal !== entry) {
       return { code: 'invalid', field: at, reason: `Write it as ${normal}` };
     }
-    if (seen.has(normal)) return { code: 'invalid', field: at, reason: `${normal} is listed twice` };
+    if (seen.has(normal))
+      return {
+        code: 'invalid',
+        field: at,
+        reason: `${normal} is listed twice`,
+      };
     seen.add(normal);
   }
   return null;
@@ -387,7 +467,10 @@ export function pathCovered(limit: string, path: string): boolean {
 }
 
 /** The entries above that hold `site`: same or wider host, same or wider access, paths within, never a tunnel it lacks. */
-function heldBy(site: AllowedWebsite, above: readonly AllowedWebsite[]): AllowedWebsite | null {
+function heldBy(
+  site: AllowedWebsite,
+  above: readonly AllowedWebsite[],
+): AllowedWebsite | null {
   return (
     above.find(
       (entry) =>
@@ -418,8 +501,7 @@ export function websitesWidening(
 ): WebsiteProblem | null {
   for (const { layer, websites } of above) {
     const sites =
-      websites?.sites ??
-      (layer === 'org' && scope === 'agent' ? [] : null);
+      websites?.sites ?? (layer === 'org' && scope === 'agent' ? [] : null);
     if (sites === null) continue;
     for (const [index, site] of value.sites.entries()) {
       if (heldBy(site, sites) !== null) continue;

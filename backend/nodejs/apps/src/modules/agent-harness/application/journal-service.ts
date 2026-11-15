@@ -38,7 +38,10 @@ export class JournalService {
     private readonly cipher: EnvelopeCipher,
     private readonly inlineMaxBytes = JOURNAL_INLINE_PAYLOAD_MAX_BYTES,
     /** The journal's recorders (`HarnessEdition.journalRecorders`): each takes its part of a claim-checked event here. */
-    private readonly recorders: readonly Pick<JournalAppendRecorder<unknown>, 'name' | 'take'>[] = [],
+    private readonly recorders: readonly Pick<
+      JournalAppendRecorder<unknown>,
+      'name' | 'take'
+    >[] = [],
   ) {}
 
   async prepare(
@@ -87,7 +90,8 @@ export class JournalService {
     let taken: Record<string, unknown> | undefined;
     for (const recorder of this.recorders) {
       const item = recorder.take(type, data);
-      if (item !== null && item !== undefined) taken = { ...taken, [recorder.name]: item };
+      if (item !== null && item !== undefined)
+        taken = { ...taken, [recorder.name]: item };
     }
     return taken;
   }

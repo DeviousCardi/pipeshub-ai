@@ -10,7 +10,8 @@ export const AGENT_HARNESS_RUN_SWEEPER = 'AgentHarnessRunSweeper';
 export const AGENT_HARNESS_NEXT_RUNS = 'AgentHarnessNextRuns';
 export const AGENT_HARNESS_AUTHORITY = 'AgentHarnessAuthority';
 /** ADR-KEY-02: seals each sandbox-plane component's document (its credential, digests, egress keys). */
-export const AGENT_HARNESS_COMPONENT_PUBLISHER = 'AgentHarnessComponentPublisher';
+export const AGENT_HARNESS_COMPONENT_PUBLISHER =
+  'AgentHarnessComponentPublisher';
 /** G-41: who may use the harness, each engine and each model, by the org's groups. */
 export const AGENT_HARNESS_GROUP_ACCESS = 'AgentHarnessGroupAccess';
 /** G-41: the model groups on turns today's loop serves (classic chat, agents, Slack, MCP). */
@@ -94,7 +95,8 @@ export const AGENT_HARNESS_APPROVAL_POLICY_HANDLERS =
 /** Rules beyond the usual one an ask may carry (`ApprovalRules`); unbound: the usual rule decides every ask. */
 export const AGENT_HARNESS_APPROVAL_RULES = 'AgentHarnessApprovalRules';
 /** AP-10: what a scheduled run's actor is sent besides the Inbox when it waits on them (`ScheduledWaitNotices`); unbound: none. */
-export const AGENT_HARNESS_SCHEDULED_WAIT_NOTICES = 'AgentHarnessScheduledWaitNotices';
+export const AGENT_HARNESS_SCHEDULED_WAIT_NOTICES =
+  'AgentHarnessScheduledWaitNotices';
 /** AP-08: what is sent when a run starts waiting on a person (`WaitingRunNotices`); unbound: nothing beyond the Inbox. */
 export const AGENT_HARNESS_APPROVER_LINK_NOTICES =
   'AgentHarnessApproverLinkNotices';

@@ -532,7 +532,9 @@ export abstract class BaseRedisStreamsConsumerConnection
       entryId,
       entryId,
       1,
-    )) as Array<[id: string, consumer: string, idleMs: number, deliveries: number]>;
+    )) as Array<
+      [id: string, consumer: string, idleMs: number, deliveries: number]
+    >;
     const deliveries = pending[0]?.[3] ?? 0;
     if (deliveries <= this.maxDeliveries) return false;
     await this.ackRedis.xack(topic, this.groupId, entryId);
@@ -933,7 +935,9 @@ export class RedisStreamsAdminService implements IMessageAdmin {
     const result: IdleGroupSweepResult = { removed: [], left: [] };
     if ((await this.redis.exists(topic)) === 0) return result;
     const groups = (await this.redis.xinfo('GROUPS', topic)) as unknown[];
-    for (const name of groups.map((group) => String(infoFields(group).get('name')))) {
+    for (const name of groups.map((group) =>
+      String(infoFields(group).get('name')),
+    )) {
       const consumers = (
         (await this.redis.xinfo('CONSUMERS', topic, name)) as unknown[]
       ).map(infoFields);
@@ -943,7 +947,9 @@ export class RedisStreamsAdminService implements IMessageAdmin {
         formats.some(
           (format) =>
             format.name.test(name) &&
-            consumers.every((c) => String(c.get('name')) === format.consumer(name)),
+            consumers.every(
+              (c) => String(c.get('name')) === format.consumer(name),
+            ),
         );
       if (!ours) {
         result.left.push(name);

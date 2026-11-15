@@ -73,18 +73,16 @@ export const indexMigration = (
     for (const index of indexes) {
       if (await present(db, index)) continue;
       try {
-        await db
-          .collection(index.collection)
-          .createIndex(index.key as IndexSpecification, {
-            name: index.name,
-            ...(index.unique === true ? { unique: true } : {}),
-            ...(index.partialFilterExpression !== undefined
-              ? { partialFilterExpression: index.partialFilterExpression }
-              : {}),
-            ...(index.expireAfterSeconds !== undefined
-              ? { expireAfterSeconds: index.expireAfterSeconds }
-              : {}),
-          });
+        await db.collection(index.collection).createIndex(index.key, {
+          name: index.name,
+          ...(index.unique === true ? { unique: true } : {}),
+          ...(index.partialFilterExpression !== undefined
+            ? { partialFilterExpression: index.partialFilterExpression }
+            : {}),
+          ...(index.expireAfterSeconds !== undefined
+            ? { expireAfterSeconds: index.expireAfterSeconds }
+            : {}),
+        });
       } catch (error) {
         throw Object.assign(
           new Error(

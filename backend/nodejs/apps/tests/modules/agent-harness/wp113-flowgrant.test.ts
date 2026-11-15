@@ -278,7 +278,7 @@ describe('WP-113 FLOWGRANT: a conversation grant reaches the conversation', () =
     ).to.equal(false);
     // Round 20 gate: an offer that names no data (before FLOWGRANT) holds at any data, as it did.
     const { sensitivity: _dropped, ...unnamed } = offer('ix', ONYX);
-    void _dropped;
+    _dropped;
     const legacy = offeredGrant(unnamed) as ConversationGrant;
     expect(legacy.sensitivity).to.equal('private');
     expect(grantCovers(legacy, { toolId: FETCH, key: ONYX, sensitivity: 'private' })).to.equal(true);

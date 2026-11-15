@@ -45,7 +45,9 @@ const rejected = metricsBackend.createCounter({
   help: 'Machine credentials, attempt tokens and gateway tokens the harness refused, by kind and reason',
   labelNames: ['kind', 'reason'],
   // So the first forged token alerts, also after the registry was reset.
-  zeroSeries: TOKEN_KINDS.flatMap((kind) => FORGED_REASONS.map((reason) => ({ kind, reason }))),
+  zeroSeries: TOKEN_KINDS.flatMap((kind) =>
+    FORGED_REASONS.map((reason) => ({ kind, reason })),
+  ),
 });
 
 export type TokenRejectionRecorder = (kind: string, reason: string) => void;

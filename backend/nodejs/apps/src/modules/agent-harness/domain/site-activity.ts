@@ -64,18 +64,26 @@ export function allowedSiteLine(
         ? `Sent data to ${at}: allowed, ${ACCESS_WORDS[site.access]}`
         : `Read ${at}: allowed, ${ACCESS_WORDS[site.access]}`;
   const kind: SiteActivityKind =
-    site.access === 'host-level' ? 'host_level' : site.use === 'write' ? 'write' : 'read';
+    site.access === 'host-level'
+      ? 'host_level'
+      : site.use === 'write'
+        ? 'write'
+        : 'read';
   return { kind, host, ...site, outcome: 'allowed', label };
 }
 
 /** The proxy's holds after a private read: the person is asked on the site card, nothing is refused for good. */
-const HELD_REASONS: ReadonlySet<string> = new Set(['site_upload_held', 'site_request_held']);
+const HELD_REASONS: ReadonlySet<string> = new Set([
+  'site_upload_held',
+  'site_request_held',
+]);
 
 const BLOCKED: Readonly<Record<string, (at: string) => string>> = {
   site_read_only: (at) => `Blocked upload to ${at} (read-only)`,
   site_path_not_allowed: (at) => `Blocked ${at}: outside the allowed paths`,
   host_mismatch: (at) => `Blocked a request to ${at} that named another site`,
-  site_git_refused: (at) => `Blocked git at ${at}: clone repositories with ph git clone`,
+  site_git_refused: (at) =>
+    `Blocked git at ${at}: clone repositories with ph git clone`,
   // The site card: a site held after a private read, until the person allows it for the run (SEC-A-01).
   site_upload_held: (at) =>
     `Upload to ${at} is held until you allow it: this conversation read private data`,
@@ -84,13 +92,19 @@ const BLOCKED: Readonly<Record<string, (at: string) => string>> = {
   site_relay: (at) =>
     `Blocked ${at}: it passes on or shows what it is sent, so it needs read and write access`,
   destination_not_allowed: (at) => `Blocked ${at}: not an allowed website`,
-  destination_private_address: (at) => `Blocked ${at}: it points to a private address`,
-  destination_unresolvable: (at) => `Could not reach ${at}: the name does not resolve`,
-  tunnel_ip_literal: (at) => `Blocked ${at}: sites are reached by name, not address`,
+  destination_private_address: (at) =>
+    `Blocked ${at}: it points to a private address`,
+  destination_unresolvable: (at) =>
+    `Could not reach ${at}: the name does not resolve`,
+  tunnel_ip_literal: (at) =>
+    `Blocked ${at}: sites are reached by name, not address`,
   tunnel_refused: (at) => `Blocked ${at}: this connection is not allowed`,
-  volume_cap_exceeded: (at) => `Blocked ${at}: the run moved more data than allowed`,
-  forbidden_pattern: (at) => `Blocked a request to ${at} that carried a credential`,
-  token_replayed: (at) => `Blocked a request to ${at} that carried a credential`,
+  volume_cap_exceeded: (at) =>
+    `Blocked ${at}: the run moved more data than allowed`,
+  forbidden_pattern: (at) =>
+    `Blocked a request to ${at} that carried a credential`,
+  token_replayed: (at) =>
+    `Blocked a request to ${at} that carried a credential`,
 };
 
 /**
@@ -114,7 +128,10 @@ export function blockedSiteLine(
 export const SITE_UPLOAD_TOOL = 'site_upload';
 
 /** The line for the person's answer on a site card. */
-export function siteUploadDecisionLine(host: string, approved: boolean): SiteActivityView {
+export function siteUploadDecisionLine(
+  host: string,
+  approved: boolean,
+): SiteActivityView {
   return approved
     ? {
         kind: 'upload_allowed',

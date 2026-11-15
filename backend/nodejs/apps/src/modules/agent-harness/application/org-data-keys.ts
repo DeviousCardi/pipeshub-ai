@@ -99,7 +99,7 @@ export class OrgDataKeys {
     }
     newest = this.newest(org);
     // Other replicas may exhaust the version this one just moved to.
-    for (let rotations = 0; !(await this.reserveSeal(org, newest)); ) {
+    for (let rotations = 0; !(await this.reserveSeal(org, newest));) {
       if (++rotations > MAX_COUNT_ROTATIONS_PER_SEAL) {
         throw new Error('Data keys are exhausted faster than they rotate');
       }

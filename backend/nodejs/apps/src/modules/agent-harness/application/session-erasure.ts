@@ -39,11 +39,7 @@ export class ErasureOwnershipLostError extends Error {
 }
 
 export type ErasureRunResult =
-  | 'completed'
-  | 'waiting'
-  | 'retry'
-  | 'lost'
-  | 'withdrawn';
+  'completed' | 'waiting' | 'retry' | 'lost' | 'withdrawn';
 
 const errorType = (error: unknown): string =>
   error instanceof Error ? error.name : typeof error;

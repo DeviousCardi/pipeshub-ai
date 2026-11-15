@@ -168,36 +168,51 @@ export class MongoAdmissionQuotaLedger implements AdmissionQuotaLedger {
         },
       },
     };
-    const left = await AgentAdmissionQuotaModel.findOneAndUpdate({ _id: key }, [
-      { $set: { mine } },
-      {
-        $set: {
-          count: {
-            $cond: [
-              {
-                $and: [
-                  refund,
-                  present('$mine'),
-                  { $eq: ['$mine.windowStart', '$windowStart'] },
-                ],
+    const left = await AgentAdmissionQuotaModel.findOneAndUpdate(
+      { _id: key },
+      [
+        { $set: { mine } },
+        {
+          $set: {
+            count: {
+              $cond: [
+                {
+                  $and: [
+                    refund,
+                    present('$mine'),
+                    { $eq: ['$mine.windowStart', '$windowStart'] },
+                  ],
+                },
+                { $subtract: ['$count', 1] },
+                '$count',
+              ],
+            },
+            holds: {
+              $filter: {
+                input: { $ifNull: ['$holds', []] },
+                cond: { $ne: ['$$this.id', id] },
               },
-              { $subtract: ['$count', 1] },
-              '$count',
-            ],
-          },
-          holds: {
-            $filter: {
-              input: { $ifNull: ['$holds', []] },
-              cond: { $ne: ['$$this.id', id] },
             },
           },
         },
-      },
-      { $unset: ['mine'] },
-    ], { updatePipeline: true, returnDocument: 'after' }).lean();
-    if (left !== null && holdsNothing({ count: left.count, windowStart: left.windowStart, holds: left.holds ?? [] })) {
+        { $unset: ['mine'] },
+      ],
+      { updatePipeline: true, returnDocument: 'after' },
+    ).lean();
+    if (
+      left !== null &&
+      holdsNothing({
+        count: left.count,
+        windowStart: left.windowStart,
+        holds: left.holds ?? [],
+      })
+    ) {
       // Only while it is still empty: a reservation since then keeps it.
-      await AgentAdmissionQuotaModel.deleteOne({ _id: key, count: 0, holds: { $size: 0 } });
+      await AgentAdmissionQuotaModel.deleteOne({
+        _id: key,
+        count: 0,
+        holds: { $size: 0 },
+      });
     }
   }
 }

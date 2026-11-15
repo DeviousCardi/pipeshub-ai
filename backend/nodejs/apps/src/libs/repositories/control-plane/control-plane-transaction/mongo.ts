@@ -6,7 +6,10 @@ import type {
   ChangeOutbox,
   ConfigAuditLog,
 } from '../../../../modules/control-plane/ports/config-audit-log';
-import { ControlPlaneLog, silentControlPlaneLog } from '../../../../modules/control-plane/ports/log';
+import {
+  ControlPlaneLog,
+  silentControlPlaneLog,
+} from '../../../../modules/control-plane/ports/log';
 import type {
   Committed,
   ControlPlaneTransaction,
@@ -93,7 +96,10 @@ export class MongoControlPlaneTransaction implements ControlPlaneTransaction {
           { upsert: true, new: true, session, projection: { revision: 1 } },
         ).lean();
         // An upsert returning the new document always yields one; Mongoose 9 types the result as nullable.
-        if (!head) throw new Error(`control-plane head for org ${ctx.orgId} was not written`);
+        if (!head)
+          throw new Error(
+            `control-plane head for org ${ctx.orgId} was not written`,
+          );
         tx = new StagedCpTx(ctx.orgId, head.revision, session, (write) =>
           write(),
         );

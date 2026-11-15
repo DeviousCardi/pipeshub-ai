@@ -67,7 +67,9 @@ export const runParamsSchema = z.object({
  * advertisement may carry members this Node does not know yet. Absent: a
  * worker older than the rule, which gets no v2 run.
  */
-const workerCapabilities = contract(workerCapabilitiesSchema.strip()).optional();
+const workerCapabilities = contract(
+  workerCapabilitiesSchema.strip(),
+).optional();
 
 /** The worker's region (OWD-12, PIPESHUB_REGION); absent from a worker older than regions. */
 const workerRegion = z.string().regex(/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/);
@@ -351,9 +353,13 @@ export const spawnChildRunSchema = runParamsSchema.extend({
       /** What the child runs as (K-L): pinned as the child's `x.pipeshub.subAgent`. */
       subAgent: contract(pipeshubRunSpecExtensionSchema.shape.subAgent),
       /** The parent's label when it asked (UX2): pinned as the child's `x.pipeshub.inheritedLabel`. */
-      inheritedLabel: contract(pipeshubRunSpecExtensionSchema.shape.inheritedLabel),
+      inheritedLabel: contract(
+        pipeshubRunSpecExtensionSchema.shape.inheritedLabel,
+      ),
       /** The conversation grants the parent held (FLOWASK): pinned as the child's `x.pipeshub.inheritedGrants`. */
-      inheritedGrants: contract(pipeshubRunSpecExtensionSchema.shape.inheritedGrants),
+      inheritedGrants: contract(
+        pipeshubRunSpecExtensionSchema.shape.inheritedGrants,
+      ),
       /** The child's task in its parts (BGUI-10), kept on its input for its brief. */
       task: contract(jobBriefSchema.shape.task.optional()),
       /**

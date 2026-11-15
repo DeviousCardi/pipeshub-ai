@@ -22,7 +22,9 @@ export const etcdComponentRole = (component: SandboxPlaneComponent): string =>
  * What a component's role may touch: read its own document, nothing else, as its Redis ACL user (ADR-KEY-02 D3). It
  * watches that key alone (ConfigurationService on the plane), so no prefix is granted.
  */
-export const etcdComponentPermissions = (component: SandboxPlaneComponent): EtcdPermission[] => [
+export const etcdComponentPermissions = (
+  component: SandboxPlaneComponent,
+): EtcdPermission[] => [
   { key: componentDocumentPath(component), rangeEnd: '', permission: 'Read' },
 ];
 
@@ -60,14 +62,20 @@ export class EtcdComponentRoles implements ComponentStoreLogins {
     await this.ensureAuth(admin);
   }
 
-  private async ensureRole(admin: EtcdAuthAdmin, role: string, wanted: EtcdPermission[]): Promise<void> {
+  private async ensureRole(
+    admin: EtcdAuthAdmin,
+    role: string,
+    wanted: EtcdPermission[],
+  ): Promise<void> {
     let held = await admin.rolePermissions(role);
     if (held === null) {
       await admin.addRole(role);
       held = [];
     }
     const same = (a: EtcdPermission, b: EtcdPermission) =>
-      a.key === b.key && a.rangeEnd === b.rangeEnd && a.permission === b.permission;
+      a.key === b.key &&
+      a.rangeEnd === b.rangeEnd &&
+      a.permission === b.permission;
     for (const extra of held.filter((h) => !wanted.some((w) => same(w, h)))) {
       await admin.revokePermission(role, extra.key, extra.rangeEnd);
     }
@@ -76,14 +84,20 @@ export class EtcdComponentRoles implements ComponentStoreLogins {
     }
   }
 
-  private async ensureUser(admin: EtcdAuthAdmin, user: string, roles: string[]): Promise<void> {
+  private async ensureUser(
+    admin: EtcdAuthAdmin,
+    user: string,
+    roles: string[],
+  ): Promise<void> {
     let held = await admin.userRoles(user);
     if (held === null) {
       await admin.addUser(user);
       held = [];
     }
-    for (const extra of held.filter((r) => !roles.includes(r))) await admin.revokeRole(user, extra);
-    for (const missing of roles.filter((r) => !held.includes(r))) await admin.grantRole(user, missing);
+    for (const extra of held.filter((r) => !roles.includes(r)))
+      await admin.revokeRole(user, extra);
+    for (const missing of roles.filter((r) => !held.includes(r)))
+      await admin.grantRole(user, missing);
   }
 
   private async ensureAuth(admin: EtcdAuthAdmin): Promise<void> {
@@ -111,5 +125,7 @@ export function etcdComponentLogins(kv: {
   usesEtcd(): boolean;
   authAdmin(): EtcdAuthAdmin | null;
 }): ComponentStoreLogins | undefined {
-  return kv.usesEtcd() ? new EtcdComponentRoles(() => kv.authAdmin()) : undefined;
+  return kv.usesEtcd()
+    ? new EtcdComponentRoles(() => kv.authAdmin())
+    : undefined;
 }

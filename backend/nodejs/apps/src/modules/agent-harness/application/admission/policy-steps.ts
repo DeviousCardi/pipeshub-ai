@@ -394,8 +394,7 @@ function agentPolicyEngine(context: PolicyContext): unknown {
   const agentKey = context.request.agentKey;
   if (agentKey === undefined) return undefined;
   const layer = context.routed?.basis.layers.get(`agent:${agentKey}`) as
-    | { engineProfile?: unknown }
-    | undefined;
+    { engineProfile?: unknown } | undefined;
   return layer?.engineProfile;
 }
 
@@ -924,7 +923,8 @@ export class ModelGroupStep implements PolicyStep {
     const { request } = context;
     const modelKey =
       context.modelAccess?.model?.modelKey ??
-      grantedModel(context.agentDefinition, request.input.model).model?.modelKey;
+      grantedModel(context.agentDefinition, request.input.model).model
+        ?.modelKey;
     let admitted: boolean;
     try {
       admitted = await this.access.admits(
@@ -1001,8 +1001,7 @@ export class AgentCodeStep implements PolicyStep {
   constructor(
     private readonly capabilities: CapabilitySource | undefined,
     private readonly workerFeatures:
-      | Pick<WorkerFeatureAvailability, 'live' | 'metrics'>
-      | undefined,
+      Pick<WorkerFeatureAvailability, 'live' | 'metrics'> | undefined,
     private readonly logger: HarnessLogger,
   ) {}
 
@@ -1061,8 +1060,7 @@ export class RunSurfaceStep implements PolicyStep {
 
   constructor(
     private readonly workerFeatures:
-      | Pick<WorkerFeatureAvailability, 'live' | 'metrics'>
-      | undefined,
+      Pick<WorkerFeatureAvailability, 'live' | 'metrics'> | undefined,
   ) {}
 
   async run(context: PolicyContext): Promise<void> {
@@ -1346,10 +1344,7 @@ export class RepositoryStep implements PolicyStep {
     }
     let stored;
     try {
-      stored = await this.repositories.stored(
-        request.orgId,
-        request.sessionId,
-      );
+      stored = await this.repositories.stored(request.orgId, request.sessionId);
     } catch (error) {
       throw refusal(error, 'unavailable');
     }

@@ -52,8 +52,7 @@ export class PolicyAdmissionQuotaCaps implements AdmissionQuotaCapsSource {
     if (store === null) return {};
     const scopes = [DEPLOYMENT_SCOPE, orgScope(orgId)];
     const read = await store.readMany(orgId, scopes);
-    const caps: { activeRunsPerOrg?: number; activeRunsPerUser?: number } =
-      {};
+    const caps: { activeRunsPerOrg?: number; activeRunsPerUser?: number } = {};
     for (const scope of scopes) {
       const entry = read.get(scope);
       const layer =

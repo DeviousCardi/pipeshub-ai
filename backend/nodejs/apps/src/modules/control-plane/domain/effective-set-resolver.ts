@@ -160,11 +160,9 @@ export class DomainEffectiveSetResolver {
     snapshot: Snapshot,
   ): EffectiveSet | Problem {
     const ceiling = config.dimensions[TOOLS_GRANT]?.value as
-      | ToolGrant
-      | undefined;
+      ToolGrant | undefined;
     const effects = config.dimensions[TOOLS_EFFECTS]?.value as
-      | readonly ToolEffect[]
-      | undefined;
+      readonly ToolEffect[] | undefined;
     const items: EffectiveItem[] = [];
     const requiredMissing: EffectiveItem[] = [];
     for (const { entry, grantedBy } of grantedEntries(subject, snapshot)) {

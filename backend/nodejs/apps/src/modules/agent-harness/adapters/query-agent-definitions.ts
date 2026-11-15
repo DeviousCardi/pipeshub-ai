@@ -74,7 +74,9 @@ export class QueryAgentDefinitions implements AgentDefinitions<string> {
       authorization,
       HttpMethod.POST,
       '/import',
-      options.bind === 'sole_instance' ? { agent, bind: 'sole_instance' } : { agent },
+      options.bind === 'sole_instance'
+        ? { agent, bind: 'sole_instance' }
+        : { agent },
       1,
       'import this agent',
       importSchema,

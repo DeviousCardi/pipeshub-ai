@@ -51,13 +51,22 @@ export function pullRequestOf(result: string): SessionPullRequest | null {
   } catch {
     // A bounded result is no longer JSON.
   }
-  const url = /"html_url"\s*:\s*"(https:\/\/github\.com\/[^"\s]+\/pull\/(\d+))"/.exec(result);
+  const url =
+    /"html_url"\s*:\s*"(https:\/\/github\.com\/[^"\s]+\/pull\/(\d+))"/.exec(
+      result,
+    );
   if (url === null || !PULL_URL.test(url[1] as string)) return null;
   const state = /"state"\s*:\s*"([a-z]+)"/.exec(result);
-  return { number: Number(url[2]), url: url[1] as string, state: state?.[1] ?? 'open' };
+  return {
+    number: Number(url[2]),
+    url: url[1] as string,
+    state: state?.[1] ?? 'open',
+  };
 }
 
-function lastOpened(events: readonly JournalEvent[]): SessionPullRequest | null {
+function lastOpened(
+  events: readonly JournalEvent[],
+): SessionPullRequest | null {
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index] as JournalEvent;
     if (event.type !== PROGRESS) continue;

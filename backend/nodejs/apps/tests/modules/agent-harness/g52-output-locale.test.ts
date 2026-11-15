@@ -29,7 +29,7 @@ describe('G-52: the answer language follows the person\'s locale', () => {
     expect(requestLocale('*')).to.equal(undefined);
     expect(requestLocale('de DE; drop table')).to.equal(undefined);
     expect(requestLocale(undefined)).to.equal(undefined);
-    expect(requestLocale(`${'de-DE,'.repeat(100)}`)).to.equal(undefined);
+    expect(requestLocale('de-DE,'.repeat(100))).to.equal(undefined);
     expect(requestLocale('fr;q=0')).to.equal(undefined);
     expect(canonicalLocale(' HI-in ')).to.equal('hi-IN');
   });

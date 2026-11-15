@@ -55,7 +55,9 @@ export class RolloutRoutingDecider implements RoutingDecider {
     });
     const scope: RoutingScope = {
       ...(subject.agentKey !== undefined ? { agentKey: subject.agentKey } : {}),
-      ...(subject.projectId !== undefined ? { projectId: subject.projectId } : {}),
+      ...(subject.projectId !== undefined
+        ? { projectId: subject.projectId }
+        : {}),
     };
     if (!rollout.useHarness) return { routing: rollout, scope };
     if (subject.projectId !== undefined) {
@@ -64,14 +66,21 @@ export class RolloutRoutingDecider implements RoutingDecider {
     let durable = false;
     // The classic path is honoured only where the conversation is known to have no durable turns (ASSIST1).
     let classicAllowed = subject.sessionId === undefined;
-    if (subject.sessionId !== undefined && this.options.sessions !== undefined) {
-      const placement = recordDecides ? recorded : await this.placement(subject);
+    if (
+      subject.sessionId !== undefined &&
+      this.options.sessions !== undefined
+    ) {
+      const placement = recordDecides
+        ? recorded
+        : await this.placement(subject);
       if (placement?.inProject === true) {
         return {
           routing: legacyFor('project_scope'),
           scope: {
             ...scope,
-            ...(placement.projectId !== undefined ? { projectId: placement.projectId } : {}),
+            ...(placement.projectId !== undefined
+              ? { projectId: placement.projectId }
+              : {}),
           },
         };
       }
@@ -79,8 +88,13 @@ export class RolloutRoutingDecider implements RoutingDecider {
       classicAllowed = placement?.durable === false;
     }
     const routing = await this.live(subject, durable, rollout);
-    const classic = routing.useHarness && subject.legacyRequested === true && classicAllowed;
-    return { routing, scope, ...(classic ? { classicRequested: true as const } : {}) };
+    const classic =
+      routing.useHarness && subject.legacyRequested === true && classicAllowed;
+    return {
+      routing,
+      scope,
+      ...(classic ? { classicRequested: true as const } : {}),
+    };
   }
 
   /** Where the conversation sits; an unreadable placement routes nothing by itself: admission checks the session again. */
@@ -94,7 +108,9 @@ export class RolloutRoutingDecider implements RoutingDecider {
         orgId: subject.orgId,
         actorId: subject.actorId,
         sessionId: subject.sessionId,
-        ...(subject.agentKey !== undefined ? { agentKey: subject.agentKey } : {}),
+        ...(subject.agentKey !== undefined
+          ? { agentKey: subject.agentKey }
+          : {}),
       })
       .catch(() => null);
   }

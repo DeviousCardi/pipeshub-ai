@@ -33,11 +33,7 @@ export interface InnerObjectRef {
 }
 
 export type UnreadableReason =
-  | 'malformed'
-  | 'other_key'
-  | 'authentication'
-  | 'size'
-  | 'not_sealed';
+  'malformed' | 'other_key' | 'authentication' | 'size' | 'not_sealed';
 
 export class ObjectUnreadableError extends Error {
   constructor(readonly reason: UnreadableReason) {

@@ -72,19 +72,30 @@ export interface RunParent {
 }
 
 /** `runId`'s run tree: its root and every run below it. */
-export function runTreeOf(runs: readonly RunParent[], runId: string): Set<string> {
+export function runTreeOf(
+  runs: readonly RunParent[],
+  runId: string,
+): Set<string> {
   const parentOf = new Map(runs.map((run) => [run.runId, run.parentRunId]));
   let root = runId;
   const seen = new Set([root]);
-  for (let up = parentOf.get(root); up != null && !seen.has(up); up = parentOf.get(root)) {
+  for (
+    let up = parentOf.get(root);
+    up != null && !seen.has(up);
+    up = parentOf.get(root)
+  ) {
     root = up;
     seen.add(root);
   }
   const tree = new Set([root]);
-  for (let grew = true; grew; ) {
+  for (let grew = true; grew;) {
     grew = false;
     for (const run of runs) {
-      if (run.parentRunId !== null && tree.has(run.parentRunId) && !tree.has(run.runId)) {
+      if (
+        run.parentRunId !== null &&
+        tree.has(run.parentRunId) &&
+        !tree.has(run.runId)
+      ) {
         tree.add(run.runId);
         grew = true;
       }
@@ -108,8 +119,12 @@ export function skippedConnectsIn(
     if (typeof ix !== 'string') continue;
     if (event.type === 'interaction.requested' && data['kind'] === 'connect') {
       const connect = data['connect'] as Record<string, unknown> | undefined;
-      if (typeof connect?.['instanceId'] === 'string') asked.set(ix, connect['instanceId']);
-    } else if (event.type === 'interaction.resolved' && data['decision'] !== 'approved') {
+      if (typeof connect?.['instanceId'] === 'string')
+        asked.set(ix, connect['instanceId']);
+    } else if (
+      event.type === 'interaction.resolved' &&
+      data['decision'] !== 'approved'
+    ) {
       const instance = asked.get(ix);
       if (instance !== undefined) skipped.add(instance);
     }

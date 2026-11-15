@@ -23,7 +23,8 @@ export class InMemoryGroupMembership implements ActorGroupMembership {
   ): Promise<boolean> {
     if (this.down) throw new Error('groups unreadable');
     return groupIds.some(
-      (groupId) => this.members.get(`${orgId}|${groupId}`)?.has(userId) === true,
+      (groupId) =>
+        this.members.get(`${orgId}|${groupId}`)?.has(userId) === true,
     );
   }
 }

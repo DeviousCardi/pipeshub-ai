@@ -15,7 +15,10 @@ import { KeyValueStoreService } from '../../../libs/services/keyValueStore.servi
 import axios from 'axios';
 import { AppConfig } from '../config/config';
 import { ConfigService } from '../services/cm.service';
-import { AgentHarnessHealth, agentHarnessHealth } from '../../agent-harness/config';
+import {
+  AgentHarnessHealth,
+  agentHarnessHealth,
+} from '../../agent-harness/config';
 import { BuildInfo, getBuildInfo } from '../../../libs/utils/build-info.utils';
 import { AuthMiddleware } from '../../../libs/middlewares/auth.middleware';
 import { AuthenticatedUserRequest } from '../../../libs/middlewares/types';
@@ -85,7 +88,10 @@ export interface HealthStatus {
  */
 export interface PublicHealthStatus {
   status: HealthStatus['status'];
-  agentHarness: { status: AgentHarnessHealth['status']; capabilities?: 'settled' | 'settling' };
+  agentHarness: {
+    status: AgentHarnessHealth['status'];
+    capabilities?: 'settled' | 'settling';
+  };
 }
 
 export function publicHealth(health: HealthStatus): PublicHealthStatus {
@@ -149,8 +155,12 @@ export function healthAudience(
   isAdmin: (userId: string, orgId: string) => Promise<boolean> = isUserOrgAdmin,
   env: NodeJS.ProcessEnv = process.env,
 ): RequestHandler {
-  const authenticate = authMiddleware.authenticate.bind(authMiddleware) as RequestHandler;
-  const configRead = requireScopes(OAuthScopeNames.CONFIG_READ) as RequestHandler;
+  const authenticate = authMiddleware.authenticate.bind(
+    authMiddleware,
+  ) as RequestHandler;
+  const configRead = requireScopes(
+    OAuthScopeNames.CONFIG_READ,
+  ) as RequestHandler;
   return async (req, res, next) => {
     if (!hardenedProfile(env)) {
       res.locals[HEALTH_DETAIL] = true;
@@ -160,7 +170,10 @@ export function healthAudience(
     res.locals[HEALTH_DETAIL] = false;
     if (req.headers.authorization) {
       try {
-        if ((await passes(authenticate, req, res)) && (await passes(configRead, req, res))) {
+        if (
+          (await passes(authenticate, req, res)) &&
+          (await passes(configRead, req, res))
+        ) {
           const user = (req as AuthenticatedUserRequest).user;
           res.locals[HEALTH_DETAIL] =
             Boolean(user?.userId && user?.orgId) &&
@@ -176,7 +189,8 @@ export function healthAudience(
   };
 }
 
-const wantsDetail = (res: Response): boolean => res.locals?.[HEALTH_DETAIL] === true;
+const wantsDetail = (res: Response): boolean =>
+  res.locals?.[HEALTH_DETAIL] === true;
 
 export function createHealthRouter(
   container: Container,
@@ -476,12 +490,17 @@ export function createHealthRouter(
       const doclingOk = isServiceHealthy(doclingResp);
       const embeddingOk = isServiceHealthy(embeddingResp);
 
-      const extra = serviceHealthChecks().map((check) => ({ check, view: check.view() }));
+      const extra = serviceHealthChecks().map((check) => ({
+        check,
+        view: check.view(),
+      }));
       // Critical services: query + connector (required for core functionality), and any critical added check
       const overallHealthy =
         aiOk &&
         connectorOk &&
-        extra.every(({ check, view }) => !check.critical || view.status === 'ok');
+        extra.every(
+          ({ check, view }) => !check.critical || view.status === 'ok',
+        );
 
       const services: Record<string, string> = {
         query: aiOk ? 'healthy' : 'unhealthy',
@@ -507,7 +526,9 @@ export function createHealthRouter(
         services,
         ...(Object.keys(details).length > 0 ? { details } : {}),
       };
-      res.status(200).json(wantsDetail(res) ? report : publicServicesHealth(report));
+      res
+        .status(200)
+        .json(wantsDetail(res) ? report : publicServicesHealth(report));
     } catch (error: any) {
       logger.error('Combined services health check failed', error?.message ?? error);
       const services: Record<string, string> = {
@@ -526,7 +547,9 @@ export function createHealthRouter(
         timestamp: new Date().toISOString(),
         services,
       };
-      res.status(200).json(wantsDetail(res) ? report : publicServicesHealth(report));
+      res
+        .status(200)
+        .json(wantsDetail(res) ? report : publicServicesHealth(report));
     }
   });
 

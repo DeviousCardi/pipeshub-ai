@@ -51,10 +51,14 @@ export function websiteHostRules(env: Env = process.env): WebsiteHostRules {
     readOnlyHosts: WEBSITE_RULES.readOnlyHosts,
     relayHosts: WEBSITE_RULES.relayHosts,
     gitHosts: WEBSITE_RULES.gitHosts,
-    presetHosts: new Set(WEBSITE_RULES.presets.flatMap((preset) => preset.sites)),
+    presetHosts: new Set(
+      WEBSITE_RULES.presets.flatMap((preset) => preset.sites),
+    ),
     privateAllow: privateAllowNames(env),
     ownHosts: OWN_URL_ENVS.map((name) => env[name])
-      .filter((value): value is string => typeof value === 'string' && value !== '')
+      .filter(
+        (value): value is string => typeof value === 'string' && value !== '',
+      )
       .map(hostOf)
       .filter((host): host is string => host !== null),
   };
@@ -70,7 +74,9 @@ export const REPOSITORIES_CAP_ENV = 'HARNESS_ALLOWED_REPOSITORIES_CAP';
  * host. Unset or blank: no cap. An entry that cannot be read throws, so Node
  * refuses to start rather than cap less than the operator meant.
  */
-export function deploymentRepositoryCap(env: Env = process.env): RepositoryPolicy | null {
+export function deploymentRepositoryCap(
+  env: Env = process.env,
+): RepositoryPolicy | null {
   const raw = (env[REPOSITORIES_CAP_ENV] ?? '').trim();
   if (raw === '') return null;
   if (raw.toLowerCase() === 'none') return { hosts: [] };
@@ -80,11 +86,20 @@ export function deploymentRepositoryCap(env: Env = process.env): RepositoryPolic
     const slash = text.indexOf('/');
     const host = (slash === -1 ? text : text.slice(0, slash)).toLowerCase();
     const prefix = slash === -1 ? null : text.slice(slash + 1);
-    if (!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]*$/.test(host)) {
-      throw new Error(`${REPOSITORIES_CAP_ENV}: ${JSON.stringify(part)} is not a git host name`);
+    if (
+      !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]*$/.test(host)
+    ) {
+      throw new Error(
+        `${REPOSITORIES_CAP_ENV}: ${JSON.stringify(part)} is not a git host name`,
+      );
     }
-    if (prefix !== null && !/^[A-Za-z0-9_.-]+(?:\/(?:[A-Za-z0-9_.-]+)?)?$/.test(prefix)) {
-      throw new Error(`${REPOSITORIES_CAP_ENV}: ${JSON.stringify(part)} is not host, host/owner/ or host/owner/repo`);
+    if (
+      prefix !== null &&
+      !/^[A-Za-z0-9_.-]+(?:\/(?:[A-Za-z0-9_.-]+)?)?$/.test(prefix)
+    ) {
+      throw new Error(
+        `${REPOSITORIES_CAP_ENV}: ${JSON.stringify(part)} is not host, host/owner/ or host/owner/repo`,
+      );
     }
     const known = byHost.get(host);
     if (prefix === null || known === null) byHost.set(host, null);
@@ -98,7 +113,12 @@ export function deploymentRepositoryCap(env: Env = process.env): RepositoryPolic
 
 /** The release's repository presets (WP-63 part A): `github-public` -> github.com. */
 export function repositoryPresets(): RepositoryPresets {
-  return new Map((WEBSITE_RULES.repositoryPresets ?? []).map((preset) => [preset.id, preset.host]));
+  return new Map(
+    (WEBSITE_RULES.repositoryPresets ?? []).map((preset) => [
+      preset.id,
+      preset.host,
+    ]),
+  );
 }
 
 /** What an org that never saved its git hosts allows (ADR-REPO-01): the release's default presets. */
@@ -114,7 +134,9 @@ export function releaseRepositoryDefault(): RepositoryPolicy {
  * entry that cannot be read throws, so Node refuses to start rather than cap
  * less than the operator meant.
  */
-export function deploymentWebsiteCap(env: Env = process.env): WebsitePolicy | null {
+export function deploymentWebsiteCap(
+  env: Env = process.env,
+): WebsitePolicy | null {
   const raw = (env[WEBSITES_CAP_ENV] ?? '').trim();
   if (raw === '') return null;
   if (raw.toLowerCase() === 'none') return { sites: [] };
@@ -124,9 +146,15 @@ export function deploymentWebsiteCap(env: Env = process.env): WebsitePolicy | nu
     const host = (hostText ?? '').trim().toLowerCase();
     const access = (accessText ?? 'read').trim();
     if (!/^(?:\*\.)?[a-z0-9.-]+\.[a-z][a-z0-9-]*$/.test(host)) {
-      throw new Error(`${WEBSITES_CAP_ENV}: ${JSON.stringify(part)} is not a host name`);
+      throw new Error(
+        `${WEBSITES_CAP_ENV}: ${JSON.stringify(part)} is not a host name`,
+      );
     }
-    if (access !== 'read' && access !== 'read-write' && access !== 'host-level') {
+    if (
+      access !== 'read' &&
+      access !== 'read-write' &&
+      access !== 'host-level'
+    ) {
       throw new Error(
         `${WEBSITES_CAP_ENV}: ${JSON.stringify(part)} access is read, read-write or host-level`,
       );

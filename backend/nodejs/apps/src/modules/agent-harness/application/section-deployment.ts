@@ -39,7 +39,16 @@ export function sectionDeployment(
       status = null;
     }
     if (status === null) return { tunnels };
-    const { totalMb, perRepoMb, concurrency, usedMb, freeMb, reserveMb, diskLow, cacheUnwritable } = status;
+    const {
+      totalMb,
+      perRepoMb,
+      concurrency,
+      usedMb,
+      freeMb,
+      reserveMb,
+      diskLow,
+      cacheUnwritable,
+    } = status;
     return {
       tunnels,
       cache: {

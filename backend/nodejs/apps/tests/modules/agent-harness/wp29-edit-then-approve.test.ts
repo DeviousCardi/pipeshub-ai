@@ -171,7 +171,7 @@ describe('AP-06: edit-then-approve (C3.75)', () => {
   it('AP-06: a batch never carries an edit', async () => {
     const { service, command, control } = world();
     const { interactionId: _id, ...rest } = command;
-    void _id;
+    _id;
     let refused: unknown;
     try {
       await service.decideAll({ ...rest, interactionIds: ['ix.a', 'ix.b'] });

@@ -15,4 +15,4 @@ export const PUBLIC_MCP_TOOLS = Object.freeze([
   'pipeshub_preview_record',
   'pipeshub_show_citations',
   'pipeshub_upload',
-] as const)
+] as const);

@@ -12,7 +12,7 @@ import type { z as z3 } from 'zod/v3';
  */
 export function contract<Output>(
   schema: z3.ZodType<Output, z3.ZodTypeDef, unknown>,
-): z.ZodType<Output, unknown> {
+): z.ZodType<Output> {
   return z
     .unknown()
     .optional()

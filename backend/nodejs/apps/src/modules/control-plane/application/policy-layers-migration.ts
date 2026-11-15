@@ -91,9 +91,7 @@ export interface PolicyLayersMigrationOptions {
  * what the KV documents say (the dual-write window keeps the two equal), so
  * no change made through the store alone is lost.
  */
-export class PolicyLayersMigration
-  implements ControlPlaneDataMigration<PolicyMigrationReport>
-{
+export class PolicyLayersMigration implements ControlPlaneDataMigration<PolicyMigrationReport> {
   readonly id = POLICY_LAYERS_MIGRATION_ID;
   readonly ledgerKey = `cpMigrationLedger/${POLICY_LAYERS_MIGRATION_ID}`;
 
@@ -331,7 +329,7 @@ export class PolicyLayersMigration
               object: { type: 'policy-migration', id: this.id },
               revisionFrom: null,
               revisionTo: null,
-              changeDigest: done.digest as `sha256:${string}`,
+              changeDigest: done.digest,
               changed: done.changed,
             },
           };
@@ -366,7 +364,9 @@ export class PolicyLayersMigration
     for (const orgId of orgIds) {
       try {
         // Each org's step runs as that org, which the migration's own listing named.
-        orgs.push(await forEnumeratedOrg(orgId, MIGRATION_JOB, () => step(orgId)));
+        orgs.push(
+          await forEnumeratedOrg(orgId, MIGRATION_JOB, () => step(orgId)),
+        );
       } catch (error) {
         if (!isStoreDown(error)) throw error;
         stoppedAt = { orgId, code: 'CP_UNAVAILABLE' };

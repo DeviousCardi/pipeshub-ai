@@ -1,5 +1,9 @@
 import mongoose, { ClientSession, Model } from 'mongoose';
-import type { ApplyBasicCreateCasting, DeepPartial, Require_id } from 'mongoose';
+import type {
+  ApplyBasicCreateCasting,
+  DeepPartial,
+  Require_id,
+} from 'mongoose';
 import {
   AnyClientBulkWriteModel,
   MongoClientBulkWriteError,
@@ -18,13 +22,19 @@ export interface QueuedUpdate {
 }
 
 // What Mongoose's own `Connection.bulkWrite` casts its updates with (in place); its typings leave it out.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { cast: castUpdate } = require('mongoose/lib/helpers/model/castBulkWrite') as {
-  cast: Record<
-    QueuedUpdate['name'],
-    (model: Model<unknown>, op: QueuedUpdate, options: object, now: Date) => unknown
-  >;
-};
+
+const { cast: castUpdate } =
+  require('mongoose/lib/helpers/model/castBulkWrite') as {
+    cast: Record<
+      QueuedUpdate['name'],
+      (
+        model: Model<unknown>,
+        op: QueuedUpdate,
+        options: object,
+        now: Date,
+      ) => unknown
+    >;
+  };
 
 /** MongoDB 8.0's wire version: the first with the client-level `bulkWrite` command. */
 export const BULK_WRITE_WIRE_VERSION = 25;
@@ -226,8 +236,13 @@ export const createInTransaction = <T>(
 ): Promise<void> =>
   transactionWrites.insert(session, model, documents, () =>
     // Mongoose 9 types create()'s documents from T's casting, which a generic T cannot be related to.
-    model.create([...documents] as Array<DeepPartial<ApplyBasicCreateCasting<Require_id<T>>>>, {
-      session,
-      ordered: true,
-    }),
+    model.create(
+      [...documents] as Array<
+        DeepPartial<ApplyBasicCreateCasting<Require_id<T>>>
+      >,
+      {
+        session,
+        ordered: true,
+      },
+    ),
   );

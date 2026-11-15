@@ -15,8 +15,11 @@ export type FrameVersion = typeof LEGACY_FRAMES | typeof OUTCOME_FRAMES;
 /** The version a header value names: a newer one than this Node knows reads as the newest it serves. */
 export function frameVersion(value: unknown): FrameVersion {
   const sent = Array.isArray(value) ? value[0] : value;
-  if (typeof sent !== 'string' || !/^\s*\d{1,3}\s*$/.test(sent)) return LEGACY_FRAMES;
-  return Number.parseInt(sent, 10) >= OUTCOME_FRAMES ? OUTCOME_FRAMES : LEGACY_FRAMES;
+  if (typeof sent !== 'string' || !/^\s*\d{1,3}\s*$/.test(sent))
+    return LEGACY_FRAMES;
+  return Number.parseInt(sent, 10) >= OUTCOME_FRAMES
+    ? OUTCOME_FRAMES
+    : LEGACY_FRAMES;
 }
 
 /** The version a request asks for, as a field to spread; none for the legacy frames. */
@@ -28,5 +31,6 @@ export function framesOf(req: { headers?: Record<string, unknown> }): {
 }
 
 /** The frames carry the run's typed outcome on its failure and push its spend. */
-export const servesOutcomeFrames = (version: FrameVersion | undefined): boolean =>
-  (version ?? LEGACY_FRAMES) >= OUTCOME_FRAMES;
+export const servesOutcomeFrames = (
+  version: FrameVersion | undefined,
+): boolean => (version ?? LEGACY_FRAMES) >= OUTCOME_FRAMES;

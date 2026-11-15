@@ -75,25 +75,33 @@ export interface SlackHandOff {
 
 /** The hand-off a finished frame's `result` carries, or null when the run ended. */
 export function handOffOf(result: unknown): SlackHandOff | null {
-  if (!result || typeof result !== "object") return null;
+  if (!result || typeof result !== 'object') return null;
   const meta = (result as Record<string, unknown>).meta;
-  if (!meta || typeof meta !== "object") return null;
+  if (!meta || typeof meta !== 'object') return null;
   const m = meta as Record<string, unknown>;
-  if (m.awaiting !== "approval") return null;
+  if (m.awaiting !== 'approval') return null;
   const conversation = extractConversation(result);
   if (conversation === null) return null;
   return {
     conversationId: conversation._id,
-    ...(typeof m.link === "string" && m.link.startsWith("/") ? { link: m.link } : {}),
+    ...(typeof m.link === 'string' && m.link.startsWith('/')
+      ? { link: m.link }
+      : {}),
     ...(m.queued === true ? { queued: true } : {}),
     waitingOn: Array.isArray(m.waitingOn)
       ? m.waitingOn.flatMap((w: unknown) => {
-          const call = w && typeof w === "object" ? (w as Record<string, unknown>) : {};
-          if (typeof call.toolName !== "string" || call.toolName === "") return [];
-          return [{
-            toolName: call.toolName,
-            ...(typeof call.displayName === "string" ? { displayName: call.displayName } : {}),
-          }];
+          const call =
+            w && typeof w === 'object' ? (w as Record<string, unknown>) : {};
+          if (typeof call.toolName !== 'string' || call.toolName === '')
+            return [];
+          return [
+            {
+              toolName: call.toolName,
+              ...(typeof call.displayName === 'string'
+                ? { displayName: call.displayName }
+                : {}),
+            },
+          ];
         })
       : [],
   };
@@ -134,7 +142,6 @@ interface AGUIStreamState {
   confidence?: string;
   rawLength: number;
 }
-
 
 /**
  * What an MCP server said about a running tool (Python's `AGUIFormatter.tool_progress`),

@@ -136,7 +136,8 @@ export function liveLayerOf(input: LiveLayerInput): LiveLayer {
     layers.push(agentKey === null ? { layer } : { agentKey, layer });
   }
   // Not dimensions a layer narrows: the org's own documents, which the workers and gateways apply as they are.
-  const org = input.layers.get(`org:${input.orgId}`) as Record<string, unknown> | undefined;
+  const org = input.layers.get(`org:${input.orgId}`) as
+    Record<string, unknown> | undefined;
   const carried = Object.fromEntries(
     (input.carried ?? [])
       .filter((section) => org?.[section] !== undefined)

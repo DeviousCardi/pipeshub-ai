@@ -41,8 +41,12 @@ function record(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function oneOf<T extends string>(value: unknown, known: readonly T[]): T | undefined {
-  return typeof value === 'string' && (known as readonly string[]).includes(value)
+function oneOf<T extends string>(
+  value: unknown,
+  known: readonly T[],
+): T | undefined {
+  return typeof value === 'string' &&
+    (known as readonly string[]).includes(value)
     ? (value as T)
     : undefined;
 }
@@ -66,7 +70,9 @@ export function outcomeView(data: Record<string, unknown>): OutcomeView | null {
   const file = record(delivered['file']);
   const path = file['path'];
   const by = oneOf(file['by'], ['engine', 'wrap_up'] as const);
-  const missing = Array.isArray(outcome['missing']) ? outcome['missing'][0] : undefined;
+  const missing = Array.isArray(outcome['missing'])
+    ? outcome['missing'][0]
+    : undefined;
   const sources = delivered['sources'];
   const reason = outcome['reason'];
   return {
@@ -77,7 +83,10 @@ export function outcomeView(data: Record<string, unknown>): OutcomeView | null {
       ? { file: { name: fileName(path), by } }
       : {}),
     ...(typeof missing === 'string' && missing.length > 0 ? { missing } : {}),
-    sources: typeof sources === 'number' && Number.isInteger(sources) && sources >= 0 ? sources : 0,
+    sources:
+      typeof sources === 'number' && Number.isInteger(sources) && sources >= 0
+        ? sources
+        : 0,
     kept: delivered['kept'] === true,
     opening: presented['opening'] === true,
     closing,
@@ -104,8 +113,14 @@ export function failedOutcome(failure: {
     kept: false,
     opening: false,
     closing: failure.message,
-    ...(failure.servers !== undefined && failure.servers.length > 0 ? { servers: [...failure.servers] } : {}),
-    ...(failure.stop !== undefined ? { stop: { scope: failure.stop.scope, reason: failure.stop.reason } } : {}),
-    ...(failure.memoryLimitMb !== undefined ? { memoryLimitMb: failure.memoryLimitMb } : {}),
+    ...(failure.servers !== undefined && failure.servers.length > 0
+      ? { servers: [...failure.servers] }
+      : {}),
+    ...(failure.stop !== undefined
+      ? { stop: { scope: failure.stop.scope, reason: failure.stop.reason } }
+      : {}),
+    ...(failure.memoryLimitMb !== undefined
+      ? { memoryLimitMb: failure.memoryLimitMb }
+      : {}),
   };
 }

@@ -2258,7 +2258,8 @@ export const getRecordBuffer =
         if (error.response) {
           // A string, or the connector's `{reasonCode, message}` (e.g. converter_unavailable), relayed as is so the
           // web app can offer the original file instead of a broken preview.
-          let errorMessage: string | { reasonCode?: string; message?: string } = 'Error from AI backend';
+          let errorMessage: string | { reasonCode?: string; message?: string } =
+            'Error from AI backend';
           try {
             const chunks: Buffer[] = [];
             await new Promise<void>((resolve, reject) => {
@@ -2279,7 +2280,10 @@ export const getRecordBuffer =
           logger.error('Connector service refused the record stream', {
             recordId: req.params.recordId,
             status: error.response.status,
-            reasonCode: typeof errorMessage === 'object' ? errorMessage?.reasonCode : undefined,
+            reasonCode:
+              typeof errorMessage === 'object'
+                ? errorMessage?.reasonCode
+                : undefined,
           });
           // A 429 is only actionable with the source's own backoff hint, which
           // the connector service put on the response for us to relay.

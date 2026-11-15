@@ -41,4 +41,7 @@ const principalErasureSchema = new Schema<PrincipalErasureDocument>(
 );
 
 export const AgentPrincipalErasureModel: Model<PrincipalErasureDocument> =
-  harnessModel<PrincipalErasureDocument>('AgentPrincipalErasure', principalErasureSchema);
+  harnessModel<PrincipalErasureDocument>(
+    'AgentPrincipalErasure',
+    principalErasureSchema,
+  );

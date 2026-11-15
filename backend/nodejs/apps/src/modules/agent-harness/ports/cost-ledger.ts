@@ -10,7 +10,12 @@ import type { ModelRole } from '../domain/model-roles';
 export interface CostEntryWriter<Tx> {
   insertIn(tx: Tx, entry: CostEntry): Promise<void>;
   /** The role a call's own entry was charged under, so its reconcile counts under the same one; absent: none. */
-  roleIn(tx: Tx, orgId: string, runId: string, key: string): Promise<ModelRole | undefined>;
+  roleIn(
+    tx: Tx,
+    orgId: string,
+    runId: string,
+    key: string,
+  ): Promise<ModelRole | undefined>;
 }
 
 /**
@@ -60,7 +65,10 @@ export const noSharedBudgets: SharedBudgetGuard = Object.freeze({
     _attribution: CostAttribution,
     requested: BudgetAmount,
   ): Promise<BudgetAmount> => requested,
-  stoppingLeft: async (): Promise<SharedBudgetLeft> => ({ left: null, scope: null }),
+  stoppingLeft: async (): Promise<SharedBudgetLeft> => ({
+    left: null,
+    scope: null,
+  }),
   foldSoon: async (): Promise<void> => undefined,
 });
 

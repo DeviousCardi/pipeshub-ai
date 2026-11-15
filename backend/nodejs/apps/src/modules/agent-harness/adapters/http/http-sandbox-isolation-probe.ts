@@ -35,7 +35,8 @@ export class HttpSandboxIsolationProbe implements CapabilityProbe {
       this.credential(),
     ]);
     if (endpoint === null) return {};
-    if (credential === null) throw new Error('worker credential not provisioned');
+    if (credential === null)
+      throw new Error('worker credential not provisioned');
     const response = await this.fetchImpl(
       `${endpoint.replace(/\/+$/, '')}/v1/health`,
       {
@@ -55,6 +56,8 @@ export class HttpSandboxIsolationProbe implements CapabilityProbe {
     if (!Array.isArray(modes)) throw new Error('malformed broker health');
     const ok = (body as Record<string, unknown>)['ok'] === true;
     const found = ISOLATION_BY_MODE.find(([mode]) => modes.includes(mode));
-    return { 'sandbox.isolation': ok && found !== undefined ? found[1] : 'none' };
+    return {
+      'sandbox.isolation': ok && found !== undefined ? found[1] : 'none',
+    };
   }
 }

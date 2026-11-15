@@ -35,7 +35,10 @@ export const signinChannel = (name: string, namespace = ''): string =>
  */
 export class RedisEngineSignInRelay implements EngineSignInRelay {
   private subscriber: Redis | null = null;
-  private readonly waiting = new Map<string, (answer: SignInRelayAnswer) => void>();
+  private readonly waiting = new Map<
+    string,
+    (answer: SignInRelayAnswer) => void
+  >();
 
   constructor(private readonly provider: IRedisConnectionProvider) {}
 
@@ -92,7 +95,10 @@ export class RedisEngineSignInRelay implements EngineSignInRelay {
       'EX',
       REVOCATION_MEMORY_S,
     );
-    await client.publish(signinChannel(REVOKE_CHANNEL, ns), JSON.stringify(revocation));
+    await client.publish(
+      signinChannel(REVOKE_CHANNEL, ns),
+      JSON.stringify(revocation),
+    );
   }
 
   private listener(): Redis {

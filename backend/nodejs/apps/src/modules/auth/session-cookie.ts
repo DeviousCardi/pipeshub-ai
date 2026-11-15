@@ -44,7 +44,9 @@ type Env = Readonly<Record<string, string | undefined>>;
 
 function originHeader(req: Request): string | null {
   const value = req.headers.origin;
-  return typeof value === 'string' && value !== '' && value !== 'null' ? value : null;
+  return typeof value === 'string' && value !== '' && value !== 'null'
+    ? value
+    : null;
 }
 
 /**
@@ -92,7 +94,9 @@ function cookieOptions(secure: boolean): CookieOptions {
   };
 }
 
-export function parseCookieHeader(header: string | undefined): Map<string, string> {
+export function parseCookieHeader(
+  header: string | undefined,
+): Map<string, string> {
   const cookies = new Map<string, string>();
   if (!header) return cookies;
   for (const part of header.split(';')) {
@@ -101,7 +105,8 @@ export function parseCookieHeader(header: string | undefined): Map<string, strin
     const name = part.slice(0, eq).trim();
     if (!name || cookies.has(name)) continue;
     let value = part.slice(eq + 1).trim();
-    if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+    if (value.startsWith('"') && value.endsWith('"'))
+      value = value.slice(1, -1);
     try {
       cookies.set(name, decodeURIComponent(value));
     } catch {
@@ -113,13 +118,18 @@ export function parseCookieHeader(header: string | undefined): Map<string, strin
 
 /** The refresh token in this scheme's cookie, or null. */
 export function readSessionCookie(req: Request): string | null {
-  const value = parseCookieHeader(req.headers.cookie).get(sessionCookieName(req));
+  const value = parseCookieHeader(req.headers.cookie).get(
+    sessionCookieName(req),
+  );
   return value ? value : null;
 }
 
 export function wantsCookieDelivery(req: Request): boolean {
   const value = req.headers?.[SESSION_DELIVERY_HEADER];
-  return typeof value === 'string' && value.trim().toLowerCase() === SESSION_DELIVERY_COOKIE;
+  return (
+    typeof value === 'string' &&
+    value.trim().toLowerCase() === SESSION_DELIVERY_COOKIE
+  );
 }
 
 /** The origins that may use the cookie besides the server's own: the configured UI and CORS origins. */
@@ -133,7 +143,10 @@ export function trustedPageOrigins(env: Env = process.env): Set<string> {
       // A malformed entry trusts nothing.
     }
   };
-  for (const entry of (env.ALLOWED_ORIGINS ?? 'http://localhost:3001').split(',')) add(entry);
+  for (const entry of (env.ALLOWED_ORIGINS ?? 'http://localhost:3001').split(
+    ',',
+  ))
+    add(entry);
   add(env.FRONTEND_PUBLIC_URL);
   return origins;
 }
@@ -144,7 +157,10 @@ export function trustedPageOrigins(env: Env = process.env): Set<string> {
  * subdomain (same site, other origin) and a request with no Origin at all,
  * which no browser page sends on a POST.
  */
-export function cookieRequestOriginAllowed(req: Request, env: Env = process.env): boolean {
+export function cookieRequestOriginAllowed(
+  req: Request,
+  env: Env = process.env,
+): boolean {
   if (req.headers['sec-fetch-site'] === 'cross-site') return false;
   const origin = originHeader(req);
   if (!origin) return false;
@@ -190,7 +206,9 @@ export function setSessionCookie(
   req: Request,
   res: Response,
   refreshToken: string,
-  org: string | null = sessionOrgOfRequest(req) ? sessionOrgOfToken(refreshToken) : null,
+  org: string | null = sessionOrgOfRequest(req)
+    ? sessionOrgOfToken(refreshToken)
+    : null,
 ): void {
   writeSessionCookie(res, refreshToken, { secure: pageIsSecure(req), org });
 }
@@ -200,7 +218,9 @@ export function sessionOrgsOfCookies(req: Request): string[] {
   const orgs = new Set<string>();
   for (const name of parseCookieHeader(req.headers?.cookie).keys()) {
     for (const base of [SECURE_SESSION_COOKIE, PLAIN_SESSION_COOKIE]) {
-      const org = name.startsWith(`${base}.`) ? name.slice(base.length + 1) : null;
+      const org = name.startsWith(`${base}.`)
+        ? name.slice(base.length + 1)
+        : null;
       if (org && SESSION_ORG.test(org)) orgs.add(org);
     }
   }
@@ -208,7 +228,10 @@ export function sessionOrgsOfCookies(req: Request): string[] {
 }
 
 /** Clears both names: a person who moved the install from http to https signs out of both. */
-export function clearSessionCookies(res: Response, orgs: Iterable<string | null> = [null]): void {
+export function clearSessionCookies(
+  res: Response,
+  orgs: Iterable<string | null> = [null],
+): void {
   for (const org of orgs) {
     res.clearCookie(cookieNameFor(true, org), {
       httpOnly: true,
@@ -283,7 +306,12 @@ export function refreshTokenFromCookie(env: Env = process.env) {
 
 /** A cookie the server refused (expired, ended by a sign-out) is cleared, so the browser stops sending it. */
 export function clearRefusedSessionCookie() {
-  return (error: unknown, req: Request, res: Response, next: NextFunction): void => {
+  return (
+    error: unknown,
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): void => {
     if (
       sessionCameFromCookie(res) &&
       error instanceof BaseError &&
@@ -319,8 +347,14 @@ export function signOutSessionCookie(env: Env = process.env) {
 /** Every session cookie value the request carries, of this scheme: the default one and each organisation's. */
 export function sessionCookieTokens(req: Request): string[] {
   const cookies = parseCookieHeader(req.headers?.cookie);
-  const names = [null, ...sessionOrgsOfCookies(req)].map((org) => sessionCookieName(req, org));
-  return [...new Set(names.map((n) => cookies.get(n)).filter((v): v is string => !!v))];
+  const names = [null, ...sessionOrgsOfCookies(req)].map((org) =>
+    sessionCookieName(req, org),
+  );
+  return [
+    ...new Set(
+      names.map((n) => cookies.get(n)).filter((v): v is string => !!v),
+    ),
+  ];
 }
 
 /**

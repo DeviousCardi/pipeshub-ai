@@ -19,7 +19,6 @@ const toEvent = (
   document: SessionEventDocument & { _id?: unknown },
 ): JournalEvent => {
   const { _id, ts, ...event } = document;
-  void _id;
   return { ...structuredClone(event), ts: ts.toISOString() };
 };
 

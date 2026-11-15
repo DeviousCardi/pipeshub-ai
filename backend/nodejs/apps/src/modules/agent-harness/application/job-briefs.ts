@@ -5,7 +5,12 @@ import {
   HarnessUnavailableError,
 } from '../domain/errors';
 import { HarnessRun, TERMINAL_RUN_STATUSES } from '../domain/execution';
-import { delegatedTask, jobBrief, JobBrief, jobTitle } from '../domain/job-brief';
+import {
+  delegatedTask,
+  jobBrief,
+  JobBrief,
+  jobTitle,
+} from '../domain/job-brief';
 import {
   type ListedJob,
   MAX_SESSION_JOBS,
@@ -181,7 +186,10 @@ export class JobBriefService {
     job: ListedJob,
   ): Promise<string | undefined> {
     try {
-      return nonEmpty(delegatedTask((await inputs.open(job.run)).input?.query)) ?? undefined;
+      return (
+        nonEmpty(delegatedTask((await inputs.open(job.run)).input?.query)) ??
+        undefined
+      );
     } catch {
       return undefined;
     }

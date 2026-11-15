@@ -103,8 +103,10 @@ export const configPaths = {
     workerCredential: '/services/agentHarness/workerCredential',
     // SEC-C-10: one credential set per machine role besides the worker's, encrypted like it.
     roleCredentialScrape: '/services/agentHarness/roleCredentials/scrape',
-    roleCredentialEgressProxy: '/services/agentHarness/roleCredentials/egressProxy',
-    roleCredentialSandboxBroker: '/services/agentHarness/roleCredentials/sandboxBroker',
+    roleCredentialEgressProxy:
+      '/services/agentHarness/roleCredentials/egressProxy',
+    roleCredentialSandboxBroker:
+      '/services/agentHarness/roleCredentials/sandboxBroker',
     // ADR-KEY-02: what Node seals for each sandbox-plane component, under that component's own key (never SECRET_KEY).
     componentEgressProxy: '/services/agentHarness/components/egressProxy',
     componentSandboxBroker: '/services/agentHarness/components/sandboxBroker',

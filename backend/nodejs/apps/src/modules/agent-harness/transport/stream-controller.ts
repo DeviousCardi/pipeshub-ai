@@ -27,7 +27,7 @@ export function viewerScope(
     orgId,
     actorId,
     sessionId: req.params['sessionId'] as string,
-    ...(kind === 'agent' ? { agentKey: req.params['agentKey'] as string } : {}),
+    ...(kind === 'agent' ? { agentKey: req.params['agentKey'] } : {}),
   };
 }
 

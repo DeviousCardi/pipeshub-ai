@@ -556,14 +556,22 @@ export const xssSanitizationMiddleware = (
     if (req.query && typeof req.query === 'object' && !Array.isArray(req.query)) {
       validateNoXSS(req.query, 'query');
       // After validation passes, sanitize to ensure clean data
-      req.query = sanitizeValue(req.query, undefined, budget) as typeof req.query;
+      req.query = sanitizeValue(
+        req.query,
+        undefined,
+        budget,
+      ) as typeof req.query;
     }
 
     // Validate route parameters
     if (req.params && typeof req.params === 'object' && !Array.isArray(req.params)) {
       validateNoXSS(req.params, 'params');
       // After validation passes, sanitize to ensure clean data
-      req.params = sanitizeValue(req.params, undefined, budget) as typeof req.params;
+      req.params = sanitizeValue(
+        req.params,
+        undefined,
+        budget,
+      ) as typeof req.params;
     }
 
     // Continue to next middleware/route handler

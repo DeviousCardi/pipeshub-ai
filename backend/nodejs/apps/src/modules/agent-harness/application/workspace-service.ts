@@ -779,7 +779,10 @@ export class WorkspaceService {
       versions: await Promise.all(
         rows.map(async (row) =>
           row.reason === 'upload'
-            ? { ...versionView(row), paths: await this.uploadedPaths(bound, workspaceId, row) }
+            ? {
+                ...versionView(row),
+                paths: await this.uploadedPaths(bound, workspaceId, row),
+              }
             : versionView(row),
         ),
       ),
@@ -798,7 +801,9 @@ export class WorkspaceService {
     ]);
     const parent = filesOf(before);
     return after.files
-      .filter((entry) => parent.get(entry.path)?.contentHash !== entry.contentHash)
+      .filter(
+        (entry) => parent.get(entry.path)?.contentHash !== entry.contentHash,
+      )
       .map((entry) => entry.path)
       .sort();
   }

@@ -152,7 +152,9 @@ interface RelayedRefusal {
  * A Python route's typed refusal: FastAPI's `detail` carrying `{reasonCode | code, message}`
  * (the MCP hub, the query service) or the same fields at the top of the body.
  */
-const relayedRefusal = (data: Indexed | undefined): RelayedRefusal | undefined => {
+const relayedRefusal = (
+  data: Indexed | undefined,
+): RelayedRefusal | undefined => {
   const detail = asRecord(data?.detail);
   const source = detail ?? data;
   const code = detail ? (detail.reasonCode ?? detail.code) : data?.reasonCode;

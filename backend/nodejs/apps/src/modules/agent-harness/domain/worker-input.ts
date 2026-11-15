@@ -6,7 +6,8 @@ import { OUTPUT_LOCALE_FEATURE } from './output-locale';
  * R33JGAPS-FU-1: a chat turn's `keywordSearchBudget` (`short` | `full`) reaches the run's knowledge searches, as it
  * does on today's loop, while a live worker reads it; an older worker's input model refuses the field.
  */
-export const KEYWORD_SEARCH_BUDGET_FEATURE: WorkerFeature = 'keyword_search_budget';
+export const KEYWORD_SEARCH_BUDGET_FEATURE: WorkerFeature =
+  'keyword_search_budget';
 
 /**
  * Run-input fields an older worker's input model refuses (it forbids unknown fields), each with the guarded feature

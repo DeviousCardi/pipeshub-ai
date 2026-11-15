@@ -180,16 +180,21 @@ export const NODE_CAPABILITIES: Readonly<NodeCapabilities> = Object.freeze({
 });
 
 /** What this Node names on its claims: `NODE_CAPABILITIES` and what an edition adds. */
-export function advertisedNodeCapabilities(bound: {
-  /**
-   * An edition's features: those of the run fields it records (`recordedRunFeatures`) and those its bound services
-   * serve (`ClaimFeatureSource`); absent: none.
-   */
-  edition?: readonly string[];
-} = {}): Readonly<NodeCapabilities> {
+export function advertisedNodeCapabilities(
+  bound: {
+    /**
+     * An edition's features: those of the run fields it records (`recordedRunFeatures`) and those its bound services
+     * serve (`ClaimFeatureSource`); absent: none.
+     */
+    edition?: readonly string[];
+  } = {},
+): Readonly<NodeCapabilities> {
   const own = NODE_CAPABILITIES.features;
   return Object.freeze({
     harnessMajor: 2 as const,
-    features: [...own, ...(bound.edition ?? []).filter((feature) => !own.includes(feature))],
+    features: [
+      ...own,
+      ...(bound.edition ?? []).filter((feature) => !own.includes(feature)),
+    ],
   });
 }

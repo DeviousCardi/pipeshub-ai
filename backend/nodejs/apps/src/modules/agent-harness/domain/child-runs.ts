@@ -179,7 +179,9 @@ const wholeMcpServers = (spec: RunSpec): Map<string, McpGrant> =>
  * ADR-OWD-07 D-LAZY-5 (R31HOT2): the first-use pins of the MCP servers a parent has listed, as its worker carries them
  * into a spawn: per instance, each tool its first listing served, by the server's own name, at its descriptor digest.
  */
-export type McpFirstUsePins = Readonly<Record<string, Readonly<Record<string, string>>>>;
+export type McpFirstUsePins = Readonly<
+  Record<string, Readonly<Record<string, string>>>
+>;
 
 /**
  * The parent's pin of one server: the one its own spec carries (inherited from its parent, which its worker is held
@@ -209,7 +211,8 @@ const heldTools = (
     ],
     alsoHeld: (toolId) => {
       const [, instanceId, tool] = MCP_TOOL_ID.exec(toolId) ?? [];
-      const server = instanceId === undefined ? undefined : whole.get(instanceId);
+      const server =
+        instanceId === undefined ? undefined : whole.get(instanceId);
       if (server === undefined || tool === undefined) return false;
       const pin = parentPinOf(server, carried);
       return pin === undefined || Object.hasOwn(pin, tool);
@@ -411,7 +414,12 @@ export function childGrants(
 ): ChildGrantDecision {
   const grants: Partial<ChildGrants> = {};
   for (const [dimension, check] of CHILD_GRANT_DIMENSIONS) {
-    const result = check({ parent, request, depth, ...(pins !== undefined ? { pins } : {}) });
+    const result = check({
+      parent,
+      request,
+      depth,
+      ...(pins !== undefined ? { pins } : {}),
+    });
     if (result.refused !== undefined) {
       return {
         grants: null,
@@ -1045,7 +1053,10 @@ const MACHINE_NAME = /^[a-z0-9][a-z0-9_.-]{0,63}$/;
  * The sub-agent result shape (`spawn_agent.child_result_content`) for a child
  * that produced no answer: Node writes it inline, as trusted content of its own.
  */
-export function childFailureResult(errorType: string, memoryLimitMb?: number): ChildResult {
+export function childFailureResult(
+  errorType: string,
+  memoryLimitMb?: number,
+): ChildResult {
   // An out-of-memory end names its limit, so the parent's step and model say which limit the work met.
   const document = {
     error: errorType,
@@ -1092,7 +1103,9 @@ export function childCompletedEvent(
     labels: result.labels,
     outcome,
     ...(answered ? {} : { errorType }),
-    ...(!answered && errorType === OUT_OF_MEMORY_ERROR && ending.memoryLimitMb !== undefined
+    ...(!answered &&
+    errorType === OUT_OF_MEMORY_ERROR &&
+    ending.memoryLimitMb !== undefined
       ? { memoryLimitMb: ending.memoryLimitMb }
       : {}),
   });
@@ -1102,7 +1115,10 @@ export function childCompletedEvent(
 const OUT_OF_MEMORY_ERROR = 'out_of_memory';
 
 const memoryLimit = (value: unknown): { memoryLimitMb?: number } =>
-  typeof value === 'number' && Number.isInteger(value) && value > 0 && value <= 1_048_576
+  typeof value === 'number' &&
+  Number.isInteger(value) &&
+  value > 0 &&
+  value <= 1_048_576
     ? { memoryLimitMb: value }
     : {};
 
@@ -1276,7 +1292,9 @@ export const endingOf = (
   ...(transition.errorType !== undefined
     ? { errorType: transition.errorType }
     : {}),
-  ...(transition.detail?.kind === 'fail' ? memoryLimit(transition.detail.memoryLimitMb) : {}),
+  ...(transition.detail?.kind === 'fail'
+    ? memoryLimit(transition.detail.memoryLimitMb)
+    : {}),
   ...(transition.childResult !== undefined
     ? { result: transition.childResult }
     : {}),

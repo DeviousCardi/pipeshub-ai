@@ -99,9 +99,7 @@ const engineOf = (source: unknown): EngineId | null => {
   };
   const engine =
     config.dimensions?.[ENGINE]?.value ?? config.engineProfile?.engine;
-  return typeof engine === 'object' && engine !== null
-    ? (engine as EngineId)
-    : null;
+  return typeof engine === 'object' && engine !== null ? engine : null;
 };
 
 const sameEngine = (a: EngineId | null, b: EngineId): boolean =>
@@ -252,8 +250,7 @@ export class PolicyRunConfigPinner<P> implements RunConfigPinner {
     const held = this.rollouts.get(snapshot);
     if (held !== undefined) return held;
     const release = this.releases[0]?.values as
-      | { [ROLLOUT]?: unknown }
-      | undefined;
+      { [ROLLOUT]?: unknown } | undefined;
     const org = snapshot.layers.get(`org:${snapshot.orgId}`);
     const resolved = this.options.engine.resolve([
       { kind: 'release', values: { [ROLLOUT]: release?.[ROLLOUT] ?? {} } },

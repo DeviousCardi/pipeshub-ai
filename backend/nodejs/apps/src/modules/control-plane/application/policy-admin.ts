@@ -193,7 +193,9 @@ export interface PolicyAdminDeps {
     orgDefault?(): RepositoryPolicy;
   };
   /** What the deployment fixes for a section's screen (`SectionContext.deployment`); absent: nothing. */
-  readonly deployment?: (section: PolicySectionName) => Promise<SectionDeployment | null>;
+  readonly deployment?: (
+    section: PolicySectionName,
+  ) => Promise<SectionDeployment | null>;
   /**
    * The org's user groups (G-41): the ids an access section names that are
    * not the org's live groups. Absent: an access save is refused, never
@@ -202,7 +204,10 @@ export interface PolicyAdminDeps {
   readonly accessGroups?: {
     unknownGroups(orgId: string, ids: readonly string[]): Promise<string[]>;
     /** ADR-UI-03: the names of the live groups among the ids; absent: the section is answered without them. */
-    groupNames?(orgId: string, ids: readonly string[]): Promise<Map<string, string>>;
+    groupNames?(
+      orgId: string,
+      ids: readonly string[],
+    ): Promise<Map<string, string>>;
   };
   /** The sections an edition adds to the layer and offers (`isEditionSection`); absent: none, and each is refused. */
   readonly sections?: readonly PolicySectionRule[];
@@ -296,7 +301,11 @@ export class PolicyAdmin {
 
   /** Whether only the org's admins read and change `section` (an edition's `adminOnly` section). */
   adminOnly(section: string): boolean {
-    return this.deps.sections?.some((r) => r.section === section && r.adminOnly === true) === true;
+    return (
+      this.deps.sections?.some(
+        (r) => r.section === section && r.adminOnly === true,
+      ) === true
+    );
   }
 
   /** A built-in section, or an edition's this deployment offers. */
@@ -306,16 +315,25 @@ export class PolicyAdmin {
 
   /** `assertScoped` with the section's rule, if an edition offers it. */
   private assertScoped(scope: string, section: PolicySectionName): void {
-    assertScoped(scope, section, this.deps.sections?.find((r) => r.section === section) ?? null);
+    assertScoped(
+      scope,
+      section,
+      this.deps.sections?.find((r) => r.section === section) ?? null,
+    );
   }
 
   /** Whether an admin may set `path` here: false only for an edition dimension no edition offers. */
   offersDimension(path: string): boolean {
-    return !EDITION_DIMENSIONS.has(path) || this.deps.dimensions?.includes(path) === true;
+    return (
+      !EDITION_DIMENSIONS.has(path) ||
+      this.deps.dimensions?.includes(path) === true
+    );
   }
 
   /** The context's ceilings without the edition dimensions this deployment does not offer. */
-  private offeredCeilings(ceilings: Record<string, unknown>): Record<string, unknown> {
+  private offeredCeilings(
+    ceilings: Record<string, unknown>,
+  ): Record<string, unknown> {
     return Object.fromEntries(
       Object.entries(ceilings).filter(([path]) => this.offersDimension(path)),
     );
@@ -361,7 +379,9 @@ export class PolicyAdmin {
     const value = sectionOf(layer, section);
     const [deployment, names] = await Promise.all([
       this.deps.deployment?.(section) ?? Promise.resolve(null),
-      section === ACCESS_SECTION ? this.accessNames(orgId, value) : Promise.resolve(null),
+      section === ACCESS_SECTION
+        ? this.accessNames(orgId, value)
+        : Promise.resolve(null),
     ]);
     return {
       section,
@@ -381,13 +401,19 @@ export class PolicyAdmin {
   ): Promise<{ groups: Record<string, string> } | null> {
     const reader = this.deps.accessGroups;
     if (reader?.groupNames === undefined) return null;
-    if (value === null || value === undefined || accessGroupsShapeProblem(value) !== null) {
+    if (
+      value === null ||
+      value === undefined ||
+      accessGroupsShapeProblem(value) !== null
+    ) {
       return { groups: {} };
     }
-    const ids = accessGroupIds(value as AccessGroupsPolicy);
+    const ids = accessGroupIds(value);
     if (ids.length === 0) return { groups: {} };
     try {
-      return { groups: Object.fromEntries(await reader.groupNames(orgId, ids)) };
+      return {
+        groups: Object.fromEntries(await reader.groupNames(orgId, ids)),
+      };
     } catch {
       // A name is a convenience: the section is still answered, and the editor shows the groups as unnamed.
       return { groups: {} };
@@ -436,8 +462,10 @@ export class PolicyAdmin {
         { dimension: section },
       );
     }
-    if (section === WEBSITES_SECTION && value !== null) this.assertWebsites(value, scope);
-    if (section === REPOSITORIES_SECTION && value !== null) this.assertRepositories(value);
+    if (section === WEBSITES_SECTION && value !== null)
+      this.assertWebsites(value, scope);
+    if (section === REPOSITORIES_SECTION && value !== null)
+      this.assertRepositories(value);
     if (section === ACCESS_SECTION && value !== null) {
       await this.assertAccessGroups(ctx.orgId, value);
     }
@@ -484,10 +512,18 @@ export class PolicyAdmin {
         );
       }
       if (section === WEBSITES_SECTION && value !== null) {
-        await this.assertWebsitesNarrow(ctx.orgId, scope, value as WebsitePolicy);
+        await this.assertWebsitesNarrow(
+          ctx.orgId,
+          scope,
+          value as WebsitePolicy,
+        );
       }
       if (section === REPOSITORIES_SECTION && value !== null) {
-        await this.assertRepositoriesNarrow(ctx.orgId, scope, value as RepositoryPolicy);
+        await this.assertRepositoriesNarrow(
+          ctx.orgId,
+          scope,
+          value as RepositoryPolicy,
+        );
       }
       const refusal = await this.deps.narrows(ctx.orgId, next);
       if (refusal !== null) {
@@ -682,7 +718,11 @@ export class PolicyAdmin {
       // layers above as a save is.
       const rule = this.ruleOf(section);
       if (rule !== null) {
-        rule.check(scopeKind(scope), value, await this.layersAbove(orgId, scope));
+        rule.check(
+          scopeKind(scope),
+          value,
+          await this.layersAbove(orgId, scope),
+        );
       }
       if (section === WEBSITES_SECTION) {
         this.assertWebsites(value, scope);
@@ -690,7 +730,11 @@ export class PolicyAdmin {
       }
       if (section === REPOSITORIES_SECTION) {
         this.assertRepositories(value);
-        await this.assertRepositoriesNarrow(orgId, scope, value as RepositoryPolicy);
+        await this.assertRepositoriesNarrow(
+          orgId,
+          scope,
+          value as RepositoryPolicy,
+        );
       }
     }
     if (readPolicyLayer(layer) === null) {
@@ -710,20 +754,31 @@ export class PolicyAdmin {
   }
 
   /** An access section as its schema reads it, naming only the org's own live groups. */
-  private async assertAccessGroups(orgId: string, value: unknown): Promise<void> {
+  private async assertAccessGroups(
+    orgId: string,
+    value: unknown,
+  ): Promise<void> {
     const shape = accessGroupsShapeProblem(value);
     if (shape !== null) {
-      throw new CpRefusal('CP_INVALID_CONFIG', shape.reason, { dimension: shape.field });
+      throw new CpRefusal('CP_INVALID_CONFIG', shape.reason, {
+        dimension: shape.field,
+      });
     }
     const groups = this.deps.accessGroups;
     if (groups === undefined) {
-      throw new ControlPlaneUnavailableError("The organization's groups cannot be checked here");
+      throw new ControlPlaneUnavailableError(
+        "The organization's groups cannot be checked here",
+      );
     }
     const policy = value as AccessGroupsPolicy;
-    const unknown = new Set(await groups.unknownGroups(orgId, accessGroupIds(policy)));
+    const unknown = new Set(
+      await groups.unknownGroups(orgId, accessGroupIds(policy)),
+    );
     const problem = unknownGroupProblem(policy, unknown);
     if (problem !== null) {
-      throw new CpRefusal('CP_INVALID_CONFIG', problem.reason, { dimension: problem.field });
+      throw new CpRefusal('CP_INVALID_CONFIG', problem.reason, {
+        dimension: problem.field,
+      });
     }
   }
 
@@ -732,9 +787,15 @@ export class PolicyAdmin {
     const websites = this.deps.websites;
     const repositories = this.deps.repositories;
     if (websites === undefined || repositories === undefined) {
-      throw new ControlPlaneUnavailableError('allowed git hosts are not configured on this deployment');
+      throw new ControlPlaneUnavailableError(
+        'allowed git hosts are not configured on this deployment',
+      );
     }
-    const problem = repositoriesProblem(value, websites.rules(), repositories.presets());
+    const problem = repositoriesProblem(
+      value,
+      websites.rules(),
+      repositories.presets(),
+    );
     if (problem !== null) throw repositoryRefusal(problem);
   }
 
@@ -749,20 +810,32 @@ export class PolicyAdmin {
     value: RepositoryPolicy,
   ): Promise<void> {
     const above: RepositoriesAbove[] = [
-      { layer: 'deployment', repositories: this.deps.repositories?.deploymentCap() ?? null },
+      {
+        layer: 'deployment',
+        repositories: this.deps.repositories?.deploymentCap() ?? null,
+      },
     ];
     if (scope.startsWith('agent:')) {
       const read = await this.deps.layers.readMany(orgId, [`org:${orgId}`]);
       const entry = read.get(`org:${orgId}`);
       if (entry?.status === 'unavailable') {
-        throw new ControlPlaneUnavailableError(`the policy of org:${orgId} cannot be read`);
+        throw new ControlPlaneUnavailableError(
+          `the policy of org:${orgId} cannot be read`,
+        );
       }
       above.push({
         layer: 'org',
-        repositories: entry?.layer?.repositories ?? this.deps.repositories?.orgDefault?.() ?? null,
+        repositories:
+          entry?.layer?.repositories ??
+          this.deps.repositories?.orgDefault?.() ??
+          null,
       });
     }
-    const problem = repositoriesWidening(scope.startsWith('agent:') ? 'agent' : 'org', value, above);
+    const problem = repositoriesWidening(
+      scope.startsWith('agent:') ? 'agent' : 'org',
+      value,
+      above,
+    );
     if (problem !== null) throw repositoryRefusal(problem);
   }
 
@@ -770,10 +843,17 @@ export class PolicyAdmin {
   private assertWebsites(value: unknown, scope: string): void {
     const websites = this.deps.websites;
     if (websites === undefined) {
-      throw new ControlPlaneUnavailableError('allowed websites are not configured on this deployment');
+      throw new ControlPlaneUnavailableError(
+        'allowed websites are not configured on this deployment',
+      );
     }
-    const kind = scope.startsWith('agent:') ? 'agent' : scope.startsWith('org:') ? 'org' : 'deployment';
-    const problem = websitesProblem(value, websites.rules()) ?? orgOnlyProblem(value, kind);
+    const kind = scope.startsWith('agent:')
+      ? 'agent'
+      : scope.startsWith('org:')
+        ? 'org'
+        : 'deployment';
+    const problem =
+      websitesProblem(value, websites.rules()) ?? orgOnlyProblem(value, kind);
     if (problem !== null) throw websiteRefusal(problem);
   }
 
@@ -788,14 +868,17 @@ export class PolicyAdmin {
     value: WebsitePolicy,
   ): Promise<void> {
     const cap = this.deps.websites?.deploymentCap() ?? null;
-    const above: { layer: 'deployment' | 'org'; websites: WebsitePolicy | null }[] = [
-      { layer: 'deployment', websites: cap },
-    ];
+    const above: {
+      layer: 'deployment' | 'org';
+      websites: WebsitePolicy | null;
+    }[] = [{ layer: 'deployment', websites: cap }];
     if (scope.startsWith('agent:')) {
       const read = await this.deps.layers.readMany(orgId, [`org:${orgId}`]);
       const entry = read.get(`org:${orgId}`);
       if (entry?.status === 'unavailable') {
-        throw new ControlPlaneUnavailableError(`the policy of org:${orgId} cannot be read`);
+        throw new ControlPlaneUnavailableError(
+          `the policy of org:${orgId} cannot be read`,
+        );
       }
       above.push({ layer: 'org', websites: entry?.layer?.websites ?? null });
     }

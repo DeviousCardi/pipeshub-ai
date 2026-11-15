@@ -59,7 +59,10 @@ export interface GroupRepository {
   get(orgId: string, id: string): Promise<GroupDto | null>;
   getLive(orgId: string, id: string): Promise<GroupDto | null>;
   /** The live groups among `ids`, in one read (a list that names the groups it holds, ADR-UI-03); others are absent. */
-  listLiveByIds(orgId: string, ids: readonly string[]): Promise<GroupSummaryDto[]>;
+  listLiveByIds(
+    orgId: string,
+    ids: readonly string[],
+  ): Promise<GroupSummaryDto[]>;
   /** A live group with this name; `exceptId` leaves one group out (a rename). */
   nameTaken(orgId: string, name: string, exceptId?: string): Promise<boolean>;
   /** Throws `UniqueConstraintError{key:'name'}` when a live group has the name. */

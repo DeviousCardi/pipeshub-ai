@@ -6,7 +6,10 @@ import type { PipeshubRunSpecExtension } from '../contracts/generated/ext/pipesh
  * (`x.pipeshub.repository`). v1 is GitHub only, with the person's own GitHub toolset as the credential.
  */
 export type SessionRepository = Required<
-  Pick<NonNullable<PipeshubRunSpecExtension['repository']>, 'url' | 'toolsetInstanceId'>
+  Pick<
+    NonNullable<PipeshubRunSpecExtension['repository']>,
+    'url' | 'toolsetInstanceId'
+  >
 > &
   Pick<NonNullable<PipeshubRunSpecExtension['repository']>, 'baseRef'>;
 
@@ -68,7 +71,9 @@ export function githubRepository(url: string): string | null {
   const parts = parsed.pathname.slice(1).split('/');
   if (
     parts.length !== 2 ||
-    parts.some((part) => !SEGMENT.test(part) || part === '.' || part === '..') ||
+    parts.some(
+      (part) => !SEGMENT.test(part) || part === '.' || part === '..',
+    ) ||
     (parts[1] as string).endsWith('.git')
   ) {
     return null;

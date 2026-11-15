@@ -52,7 +52,8 @@ export class HeldAsks {
     const asked = state.openAsks.get(interactionId);
     const covered =
       (offer !== undefined && coveringGrant(state.held, offer) !== undefined) ||
-      (asked !== undefined && coveringDecline(state.declined, asked) !== undefined);
+      (asked !== undefined &&
+        coveringDecline(state.declined, asked) !== undefined);
     if (!covered) return false;
     this.held.set(interactionId, until);
     return true;

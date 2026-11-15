@@ -34,9 +34,9 @@ export const bindSharing: HarnessBinder = ({
   }
   if (!container.isBound(AGENT_HARNESS_SESSION_PARTICIPANTS)) {
     container
-      .bind<
-        SessionParticipantRecorder<StoreSession>
-      >(AGENT_HARNESS_SESSION_PARTICIPANTS)
+      .bind<SessionParticipantRecorder<StoreSession>>(
+        AGENT_HARNESS_SESSION_PARTICIPANTS,
+      )
       .toConstantValue(
         new SessionParticipantJournal(
           journal.store,

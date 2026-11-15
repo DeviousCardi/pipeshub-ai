@@ -34,15 +34,16 @@ export interface SignInContext {
 }
 
 export type SignInRefusalCode =
-  | 'account_requires_interactive'
-  | 'account_shared_session';
+  'account_requires_interactive' | 'account_shared_session';
 
 /**
  * Why the person's plan may not be used for this turn, or null. Scheduled and
  * triggered runs, service accounts, connected apps, tokens, Slack and MCP are
  * not the person at the web app; a shared conversation is not theirs alone.
  */
-export function signInRefusal(context: SignInContext): SignInRefusalCode | null {
+export function signInRefusal(
+  context: SignInContext,
+): SignInRefusalCode | null {
   if (
     context.via !== 'session' ||
     (context.surface !== undefined && context.surface !== 'web')
@@ -71,27 +72,44 @@ export interface SignInKeep {
   maxHours: number;
 }
 
-export const SIGNIN_KEEP_DEFAULT: SignInKeep = { idleMinutes: 30, maxHours: 12 };
+export const SIGNIN_KEEP_DEFAULT: SignInKeep = {
+  idleMinutes: 30,
+  maxHours: 12,
+};
 
-const bounded = (raw: string | undefined, min: number, max: number, fallback: number): number => {
+const bounded = (
+  raw: string | undefined,
+  min: number,
+  max: number,
+  fallback: number,
+): number => {
   const text = (raw ?? '').trim();
   if (!/^\d+$/.test(text)) return fallback;
   const value = Number(text);
   return value >= min && value <= max ? value : fallback;
 };
 
-export function signInKeepFromEnv(env: NodeJS.ProcessEnv = process.env): SignInKeep {
+export function signInKeepFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): SignInKeep {
   return {
-    idleMinutes: bounded(env['HARNESS_SIGNIN_IDLE_MINUTES'], 5, 120, SIGNIN_KEEP_DEFAULT.idleMinutes),
-    maxHours: bounded(env['HARNESS_SIGNIN_MAX_HOURS'], 1, 24, SIGNIN_KEEP_DEFAULT.maxHours),
+    idleMinutes: bounded(
+      env['HARNESS_SIGNIN_IDLE_MINUTES'],
+      5,
+      120,
+      SIGNIN_KEEP_DEFAULT.idleMinutes,
+    ),
+    maxHours: bounded(
+      env['HARNESS_SIGNIN_MAX_HOURS'],
+      1,
+      24,
+      SIGNIN_KEEP_DEFAULT.maxHours,
+    ),
   };
 }
 
 export type ClaudeSignInState =
-  | 'not_allowed'
-  | 'available'
-  | 'connected'
-  | 'disconnected';
+  'not_allowed' | 'available' | 'connected' | 'disconnected';
 
 /** The person's view (My AI accounts). */
 export interface EngineSignInView {
@@ -103,7 +121,10 @@ export interface EngineSignInView {
      * Why it is not allowed: this server cannot carry a sign-in (no live worker advertises `vendor_signin`, the
      * sign-in add-on is off; SIGNGAP), the org's switch, or the person is a service account.
      */
-    reason?: 'engine_signin_unavailable' | 'engine_signin_off' | 'account_requires_interactive';
+    reason?:
+      | 'engine_signin_unavailable'
+      | 'engine_signin_off'
+      | 'account_requires_interactive';
     email?: string;
     plan?: string;
     workPlan?: boolean;

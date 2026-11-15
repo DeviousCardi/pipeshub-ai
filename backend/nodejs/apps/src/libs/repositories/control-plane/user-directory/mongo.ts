@@ -1,7 +1,11 @@
 import mongoose from 'mongoose';
 import { UserGroups } from '../../../../modules/user_management/schema/userGroup.schema';
 import { getActiveUserOrgRole } from '../../../../modules/user_management/services/user-admin.service';
-import type { GroupMembership, OrgRole, OrgRoles } from '../../../../modules/control-plane/ports/org-roles';
+import type {
+  GroupMembership,
+  OrgRole,
+  OrgRoles,
+} from '../../../../modules/control-plane/ports/org-roles';
 
 /** The live org role from the users collection (`User.role`), read on every call. */
 export class LiveOrgRoles implements OrgRoles {

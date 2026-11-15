@@ -64,7 +64,12 @@ export class AdmissionQuotaHold {
   constructor(
     private readonly ledger: AdmissionQuotaLedger,
     private readonly quotas: AdmissionQuotas,
-    private readonly scope: { orgId: string; actorId: string; runId: string; admission: string },
+    private readonly scope: {
+      orgId: string;
+      actorId: string;
+      runId: string;
+      admission: string;
+    },
     private readonly metrics?: AdmissionQuotaMetrics,
   ) {}
 
@@ -73,7 +78,10 @@ export class AdmissionQuotaHold {
     this.attempt();
     this.held = null;
     const user = await this.reserveUser(now);
-    this.held = { user, org: asksOrg(user, this.quotas) ? await this.reserveOrg(now) : null };
+    this.held = {
+      user,
+      org: asksOrg(user, this.quotas) ? await this.reserveOrg(now) : null,
+    };
   }
 
   /**
@@ -97,7 +105,10 @@ export class AdmissionQuotaHold {
 
   /** The pause before the admission runs again behind its twin; past `TWIN_WAIT_MS` in all, it no longer waits. */
   async afterTwin(): Promise<void> {
-    const pause = Math.min(TWIN_FIRST_PAUSE_MS * 2 ** this.twinPauses, TWIN_MAX_PAUSE_MS);
+    const pause = Math.min(
+      TWIN_FIRST_PAUSE_MS * 2 ** this.twinPauses,
+      TWIN_MAX_PAUSE_MS,
+    );
     this.twinPauses += 1;
     this.twinWaited += pause;
     await delay(pause);
@@ -116,10 +127,19 @@ export class AdmissionQuotaHold {
   }
 
   private reserveOrg(now: number): Promise<QuotaReservation> {
-    return this.reserveIn(orgQuotaKey(this.scope.orgId), this.quotas.admissionsPerOrg, now);
+    return this.reserveIn(
+      orgQuotaKey(this.scope.orgId),
+      this.quotas.admissionsPerOrg,
+      now,
+    );
   }
 
-  private reserveIn(key: string, limit: number, now: number, admission?: string): Promise<QuotaReservation> {
+  private reserveIn(
+    key: string,
+    limit: number,
+    now: number,
+    admission?: string,
+  ): Promise<QuotaReservation> {
     this.asked.add(key);
     return this.ledger.reserve(key, {
       id: this.id,
@@ -172,7 +192,10 @@ export class AdmissionQuotaHold {
     const released = await Promise.allSettled(
       [...this.asked].map((key) => this.ledger.release(key, this.id, refund)),
     );
-    const failed = released.find((outcome): outcome is PromiseRejectedResult => outcome.status === 'rejected');
+    const failed = released.find(
+      (outcome): outcome is PromiseRejectedResult =>
+        outcome.status === 'rejected',
+    );
     if (failed !== undefined) throw failed.reason;
     if (refund) this.metrics?.returned(admitted ? 'replayed' : 'not_admitted');
   }

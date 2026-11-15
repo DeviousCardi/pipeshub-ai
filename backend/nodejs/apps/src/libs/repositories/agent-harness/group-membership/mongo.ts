@@ -35,7 +35,10 @@ export class HarnessGroupMembership implements ActorGroupMembership {
   }
 
   /** The ids that are not live groups of the org (deleted, another org's, never existed), in the order given. */
-  async unknownGroups(orgId: string, groupIds: readonly string[]): Promise<string[]> {
+  async unknownGroups(
+    orgId: string,
+    groupIds: readonly string[],
+  ): Promise<string[]> {
     if (!mongoose.isValidObjectId(orgId)) return [...groupIds];
     const found = await UserGroups.find(
       { _id: { $in: objectIds(groupIds) }, orgId, isDeleted: { $ne: true } },
@@ -58,7 +61,9 @@ export class HarnessGroupMembership implements ActorGroupMembership {
     ).lean<Array<{ _id: unknown; name?: unknown }>>();
     return new Map(
       found.flatMap((doc) =>
-        typeof doc.name === 'string' ? [[String(doc._id), doc.name] as const] : [],
+        typeof doc.name === 'string'
+          ? [[String(doc._id), doc.name] as const]
+          : [],
       ),
     );
   }

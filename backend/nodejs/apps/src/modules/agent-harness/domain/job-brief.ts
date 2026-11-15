@@ -35,10 +35,7 @@ export type WithheldWhat =
   | 'internet'
   | 'files';
 export type WithheldReason =
-  | 'task_only'
-  | 'outside_sandbox'
-  | 'not_granted'
-  | 'not_handed_off';
+  'task_only' | 'outside_sandbox' | 'not_granted' | 'not_handed_off';
 
 export interface BriefWithheld {
   what: WithheldWhat;
@@ -157,7 +154,10 @@ export function jobTitle(goal: string | null | undefined): string | undefined {
   const points = Array.from(line);
   return points.length <= MAX_JOB_TITLE
     ? line
-    : `${points.slice(0, MAX_JOB_TITLE - 1).join('').trimEnd()}…`;
+    : `${points
+        .slice(0, MAX_JOB_TITLE - 1)
+        .join('')
+        .trimEnd()}…`;
 }
 
 /** `app@instance/name` as its app and name; an id of another shape is its own name. */
@@ -166,18 +166,27 @@ export function briefTool(toolId: string): BriefTool {
   const at = toolId.indexOf('@');
   return {
     toolId,
-    app: at > 0 ? toolId.slice(0, at) : slash > 0 ? toolId.slice(0, slash) : toolId,
+    app:
+      at > 0
+        ? toolId.slice(0, at)
+        : slash > 0
+          ? toolId.slice(0, slash)
+          : toolId,
     name: slash >= 0 ? toolId.slice(slash + 1) : toolId,
   };
 }
 
-const sorted = (values: Iterable<string>): string[] => [...new Set(values)].sort();
+const sorted = (values: Iterable<string>): string[] =>
+  [...new Set(values)].sort();
 const minus = (held: readonly string[], given: readonly string[]): string[] => {
   const own = new Set(given);
   return sorted(held.filter((item) => !own.has(item)));
 };
 
-function briefSources(spec: RunSpec): { sources: BriefSource[]; complete: boolean } {
+function briefSources(spec: RunSpec): {
+  sources: BriefSource[];
+  complete: boolean;
+} {
   const label = pipeshub(spec)?.inheritedLabel;
   if (label === undefined) return { sources: [], complete: true };
   const sources = label.sources.flatMap((source): BriefSource[] => {
@@ -191,7 +200,10 @@ function briefSources(spec: RunSpec): { sources: BriefSource[]; complete: boolea
         },
       ];
     }
-    if (typeof raw['connector'] === 'string' && typeof raw['externalRecordId'] === 'string') {
+    if (
+      typeof raw['connector'] === 'string' &&
+      typeof raw['externalRecordId'] === 'string'
+    ) {
       return [
         {
           kind: 'connector_item',
@@ -240,31 +252,49 @@ export function jobBrief(
   // An erased input erases its parts with it: no part outlives the goal.
   const task = goal === null ? null : (child.input?.task ?? null);
 
-  const withheld: BriefWithheld[] = [{ what: 'conversation', reason: 'task_only' }];
-  if (engine !== null) withheld.push({ what: 'credentials', reason: 'outside_sandbox' });
+  const withheld: BriefWithheld[] = [
+    { what: 'conversation', reason: 'task_only' },
+  ];
+  if (engine !== null)
+    withheld.push({ what: 'credentials', reason: 'outside_sandbox' });
   if (parentSpec !== null) {
     const keptTools = minus(
       parentSpec.grants.tools.map((grant) => grant.toolId),
       tools,
     ).map((toolId) => briefTool(toolId).name);
     if (keptTools.length > 0) {
-      withheld.push({ what: 'tools', reason: 'not_granted', items: sorted(keptTools) });
+      withheld.push({
+        what: 'tools',
+        reason: 'not_granted',
+        items: sorted(keptTools),
+      });
     }
     const keptKnowledge = [
       ...minus(parentOwn?.knowledge?.apps ?? [], knowledge.apps),
       ...minus(parentOwn?.knowledge?.kb ?? [], knowledge.collections),
     ];
     if (keptKnowledge.length > 0) {
-      withheld.push({ what: 'knowledge', reason: 'not_granted', items: sorted(keptKnowledge) });
+      withheld.push({
+        what: 'knowledge',
+        reason: 'not_granted',
+        items: sorted(keptKnowledge),
+      });
     }
     const keptSkills = minus(
       (parentOwn?.skills ?? []).map((skill) => skill.name),
       skills,
     );
     if (keptSkills.length > 0) {
-      withheld.push({ what: 'skills', reason: 'not_granted', items: keptSkills });
+      withheld.push({
+        what: 'skills',
+        reason: 'not_granted',
+        items: keptSkills,
+      });
     }
-    if (parentSpec.grants.egress !== 'none' && childSpec.grants.egress === 'none') {
+    if (
+      parentSpec.grants.egress !== 'none' &&
+      childSpec.grants.egress === 'none'
+    ) {
       withheld.push({ what: 'internet', reason: 'not_granted' });
     }
   }

@@ -24,14 +24,11 @@ import { NotificationContainer } from '../../../../modules/notification/containe
 import { Notifications } from '../../../../modules/notification/schema/notification.schema';
 import { Users } from '../../../../modules/user_management/schema/users.schema';
 import { ChatSessionMessage } from '../../../../modules/enterprise_search/schema/chat.session.message.schema';
-import type {
-  NoticePerson,
-  NoticeRow,
-  ScheduleNoticeRecords,
-} from './records';
+import type { NoticePerson, NoticeRow, ScheduleNoticeRecords } from './records';
 
 export const SCHEDULE_APPROVAL_NOTIFICATION = 'AGENT_SCHEDULE_APPROVAL_WAITING';
-export const SCHEDULE_FIRING_REFUSED_NOTIFICATION = 'AGENT_SCHEDULE_FIRING_REFUSED';
+export const SCHEDULE_FIRING_REFUSED_NOTIFICATION =
+  'AGENT_SCHEDULE_FIRING_REFUSED';
 export const SCHEDULE_RUN_ENDED_NOTIFICATION = 'AGENT_SCHEDULE_RUN_ENDED';
 
 /** The chat a run of the schedule lives in: an agent's conversation opens in that agent (UX3, R1 F14). */
@@ -199,7 +196,8 @@ export class HarnessScheduleNotifier
   constructor(options: HarnessScheduleNotifierOptions = {}) {
     this.records = options.records ?? mongoScheduleNoticeRecords;
     this.answer =
-      options.answer ?? ((orgId, sessionId) => this.records.answer(orgId, sessionId));
+      options.answer ??
+      ((orgId, sessionId) => this.records.answer(orgId, sessionId));
     this.personOf =
       options.person ?? ((orgId, userId) => this.records.person(orgId, userId));
     this.mailer = options.mail;
@@ -299,7 +297,8 @@ export class HarnessScheduleNotifier
     await attempt('in_app', async () => {
       const answer = await this.answer(notice.orgId, notice.sessionId);
       const digest = runEndDigest(answer ?? '');
-      const facts = notice.digest !== undefined ? digestLine(notice.digest) : '';
+      const facts =
+        notice.digest !== undefined ? digestLine(notice.digest) : '';
       const said = [facts, digest.summary].filter((text) => text.length > 0);
       await this.inbox(
         notice.orgId,
@@ -389,7 +388,9 @@ export class HarnessScheduleNotifier
           redirectLink: link,
           payload: {
             conversationId: notice.sessionId,
-            ...(notice.chatTitle.trim().length > 0 ? { chatTitle: notice.chatTitle.trim() } : {}),
+            ...(notice.chatTitle.trim().length > 0
+              ? { chatTitle: notice.chatTitle.trim() }
+              : {}),
             runId: notice.runId,
             ...(notice.agentKey !== undefined
               ? { agentKey: notice.agentKey }

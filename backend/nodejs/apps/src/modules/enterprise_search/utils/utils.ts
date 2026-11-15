@@ -1,5 +1,9 @@
 import { parseTurnLabel } from '../../agent-harness/domain/turn-labels';
-import { couldNotDoOf, budgetScopeField, notFoundOf } from '../../agent-harness/projection/timeline';
+import {
+  couldNotDoOf,
+  budgetScopeField,
+  notFoundOf,
+} from '../../agent-harness/projection/timeline';
 import { withSavedEngineLines } from '../../agent-harness/projection/legacy-engine-lines';
 import type { OutcomeView } from '../../agent-harness/projection/outcome-view';
 import {
@@ -463,7 +467,7 @@ export const withoutErasureMarker = <T extends object>(
   const { erasureRequestedAt, ...rest } = conversation as T & {
     erasureRequestedAt?: unknown;
   };
-  void erasureRequestedAt;
+  erasureRequestedAt;
   return rest;
 };
 
@@ -2250,7 +2254,10 @@ export const markAgentConversationFailed = async (
       'agent conversation',
       parts,
       runId !== undefined
-        ? { runId, ...(errorType !== undefined ? { errorCode: errorType } : {}) }
+        ? {
+            runId,
+            ...(errorType !== undefined ? { errorCode: errorType } : {}),
+          }
         : undefined,
     );
     logger.debug('Agent conversation marked as failed', {

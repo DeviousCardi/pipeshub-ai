@@ -160,7 +160,10 @@ const attachmentRefSchema = new Schema(
  * message ever reaches a response.
  */
 // Lean reads that select `+label` (the history source, session forks) are untouched.
-const withoutLabel = (_doc: unknown, ret: Record<string, unknown>): Record<string, unknown> => {
+const withoutLabel = (
+  _doc: unknown,
+  ret: Record<string, unknown>,
+): Record<string, unknown> => {
   delete ret['label'];
   return ret;
 };

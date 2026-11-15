@@ -21,8 +21,7 @@ export {
 export type { ModelAccountKind };
 
 export type ModelAccountOwner =
-  | { kind: 'user'; userId: string }
-  | { kind: 'org' };
+  { kind: 'user'; userId: string } | { kind: 'org' };
 
 /** What reads answer (contracts/harness/ext/pipeshub/api/model-account.schema.json): never the secret. */
 export type ModelAccountView = ModelAccount;

@@ -33,9 +33,9 @@ export async function harnessSessionView(
     '+harnessVersion metadata',
   );
   const session = sessionOf(tx);
-  const row = (await (session ? query.session(session) : query).lean()) as
-    | HarnessSessionView
-    | null;
+  const row = (await (
+    session ? query.session(session) : query
+  ).lean()) as HarnessSessionView | null;
   return { harnessVersion: row?.harnessVersion, metadata: row?.metadata };
 }
 

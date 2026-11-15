@@ -107,16 +107,14 @@ export const bindExecutionStore: HarnessBinder = ({
     container,
     AGENT_HARNESS_APPROVER_NOTICE_OUTBOX,
   );
-  container
-    .bind<ExecutionStore>(AGENT_HARNESS_EXECUTION_STORE)
-    .toConstantValue(
-      createExecutionStore({
-        conversations: dependencies.conversations,
-        dispatches,
-        journal: journal.store,
-        approverNotices,
-      }),
-    );
+  container.bind<ExecutionStore>(AGENT_HARNESS_EXECUTION_STORE).toConstantValue(
+    createExecutionStore({
+      conversations: dependencies.conversations,
+      dispatches,
+      journal: journal.store,
+      approverNotices,
+    }),
+  );
 };
 
 /**
@@ -266,7 +264,9 @@ export const bindExecution: HarnessBinder = (context) => {
     nextRuns.runEnded(run);
     void context.budgets
       .close(run.orgId, run.runId)
-      .then((closed) => recordRunCacheRead(prometheusChatPathMetrics, closed))
+      .then((closed) => {
+        recordRunCacheRead(prometheusChatPathMetrics, closed);
+      })
       .catch((error: unknown) => {
         logger?.warn(
           'budget.close_failed',

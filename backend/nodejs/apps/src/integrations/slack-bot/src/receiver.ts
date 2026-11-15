@@ -6,8 +6,11 @@ import {
   type SlackBotConfig,
   refreshSlackBotRegistry,
   runWithSlackRequestContext,
-} from "./botRegistry";
-import { refuseForeignSlackEvents, resetSlackRefusalNotifierForTests } from "./identity/edge";
+} from './botRegistry';
+import {
+  refuseForeignSlackEvents,
+  resetSlackRefusalNotifierForTests,
+} from './identity/edge';
 
 const SLACK_EVENTS_ENDPOINT = process.env.SLACK_EVENTS_ENDPOINT || "/slack/events";
 const MAX_SIGNATURE_AGE_SECONDS = 60 * 5;
@@ -149,7 +152,10 @@ export function resetSlackEventGuardsForTests(): void {
   resetSlackRefusalNotifierForTests();
 }
 
-export { type RefusedSlackEvent, setSlackRefusalNotifier } from "./identity/edge";
+export {
+  type RefusedSlackEvent,
+  setSlackRefusalNotifier,
+} from './identity/edge';
 
 /**
  * Runs after verification so only authentic deliveries occupy a dedupe slot.

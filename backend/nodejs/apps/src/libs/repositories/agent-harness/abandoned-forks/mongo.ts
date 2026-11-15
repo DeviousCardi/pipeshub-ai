@@ -54,7 +54,8 @@ export class MongoAbandonedForks implements AbandonedForks<Tx> {
       .map((record) => listed.get(record._id))
       .filter(
         (fork, index): fork is AbandonedFork =>
-          fork !== undefined && fork.forkSessionId === found[index]!.forkSessionId,
+          fork !== undefined &&
+          fork.forkSessionId === found[index]!.forkSessionId,
       );
     if (gone.length === 0) return [];
     await AgentSessionForkModel.deleteMany(

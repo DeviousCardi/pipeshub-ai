@@ -69,7 +69,7 @@ export type CpAuthorization =
   /** The handler checks what it loads (`ctx.authorize`), or acts on the caller's own objects only. */
   | 'in-handler';
 
-type Schema<T> = ZodType<T, unknown>;
+type Schema<T> = ZodType<T>;
 
 export interface CpRouteSpec<
   P = unknown,

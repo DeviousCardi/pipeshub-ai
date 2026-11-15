@@ -48,7 +48,9 @@ export class RolloutGate {
           : {}),
         model: request.input.model,
         ...(request.trigger !== undefined ? { scheduled: true } : {}),
-        ...(request.durableRequested === true ? { durableRequested: true } : {}),
+        ...(request.durableRequested === true
+          ? { durableRequested: true }
+          : {}),
         ...(request.legacyRequested === true ? { legacyRequested: true } : {}),
       });
     } catch (error) {

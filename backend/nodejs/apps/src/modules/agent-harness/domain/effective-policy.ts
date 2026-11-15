@@ -111,7 +111,8 @@ export function heldRequestsOf(events: readonly JournalEvent[]): HeldRequest[] {
   for (const event of events) {
     const data = event.data ?? {};
     const id = data['interactionId'];
-    if (typeof id !== 'string' || !id.startsWith(APPROVAL_INTERACTION)) continue;
+    if (typeof id !== 'string' || !id.startsWith(APPROVAL_INTERACTION))
+      continue;
     if (event.type === 'interaction.explained' && event.writer === 'worker') {
       explained.set(id, data);
     } else if (event.type === 'interaction.requested' && !held.has(id)) {
@@ -120,10 +121,17 @@ export function heldRequestsOf(events: readonly JournalEvent[]): HeldRequest[] {
       const layer = ruleLayer(reason?.['layer']);
       held.set(id, {
         interactionId: id,
-        rule: typeof reason?.['rule'] === 'string' ? reason['rule'] : 'approval_policy',
+        rule:
+          typeof reason?.['rule'] === 'string'
+            ? reason['rule']
+            : 'approval_policy',
         ...(layer !== undefined ? { layer } : {}),
-        ...(typeof reason?.['toolId'] === 'string' ? { toolId: reason['toolId'] } : {}),
-        ...(sensitivity === 'public' || sensitivity === 'private' || sensitivity === 'unknown'
+        ...(typeof reason?.['toolId'] === 'string'
+          ? { toolId: reason['toolId'] }
+          : {}),
+        ...(sensitivity === 'public' ||
+        sensitivity === 'private' ||
+        sensitivity === 'unknown'
           ? { sensitivity }
           : {}),
         status: 'pending',
@@ -134,7 +142,9 @@ export function heldRequestsOf(events: readonly JournalEvent[]): HeldRequest[] {
       const decision = data['decision'];
       if (view !== undefined) {
         view.status =
-          decision === 'approved' || decision === 'denied' || decision === 'expired'
+          decision === 'approved' ||
+          decision === 'denied' ||
+          decision === 'expired'
             ? decision
             : 'cancelled';
       }

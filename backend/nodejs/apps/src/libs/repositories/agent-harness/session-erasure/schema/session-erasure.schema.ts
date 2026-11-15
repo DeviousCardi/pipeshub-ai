@@ -48,4 +48,7 @@ sessionErasureSchema.index(
 );
 
 export const AgentSessionErasureModel: Model<SessionErasureDocument> =
-  harnessModel<SessionErasureDocument>('AgentSessionErasure', sessionErasureSchema);
+  harnessModel<SessionErasureDocument>(
+    'AgentSessionErasure',
+    sessionErasureSchema,
+  );

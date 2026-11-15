@@ -15,9 +15,7 @@ const documentId = (orgId: string, memoryId: string): string =>
 const DUPLICATE_KEY = 11000;
 
 const entryOf = (document: MemoryDocument): MemoryEntry => {
-  const { _id: _ignored, ...entry } = document as MemoryDocument & {
-    _id: string;
-  };
+  const { _id: _ignored, ...entry } = document;
   return structuredClone(entry) as MemoryEntry;
 };
 
@@ -37,14 +35,14 @@ export class MongoMemoryStore implements MemoryStore, MemoryEraser {
     if (stored === null) {
       throw new Error('memory vanished between insert and read');
     }
-    return { memory: entryOf(stored as MemoryDocument), created: false };
+    return { memory: entryOf(stored), created: false };
   }
 
   async get(orgId: string, memoryId: string): Promise<MemoryEntry | null> {
     const stored = await AgentMemoryModel.findById(
       documentId(orgId, memoryId),
     ).lean();
-    return stored === null ? null : entryOf(stored as MemoryDocument);
+    return stored === null ? null : entryOf(stored);
   }
 
   async byIds(
@@ -100,7 +98,7 @@ export class MongoMemoryStore implements MemoryStore, MemoryEraser {
       { $set: set },
       { new: true },
     ).lean();
-    return updated === null ? null : entryOf(updated as MemoryDocument);
+    return updated === null ? null : entryOf(updated);
   }
 
   async delete(orgId: string, memoryId: string): Promise<boolean> {

@@ -93,9 +93,7 @@ export function definitionLayer(
       ...(primary !== undefined
         ? {
             primary:
-              kept === undefined || kept.includes(primary)
-                ? primary
-                : (kept[0] as string),
+              kept === undefined || kept.includes(primary) ? primary : kept[0],
           }
         : {}),
       ...(narrowedRoles !== undefined ? { roles: narrowedRoles } : {}),

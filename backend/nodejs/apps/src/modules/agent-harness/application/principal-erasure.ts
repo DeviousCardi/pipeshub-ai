@@ -138,8 +138,10 @@ export class PrincipalErasureRunner<Tx> {
       PRINCIPAL_ERASURES_PER_TICK,
     )) {
       // The job row names the org it erases from; each job runs as that org.
-      finished += await forEnumeratedOrg(job.orgId, 'agent-harness.principal-erasure', () =>
-        this.run(job, now),
+      finished += await forEnumeratedOrg(
+        job.orgId,
+        'agent-harness.principal-erasure',
+        () => this.run(job, now),
       );
     }
     return finished;
@@ -211,7 +213,8 @@ export class PrincipalErasureRunner<Tx> {
         nextAttemptAt: now,
         lastErrorType: null,
       };
-      if (!(await this.deps.jobs.writeProgress(advanced, step))) return finished;
+      if (!(await this.deps.jobs.writeProgress(advanced, step)))
+        return finished;
       job = advanced;
     }
   }

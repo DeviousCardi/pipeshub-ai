@@ -229,16 +229,21 @@ export class InMemoryConversations
       const gone = new Set(recordIds);
       let marked = 0;
       for (const conversation of this.sessions.values()) {
-        if (conversation.orgId !== orgId || conversation.sessionId === sessionId) {
+        if (
+          conversation.orgId !== orgId ||
+          conversation.sessionId === sessionId
+        ) {
           continue;
         }
-        conversation.attachments = conversation.attachments?.map((attachment) => {
-          if (attachment.removed === true || !gone.has(attachment.recordId)) {
-            return attachment;
-          }
-          marked += 1;
-          return { ...attachment, removed: true };
-        });
+        conversation.attachments = conversation.attachments?.map(
+          (attachment) => {
+            if (attachment.removed === true || !gone.has(attachment.recordId)) {
+              return attachment;
+            }
+            marked += 1;
+            return { ...attachment, removed: true };
+          },
+        );
       }
       return marked;
     };

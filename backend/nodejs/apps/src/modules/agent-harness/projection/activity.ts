@@ -45,10 +45,7 @@ export const MAX_COMMAND_TEXT_CHARS = 2_000;
 const RUN_CODE = 'run_code';
 
 export type ActivityFrameKind =
-  | 'command_started'
-  | 'command_output'
-  | 'command_finished'
-  | 'followups';
+  'command_started' | 'command_output' | 'command_finished' | 'followups';
 export type ActivityFrame = LiveFrame<ActivityFrameKind>;
 
 /** `harness:activity:<runId>` (`contracts/harness/vectors/activity-frames.json`). */
@@ -63,18 +60,9 @@ export const ACTIVITY_LIVE_CHANNEL: LiveChannel<ActivityFrame> = Object.freeze({
 });
 
 export type ActivityRunStatus =
-  | 'queued'
-  | 'running'
-  | 'waiting'
-  | 'completed'
-  | 'failed'
-  | 'cancelled';
+  'queued' | 'running' | 'waiting' | 'completed' | 'failed' | 'cancelled';
 export type ActivityCommandStatus =
-  | 'running'
-  | 'completed'
-  | 'failed'
-  | 'timed_out'
-  | 'cancelled';
+  'running' | 'completed' | 'failed' | 'timed_out' | 'cancelled';
 export type CommandStream = 'stdout' | 'stderr';
 
 export interface ActivityCommand {
@@ -333,7 +321,9 @@ function finishedCommand(data: CommandFinishedData): ActivityCommand {
     truncated: data.stdout.truncated || data.stderr.truncated,
     liveDropped: data.liveDropped,
     hasLog: data.log !== undefined,
-    ...(data.outputMayBeLost === true ? { outputMayBeLost: true as const } : {}),
+    ...(data.outputMayBeLost === true
+      ? { outputMayBeLost: true as const }
+      : {}),
   };
 }
 
@@ -447,7 +437,7 @@ function callDetail(callId: string, part: MessagePart): ActivityStepDetail {
   for (const field of DETAIL_FIELDS) {
     if (part[field] !== undefined) fields[field] = part[field];
   }
-  return withFingerprint(callId, fields as DetailFields);
+  return withFingerprint(callId, fields);
 }
 
 /** An engine's own call held for approval: what the card showed is all there is. */
@@ -518,7 +508,6 @@ function withoutSources(
   step: PipeshubToolStep,
 ): Omit<PipeshubToolStep, 'sources'> {
   const { sources: _links, ...line } = step;
-  void _links;
   return line;
 }
 
@@ -883,7 +872,9 @@ function mayLoseOutput(
   command: ActivityCommand,
   data: Record<string, unknown>,
 ): ActivityCommand {
-  return data['outputMayBeLost'] === true ? { ...command, outputMayBeLost: true } : command;
+  return data['outputMayBeLost'] === true
+    ? { ...command, outputMayBeLost: true }
+    : command;
 }
 
 /** An engine's `command_done` line, for a command it journaled no record of. */
@@ -994,7 +985,9 @@ export function applyLive(
               command: started.command,
               startedAt,
               ...(language !== undefined ? { language } : {}),
-              ...(started.outputMayBeLost === true ? { outputMayBeLost: true as const } : {}),
+              ...(started.outputMayBeLost === true
+                ? { outputMayBeLost: true as const }
+                : {}),
             },
       );
     }

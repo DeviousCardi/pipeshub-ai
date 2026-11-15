@@ -342,7 +342,7 @@ export class PgExecutionStore
               requires:
                 before.harnessMajor === 2
                   ? {
-                      ...((doc['requires'] as object | undefined) ?? {}),
+                      ...(doc['requires'] ?? {}),
                       foldVersion: Math.max(
                         requirementsOf(before).foldVersion,
                         worker.foldVersion,
@@ -381,7 +381,7 @@ export class PgExecutionStore
             ...next,
             pinned: canonicalJson(pinning.pinned),
             requires: {
-              ...((next['requires'] as object | undefined) ?? {}),
+              ...(next['requires'] ?? {}),
               schemaVersion: pinning.pinned.spec.schemaVersion,
             },
           };
@@ -674,22 +674,24 @@ export class PgExecutionStore
     sessionIds: readonly string[],
   ): Promise<EndedRunFact[]> {
     if (sessionIds.length === 0) return [];
-    const rows = await inOrgRead(orgId, async (k) =>
-      (
-        await k.query<{
-          session_id: string;
-          run_id: string;
-          status: RunStatus;
-          updated_at: number;
-        }>(
-          `/* pipeshub:harness.runs_last_ended_of_sessions */ SELECT DISTINCT ON (session_id)
+    const rows = await inOrgRead(
+      orgId,
+      async (k) =>
+        (
+          await k.query<{
+            session_id: string;
+            run_id: string;
+            status: RunStatus;
+            updated_at: number;
+          }>(
+            `/* pipeshub:harness.runs_last_ended_of_sessions */ SELECT DISTINCT ON (session_id)
               session_id, run_id, status, updated_at
             FROM harness.runs
             WHERE org_id = $1 AND session_id = ANY($2::text[]) AND actor_id = $3 AND status = ANY($4::text[])
             ORDER BY session_id, updated_at DESC, run_id DESC`,
-          [orgId, [...sessionIds], actorId, TERMINAL],
-        )
-      ).rows,
+            [orgId, [...sessionIds], actorId, TERMINAL],
+          )
+        ).rows,
     );
     const bySession = new Map(rows.map((row) => [row.session_id, row]));
     return sessionIds.flatMap((sessionId) => {
@@ -1154,10 +1156,7 @@ export class PgExecutionStore
               ? personWaitDeadline(
                   current,
                   now,
-                  personWaitWindowMs(
-                    currentDocument as unknown as RunPolicyFields,
-                    waitForPersonMs(),
-                  ),
+                  personWaitWindowMs(currentDocument, waitForPersonMs()),
                 )
               : {}),
             ...(releasesWorker
@@ -1493,8 +1492,7 @@ export class PgExecutionStore
             ...(needs.length > 0
               ? {
                   requires: {
-                    ...((currentDocument['requires'] as object | undefined) ??
-                      {}),
+                    ...(currentDocument['requires'] ?? {}),
                     ...withFeature(requirementsOf(current), ...needs),
                   },
                 }

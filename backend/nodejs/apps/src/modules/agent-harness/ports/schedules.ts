@@ -201,10 +201,7 @@ export interface ScheduleEraser {
 }
 
 export type ActorRefusal =
-  | 'actor_deleted'
-  | 'actor_disabled'
-  | 'actor_not_person'
-  | 'org_inactive';
+  'actor_deleted' | 'actor_disabled' | 'actor_not_person' | 'org_inactive';
 
 /**
  * Who a scheduled run acts as, read at each firing: the actor as they are

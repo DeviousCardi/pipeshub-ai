@@ -127,7 +127,8 @@ export function digestLine(digest: RunDigest): string {
   if (records.read > 0) {
     facts.push(`read ${plural(records.read, 'record', 'records')}`);
   }
-  if (records.changed > 0) facts.push(`made ${plural(records.changed, 'change', 'changes')}`);
+  if (records.changed > 0)
+    facts.push(`made ${plural(records.changed, 'change', 'changes')}`);
   const changedFiles = files.added + files.modified + files.deleted;
   if (changedFiles > 0) {
     facts.push(`changed ${plural(changedFiles, 'file', 'files')}`);
@@ -139,7 +140,9 @@ export function digestLine(digest: RunDigest): string {
     facts.push(
       `asked ${plural(approvals.asked, 'approval', 'approvals')}` +
         ` (${approvals.approved} approved, ${approvals.denied} denied` +
-        (approvals.unanswered > 0 ? `, ${approvals.unanswered} unanswered` : '') +
+        (approvals.unanswered > 0
+          ? `, ${approvals.unanswered} unanswered`
+          : '') +
         ')',
     );
   }

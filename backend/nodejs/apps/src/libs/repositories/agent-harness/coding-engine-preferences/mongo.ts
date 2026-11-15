@@ -146,7 +146,9 @@ export class MongoCodingEnginePreferences implements CodingEnginePreferences {
     return {
       url: stored.url,
       toolsetInstanceId: stored.toolsetInstanceId,
-      ...(typeof stored.baseRef === 'string' ? { baseRef: stored.baseRef } : {}),
+      ...(typeof stored.baseRef === 'string'
+        ? { baseRef: stored.baseRef }
+        : {}),
     };
   }
 

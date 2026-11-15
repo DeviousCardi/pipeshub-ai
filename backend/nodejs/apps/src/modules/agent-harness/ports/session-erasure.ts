@@ -57,7 +57,9 @@ export interface ErasureJobStore<Tx> extends SessionErasureQueue<Tx> {
 }
 
 /** The session's runs as erasure reads them. */
-export type ErasureSessionRuns = Awaited<ReturnType<SessionRunLookup['runsOf']>>;
+export type ErasureSessionRuns = Awaited<
+  ReturnType<SessionRunLookup['runsOf']>
+>;
 
 /**
  * What the steps of one pass of the runner (one claim, steps in order until it waits or ends) share: once the runs
@@ -94,12 +96,7 @@ export interface SessionRunLookup {
     orgId: string,
     sessionId: string,
   ): Promise<
-    Array<
-      Pick<
-        HarnessRun,
-        'runId' | 'status' | 'revision' | 'harnessMajor'
-      >
-    >
+    Array<Pick<HarnessRun, 'runId' | 'status' | 'revision' | 'harnessMajor'>>
   >;
 }
 

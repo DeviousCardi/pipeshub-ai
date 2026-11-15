@@ -75,10 +75,15 @@ export const storeUnreachable = (error: unknown): boolean =>
   (error instanceof MongoServerError &&
     typeof error.code === 'number' &&
     NO_PRIMARY_CODES.has(error.code)) ||
-  (error instanceof Error && storeUnreachable((error as { cause?: unknown }).cause));
+  (error instanceof Error &&
+    storeUnreachable((error as { cause?: unknown }).cause));
 
 // Labels the driver puts on an error a retry of the same command can answer (a failover, a reset pool).
-const TRANSIENT_LABELS = ['TransientTransactionError', 'RetryableWriteError', 'ResetPool'] as const;
+const TRANSIENT_LABELS = [
+  'TransientTransactionError',
+  'RetryableWriteError',
+  'ResetPool',
+] as const;
 
 /**
  * Whether a retry can answer `error` (CH-06): the store is away, or the driver labelled it transient. A
@@ -88,7 +93,8 @@ export const storeTransient = (error: unknown): boolean =>
   storeUnreachable(error) ||
   (error instanceof MongoError &&
     TRANSIENT_LABELS.some((label) => error.hasErrorLabel(label))) ||
-  (error instanceof Error && storeTransient((error as { cause?: unknown }).cause));
+  (error instanceof Error &&
+    storeTransient((error as { cause?: unknown }).cause));
 
 /** The 503 a route answers for a transient store error; the driver's message never leaves the server. */
 export const STORE_UNAVAILABLE_MESSAGE =

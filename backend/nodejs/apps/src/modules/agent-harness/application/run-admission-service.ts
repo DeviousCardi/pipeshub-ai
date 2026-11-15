@@ -249,7 +249,8 @@ export interface RunAdmissionServiceOptions {
    * GIT-FLOW (WP-26): chats' GitHub repositories, pinned on the turns that hand work to an engine. Absent: a new
    * chat that names one is refused (503); other turns pin none.
    */
-  repositories?: AdmissionRepositories & Pick<SessionRepositoryService, 'saveNewChat'>;
+  repositories?: AdmissionRepositories &
+    Pick<SessionRepositoryService, 'saveNewChat'>;
   /**
    * Where the org's runs may be placed (OWD-12), asked before anything is
    * written; it refuses with `RUN_PLACEMENT_REFUSED`. Absent: every run is placed here.

@@ -16,7 +16,8 @@ import { hardenedProfile } from '../utils/security-profile';
 export type StoreAuthMode = 'enforce' | 'warn';
 
 export interface StoreAuthFinding {
-  store: 'redis' | 'qdrant' | 'mongodb' | 'neo4j' | 'arangodb' | 'etcd' | 'kafka';
+  store:
+    'redis' | 'qdrant' | 'mongodb' | 'neo4j' | 'arangodb' | 'etcd' | 'kafka';
   /** What is wrong, and what to set. */
   problem: string;
 }
@@ -44,7 +45,7 @@ export function storeAuthMode(env: Env): StoreAuthMode {
   return hardenedProfile(env) ? 'enforce' : 'warn';
 }
 
-const empty = (value: string | undefined): boolean => !value || !value.trim();
+const empty = (value: string | undefined): boolean => !value?.trim();
 
 function mongoUriLacksCredential(uri: string): boolean {
   const match = /^mongodb(?:\+srv)?:\/\/([^/?#]*)/i.exec(uri.trim());
@@ -64,29 +65,58 @@ export function configuredStoreAuthFindings(env: Env): StoreAuthFinding[] {
   const findings: StoreAuthFinding[] = [];
   const vector = (env.VECTOR_DB_TYPE ?? 'qdrant').trim().toLowerCase();
   if (vector === 'qdrant' && empty(env.QDRANT_API_KEY)) {
-    findings.push({ store: 'qdrant', problem: 'QDRANT_API_KEY is empty: set it to a random value (openssl rand -hex 24), the same one Qdrant starts with.' });
+    findings.push({
+      store: 'qdrant',
+      problem:
+        'QDRANT_API_KEY is empty: set it to a random value (openssl rand -hex 24), the same one Qdrant starts with.',
+    });
   }
   if (env.MONGO_URI && mongoUriLacksCredential(env.MONGO_URI)) {
-    findings.push({ store: 'mongodb', problem: 'MONGO_URI carries no password: add the user and password (or an authMechanism) to it.' });
+    findings.push({
+      store: 'mongodb',
+      problem:
+        'MONGO_URI carries no password: add the user and password (or an authMechanism) to it.',
+    });
   }
   const graph = (env.DATA_STORE ?? 'neo4j').trim().toLowerCase();
   if (graph === 'neo4j' && empty(env.NEO4J_PASSWORD)) {
-    findings.push({ store: 'neo4j', problem: 'NEO4J_PASSWORD is empty: set it to the password Neo4j starts with.' });
+    findings.push({
+      store: 'neo4j',
+      problem:
+        'NEO4J_PASSWORD is empty: set it to the password Neo4j starts with.',
+    });
   }
   if (graph === 'arangodb' && empty(env.ARANGO_PASSWORD)) {
-    findings.push({ store: 'arangodb', problem: 'ARANGO_PASSWORD is empty: an ArangoDB started with it empty lets anyone in as root. Set it.' });
+    findings.push({
+      store: 'arangodb',
+      problem:
+        'ARANGO_PASSWORD is empty: an ArangoDB started with it empty lets anyone in as root. Set it.',
+    });
   }
   if ((env.KV_STORE_TYPE ?? 'redis').trim().toLowerCase() === 'etcd') {
     const url = (env.ETCD_URL ?? env.ETCD_HOST ?? '').trim();
-    if (!/^https:\/\//i.test(url) || empty(env.ETCD_CERT_FILE) || empty(env.ETCD_KEY_FILE) || empty(env.ETCD_CA_FILE)) {
+    if (
+      !/^https:\/\//i.test(url) ||
+      empty(env.ETCD_CERT_FILE) ||
+      empty(env.ETCD_KEY_FILE) ||
+      empty(env.ETCD_CA_FILE)
+    ) {
       findings.push({
         store: 'etcd',
-        problem: 'etcd is not reached over TLS with a client certificate: set ETCD_URL=https://…, ETCD_CA_FILE, ETCD_CERT_FILE and ETCD_KEY_FILE (Compose\'s etcd-tls service writes them).',
+        problem:
+          "etcd is not reached over TLS with a client certificate: set ETCD_URL=https://…, ETCD_CA_FILE, ETCD_CERT_FILE and ETCD_KEY_FILE (Compose's etcd-tls service writes them).",
       });
     }
   }
-  if ((env.MESSAGE_BROKER ?? 'redis').trim().toLowerCase() === 'kafka' && (empty(env.KAFKA_USERNAME) || empty(env.KAFKA_PASSWORD))) {
-    findings.push({ store: 'kafka', problem: 'Kafka has no SASL login: set KAFKA_USERNAME and KAFKA_PASSWORD (the bundled broker\'s SCRAM user).' });
+  if (
+    (env.MESSAGE_BROKER ?? 'redis').trim().toLowerCase() === 'kafka' &&
+    (empty(env.KAFKA_USERNAME) || empty(env.KAFKA_PASSWORD))
+  ) {
+    findings.push({
+      store: 'kafka',
+      problem:
+        "Kafka has no SASL login: set KAFKA_USERNAME and KAFKA_PASSWORD (the bundled broker's SCRAM user).",
+    });
   }
   return findings;
 }
@@ -97,10 +127,14 @@ export function redisAnonymousProbe(env: Env): AnonymousProbe {
     new Promise((resolve) => {
       const host = (env.REDIS_HOST ?? 'localhost').trim();
       const port = parseInt(env.REDIS_PORT ?? '6379', 10);
-      const useTls = [env.REDIS_TLS_ENABLED, env.REDIS_TLS].some((v) => (v ?? '').toLowerCase() === 'true');
+      const useTls = [env.REDIS_TLS_ENABLED, env.REDIS_TLS].some(
+        (v) => (v ?? '').toLowerCase() === 'true',
+      );
       let ca: Buffer | undefined;
       try {
-        ca = env.REDIS_TLS_CA_PATH ? readFileSync(env.REDIS_TLS_CA_PATH) : undefined;
+        ca = env.REDIS_TLS_CA_PATH
+          ? readFileSync(env.REDIS_TLS_CA_PATH)
+          : undefined;
       } catch {
         resolve(null);
         return;
@@ -119,11 +153,16 @@ export function redisAnonymousProbe(env: Env): AnonymousProbe {
             port,
             servername: host,
             ca,
-            rejectUnauthorized: (env.REDIS_TLS_REJECT_UNAUTHORIZED ?? 'true') !== 'false',
+            rejectUnauthorized:
+              (env.REDIS_TLS_REJECT_UNAUTHORIZED ?? 'true') !== 'false',
           })
         : net.connect({ host, port });
-      socket.setTimeout(PROBE_TIMEOUT_MS, () => done(null));
-      socket.on(useTls ? 'secureConnect' : 'connect', () => socket.write('PING\r\n'));
+      socket.setTimeout(PROBE_TIMEOUT_MS, () => {
+        done(null);
+      });
+      socket.on(useTls ? 'secureConnect' : 'connect', () =>
+        socket.write('PING\r\n'),
+      );
       socket.on('data', (chunk) => {
         reply += chunk.toString('latin1');
         const line = reply.split('\r\n', 1)[0] ?? '';
@@ -132,8 +171,12 @@ export function redisAnonymousProbe(env: Env): AnonymousProbe {
         else if (/^-(NOAUTH|NOPERM|WRONGPASS)/.test(line)) done(false);
         else done(null);
       });
-      socket.on('error', () => done(null));
-      socket.on('close', () => done(null));
+      socket.on('error', () => {
+        done(null);
+      });
+      socket.on('close', () => {
+        done(null);
+      });
     });
 }
 
@@ -145,11 +188,15 @@ export function qdrantAnonymousProbe(
   return async () => {
     const host = (env.QDRANT_HOST ?? 'localhost').trim();
     const port = (env.QDRANT_PORT ?? '6333').trim();
-    const scheme = (env.QDRANT_HTTPS ?? '').toLowerCase() === 'true' ? 'https' : 'http';
+    const scheme =
+      (env.QDRANT_HTTPS ?? '').toLowerCase() === 'true' ? 'https' : 'http';
     try {
-      const response = await fetchImpl(`${scheme}://${host}:${port}/collections`, {
-        signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
-      });
+      const response = await fetchImpl(
+        `${scheme}://${host}:${port}/collections`,
+        {
+          signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+        },
+      );
       if (response.status === 401 || response.status === 403) return false;
       return response.ok ? true : null;
     } catch {
@@ -167,8 +214,10 @@ export function defaultStoreAuthProbes(env: Env): StoreAuthProbes {
 }
 
 const ANSWERED_ANONYMOUSLY: Record<keyof StoreAuthProbes, string> = {
-  redis: 'Redis answered a PING without a password: start it with --requirepass (REDIS_PASSWORD; Compose and install.sh do) and give the app the same REDIS_PASSWORD.',
-  qdrant: 'Qdrant listed its collections without an API key: start it with QDRANT__SERVICE__API_KEY and give the app the same QDRANT_API_KEY.',
+  redis:
+    'Redis answered a PING without a password: start it with --requirepass (REDIS_PASSWORD; Compose and install.sh do) and give the app the same REDIS_PASSWORD.',
+  qdrant:
+    'Qdrant listed its collections without an API key: start it with QDRANT__SERVICE__API_KEY and give the app the same QDRANT_API_KEY.',
 };
 
 export async function storeAuthFindings(
@@ -176,8 +225,15 @@ export async function storeAuthFindings(
   probes: StoreAuthProbes = defaultStoreAuthProbes(env),
 ): Promise<StoreAuthFinding[]> {
   const findings = configuredStoreAuthFindings(env);
-  const entries = Object.entries(probes) as [keyof StoreAuthProbes, AnonymousProbe | undefined][];
-  const answers = await Promise.all(entries.map(async ([store, probe]) => [store, probe ? await probe() : null] as const));
+  const entries = Object.entries(probes) as [
+    keyof StoreAuthProbes,
+    AnonymousProbe | undefined,
+  ][];
+  const answers = await Promise.all(
+    entries.map(
+      async ([store, probe]) => [store, probe ? await probe() : null] as const,
+    ),
+  );
   for (const [store, anonymous] of answers) {
     if (anonymous === true && !findings.some((f) => f.store === store)) {
       findings.push({ store, problem: ANSWERED_ANONYMOUSLY[store] });
@@ -210,11 +266,18 @@ export async function enforceStoreAuth(
   logger: WarnLogger,
   probes?: StoreAuthProbes,
 ): Promise<StoreAuthFinding[]> {
-  const findings = await storeAuthFindings(env, probes ?? defaultStoreAuthProbes(env));
+  const findings = await storeAuthFindings(
+    env,
+    probes ?? defaultStoreAuthProbes(env),
+  );
   if (findings.length === 0) return findings;
   if (storeAuthMode(env) === 'enforce') throw new StoreAuthRefused(findings);
   for (const finding of findings) {
-    logger.warn('store_auth.unauthenticated_store', { store: finding.store, problem: finding.problem, mode: 'warn' });
+    logger.warn('store_auth.unauthenticated_store', {
+      store: finding.store,
+      problem: finding.problem,
+      mode: 'warn',
+    });
   }
   return findings;
 }

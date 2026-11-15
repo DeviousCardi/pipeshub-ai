@@ -70,7 +70,11 @@ function percentDecode(value: string): string {
 function hidesSeparator(segment: string): boolean {
   const forms = new Set([segment, segment.normalize('NFKC')]);
   let current = segment;
-  for (let round = 0; round < DECODE_ROUNDS && ENCODED.test(current); round += 1) {
+  for (
+    let round = 0;
+    round < DECODE_ROUNDS && ENCODED.test(current);
+    round += 1
+  ) {
     current = percentDecode(current);
     forms.add(current);
     forms.add(current.normalize('NFKC'));
@@ -105,7 +109,10 @@ export function checkName(name: unknown): string {
     throw new UnsafeNameError('traversal', 'The name points at a folder');
   }
   if (CONTROL.test(normalized)) {
-    throw new UnsafeNameError('control', 'The name contains a control character');
+    throw new UnsafeNameError(
+      'control',
+      'The name contains a control character',
+    );
   }
   if (hidesSeparator(normalized)) {
     throw new UnsafeNameError(
@@ -127,7 +134,10 @@ export function checkName(name: unknown): string {
   }
   const stem = (normalized.split('.', 1)[0] ?? '').replace(/ +$/, '');
   if (RESERVED_STEMS.has(stem.toLowerCase())) {
-    throw new UnsafeNameError('reserved', 'The name is a device name on Windows');
+    throw new UnsafeNameError(
+      'reserved',
+      'The name is a device name on Windows',
+    );
   }
   if (Buffer.byteLength(normalized, 'utf8') > MAX_NAME_BYTES) {
     throw new UnsafeNameError('too_long', 'The name is too long');
@@ -204,7 +214,10 @@ export function linkTargetEscapes(target: string): boolean {
   }
   return target
     .split('/')
-    .some((segment) => segment !== '' && (DRIVE.test(segment) || hidesSeparator(segment)));
+    .some(
+      (segment) =>
+        segment !== '' && (DRIVE.test(segment) || hidesSeparator(segment)),
+    );
 }
 
 /**
@@ -220,7 +233,11 @@ export function linkEscapes(
   const resolved = path.split('/').slice(0, -1);
   for (const segment of target.split('/')) {
     if (segment === '' || segment === '.') continue;
-    if (resolved.length > 0 && resolved.join('/') !== path && links.has(resolved.join('/'))) {
+    if (
+      resolved.length > 0 &&
+      resolved.join('/') !== path &&
+      links.has(resolved.join('/'))
+    ) {
       return true;
     }
     if (segment === '..') {

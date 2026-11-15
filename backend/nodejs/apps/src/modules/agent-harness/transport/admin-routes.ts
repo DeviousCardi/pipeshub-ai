@@ -300,7 +300,9 @@ export function createAgentHarnessAdminRouter(container: Container): Router {
     requireScopes(OAuthScopeNames.CONFIG_READ),
     userAdminCheck,
     (_req: AuthenticatedUserRequest, res: Response) => {
-      res.status(200).json({ ...dependencyHealth.view(), ...serviceHealthViews() });
+      res
+        .status(200)
+        .json({ ...dependencyHealth.view(), ...serviceHealthViews() });
     },
   );
 

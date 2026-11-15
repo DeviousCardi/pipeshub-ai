@@ -101,7 +101,10 @@ export class HarnessArtifactReadAccess implements ArtifactReadAccess {
 }
 
 const malformed = (): RecordAccessUnavailableError =>
-  new RecordAccessUnavailableError('invalid_response', 'malformed access answer');
+  new RecordAccessUnavailableError(
+    'invalid_response',
+    'malformed access answer',
+  );
 
 async function askRecordAccess(
   aiBackend: string,

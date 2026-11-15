@@ -33,14 +33,30 @@ export class AdminListNames {
     this.logger = logger ?? silentHarnessLogger;
   }
 
-  agents(orgId: string, keys: readonly string[]): Promise<Record<string, string>> {
+  agents(
+    orgId: string,
+    keys: readonly string[],
+  ): Promise<Record<string, string>> {
     const reader = this.readers.agents;
-    return this.named('agents', orgId, keys, reader ? (ids) => reader.names(orgId, ids) : null);
+    return this.named(
+      'agents',
+      orgId,
+      keys,
+      reader ? (ids) => reader.names(orgId, ids) : null,
+    );
   }
 
-  groups(orgId: string, ids: readonly string[]): Promise<Record<string, string>> {
+  groups(
+    orgId: string,
+    ids: readonly string[],
+  ): Promise<Record<string, string>> {
     const reader = this.readers.groups;
-    return this.named('groups', orgId, ids, reader ? (held) => reader.groupNames(orgId, held) : null);
+    return this.named(
+      'groups',
+      orgId,
+      ids,
+      reader ? (held) => reader.groupNames(orgId, held) : null,
+    );
   }
 
   private async named(

@@ -279,7 +279,7 @@ export class RedisLiveBus<F extends LiveFrame = LiveDelta>
     try {
       do {
         follower.again = false;
-        const result = (await this.provider
+        const result = await this.provider
           .getClient()
           .xread(
             'COUNT',
@@ -287,7 +287,7 @@ export class RedisLiveBus<F extends LiveFrame = LiveDelta>
             'STREAMS',
             this.key(follower.runId),
             follower.cursor,
-          )) as Array<[string, Entry[]]> | null;
+          );
         const entries = result?.[0]?.[1] ?? [];
         const last = entries[entries.length - 1];
         if (last === undefined || !this.followers.has(follower)) continue;

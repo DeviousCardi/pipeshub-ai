@@ -185,7 +185,9 @@ export function findPastedSecrets(
   }
   checkBudget(budget);
   found.push(...contextual(text, budget));
-  found.sort((a, b) => (a.start !== b.start ? a.start - b.start : b.end - a.end));
+  found.sort((a, b) =>
+    a.start !== b.start ? a.start - b.start : b.end - a.end,
+  );
   const merged: PastedSecret[] = [];
   for (const item of found) {
     const last = merged[merged.length - 1];
@@ -206,13 +208,17 @@ export function findPastedSecrets(
  * (AP-06, WP-39): masking them would change what the call sends unasked.
  */
 export function pastedSecretKindsIn(value: unknown): string[] {
-  if (typeof value === 'string') return findPastedSecrets(value).map((f) => f.kind);
-  if (Array.isArray(value)) return value.flatMap((item) => pastedSecretKindsIn(item));
+  if (typeof value === 'string')
+    return findPastedSecrets(value).map((f) => f.kind);
+  if (Array.isArray(value))
+    return value.flatMap((item) => pastedSecretKindsIn(item));
   if (value === null || typeof value !== 'object') return [];
-  return Object.entries(value as Record<string, unknown>).flatMap(([key, item]) => [
-    ...pastedSecretKindsIn(key),
-    ...pastedSecretKindsIn(item),
-  ]);
+  return Object.entries(value as Record<string, unknown>).flatMap(
+    ([key, item]) => [
+      ...pastedSecretKindsIn(key),
+      ...pastedSecretKindsIn(item),
+    ],
+  );
 }
 
 export interface PastedRedaction {

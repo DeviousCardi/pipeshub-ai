@@ -617,7 +617,9 @@ export class ScheduleService {
   ): Promise<ReadonlyMap<string, AgentSummary>> {
     const keys = [
       ...new Set(
-        schedules.flatMap((s) => (s.agentKey !== undefined ? [s.agentKey] : [])),
+        schedules.flatMap((s) =>
+          s.agentKey !== undefined ? [s.agentKey] : [],
+        ),
       ),
     ];
     if (this.agents === null || keys.length === 0) return new Map();
@@ -902,7 +904,8 @@ export class ScheduleService {
     if (schedule.trigger.kind !== 'webhook') return null;
     if (webhookAuth(schedule.trigger) !== 'signature') return null;
     const key = schedule.webhookSigningKey;
-    if (typeof key !== 'string' || delivery.timestamp === undefined) return null;
+    if (typeof key !== 'string' || delivery.timestamp === undefined)
+      return null;
     return createHash('sha256')
       .update(webhookSignature(key, delivery.timestamp, delivery.body))
       .digest('hex');
@@ -961,7 +964,10 @@ export class ScheduleService {
       });
       return;
     }
-    if (ceiling === null || usdMicros(request.maxCostUsd) <= ceiling.usdMicros) {
+    if (
+      ceiling === null ||
+      usdMicros(request.maxCostUsd) <= ceiling.usdMicros
+    ) {
       return;
     }
     throw new HarnessScheduleRefusedError(

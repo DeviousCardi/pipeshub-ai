@@ -328,7 +328,7 @@ describe('O-2 audit chain', () => {
         ...records[2]!,
         fields: { fence: 99 },
       };
-      void _hash;
+      _hash;
       const { auditRecordHash } = await import(
         '../../../src/modules/agent-harness/domain/audit'
       );

@@ -44,7 +44,7 @@ function propertiesOf(node: unknown, into: Set<string>): Set<string> {
 }
 
 const declared = schemaFiles(CONTRACTS_DIR)
-  .filter((path) => path.includes(`${join('events', '')}`))
+  .filter((path) => path.includes(join('events', '')))
   .reduce((into, path) => propertiesOf(JSON.parse(readFileSync(path, 'utf8')), into), new Set<string>());
 
 const READ = /\bdata\??\.?\[\s*'([A-Za-z_][A-Za-z0-9_]*)'\s*\]/g;

@@ -33,11 +33,7 @@ export const scoped = (layer: PolicyLayer): ScopedLayer => ({
 export type ResolvedDimension = EffectiveRunConfig['dimensions'][string];
 
 export type PolicyRefusalCode =
-  | 'widening'
-  | 'not_exposed'
-  | 'outside_ceiling'
-  | 'invalid'
-  | 'locked';
+  'widening' | 'not_exposed' | 'outside_ceiling' | 'invalid' | 'locked';
 
 export interface PolicyRefusal {
   readonly code: PolicyRefusalCode;

@@ -33,9 +33,7 @@ async function readRun(
   const document = await AgentRunModel.findOne({ orgId, runId })
     .session(session)
     .lean();
-  return document === null
-    ? null
-    : runFromDocument(document as unknown as Record<string, unknown>);
+  return document === null ? null : runFromDocument(document);
 }
 
 async function writeStep(
@@ -117,20 +115,17 @@ export async function rootScheduled(
   sessionHandle: Tx | ClientSession,
 ): Promise<boolean> {
   const session = asMongoSession(sessionHandle);
-  let current: Record<string, unknown> | null = document as Record<
-    string,
-    unknown
-  >;
+  let current: Record<string, unknown> | null = document;
   for (let depth = 0; depth <= CHILD_MAX_DEPTH; depth += 1) {
     const parentRunId = (current['parent'] as { runId?: string } | undefined)
       ?.runId;
     if (parentRunId === undefined) return current['trigger'] != null;
-    current = (await AgentRunModel.findOne(
+    current = await AgentRunModel.findOne(
       { orgId: String(current['orgId']), runId: parentRunId },
       { orgId: 1, runId: 1, parent: 1, trigger: 1 },
     )
       .session(session)
-      .lean()) as Record<string, unknown> | null;
+      .lean();
     if (current === null) return false;
   }
   return false;

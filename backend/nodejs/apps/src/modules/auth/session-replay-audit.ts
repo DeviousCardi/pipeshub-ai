@@ -22,13 +22,17 @@ const defaultChain = (): Pick<AuditChainStore<StoreSession>, 'append'> =>
  */
 export function chainSessionReplayAudit(
   chain: () => Pick<AuditChainStore<StoreSession>, 'append'> = defaultChain,
-  transaction: <T>(work: (tx: StoreSession) => Promise<T>) => Promise<T> = inDurableTransaction,
+  transaction: <T>(
+    work: (tx: StoreSession) => Promise<T>,
+  ) => Promise<T> = inDurableTransaction,
   now: () => Date = () => new Date(),
 ): SessionReplayAudit {
   return (replay) =>
     forEnumeratedOrg(replay.orgId, 'session-replay-audit', async () => {
       const at = now();
       const entry = sessionReplayAuditEntry(replay, at.getTime());
-      await transaction((tx) => chain().append(replay.orgId, [entry], at.toISOString(), tx));
+      await transaction((tx) =>
+        chain().append(replay.orgId, [entry], at.toISOString(), tx),
+      );
     });
 }

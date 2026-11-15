@@ -133,7 +133,9 @@ export class KeyValueStoreService implements IKVStoreConnection {
 
   /** Whether the configured store is etcd, whose roles Node applies for the sandbox plane (R38IDENT-FU-9). */
   usesEtcd(): boolean {
-    return KeyValueStoreType.fromString(this.config.storeType) === StoreType.Etcd3;
+    return (
+      KeyValueStoreType.fromString(this.config.storeType) === StoreType.Etcd3
+    );
   }
 
   /** The store's role-based auth where it has one (etcd with a client certificate); null otherwise or before connect. */

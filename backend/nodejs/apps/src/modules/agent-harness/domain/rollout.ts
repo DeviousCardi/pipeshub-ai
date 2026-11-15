@@ -94,7 +94,9 @@ export const ASSISTANT_AGENT_DEFINITION_KEY = 'agentIdPlaceholder';
 const ASSISTANT_AGENT_MODE = 'agent';
 
 /** The org's durable assistant modes: the release's, plus Agent mode where the org turned it on. */
-export const assistantModesWith = (agentModeEnabled: boolean): readonly string[] =>
+export const assistantModesWith = (
+  agentModeEnabled: boolean,
+): readonly string[] =>
   agentModeEnabled
     ? [...DURABLE_ASSISTANT_CHAT_MODES, ASSISTANT_AGENT_MODE]
     : DURABLE_ASSISTANT_CHAT_MODES;

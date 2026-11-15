@@ -263,12 +263,20 @@ const alreadyWithheld = (c: CitationEntry | null): boolean =>
  */
 const isWebPage = (c: CitationEntry | null): boolean => {
   const d = citedDocOrData(c) as
-    | { citationType?: unknown; metadata?: { recordId?: unknown; origin?: unknown } }
+    | {
+        citationType?: unknown;
+        metadata?: { recordId?: unknown; origin?: unknown };
+      }
     | undefined;
   if (d === undefined) return false;
   const type = typeof d.citationType === 'string' ? d.citationType : '';
-  const recordId = typeof d.metadata?.recordId === 'string' ? d.metadata.recordId : '';
-  return type.startsWith('web') || d.metadata?.origin === 'WEB_SEARCH' || /^https?:\/\//i.test(recordId);
+  const recordId =
+    typeof d.metadata?.recordId === 'string' ? d.metadata.recordId : '';
+  return (
+    type.startsWith('web') ||
+    d.metadata?.origin === 'WEB_SEARCH' ||
+    /^https?:\/\//i.test(recordId)
+  );
 };
 
 /** What a withheld citation keeps: its chunk index, read from the populated document when there is one. */
@@ -549,9 +557,7 @@ export const redactMessagesFor = async <M extends ViewerMessage>(
     if (m.citations)
       view.citations = m.citations.map((c, index) => {
         if (alreadyWithheld(c)) return c;
-        const visible = decided(m)
-          ? !isWebPage(c)
-          : ok(recordIdOf(c));
+        const visible = decided(m) ? !isWebPage(c) : ok(recordIdOf(c));
         return visible ? c : withheldCitation(index, citedDocOrData(c));
       });
     // Dropped, not replaced: the chat UI renders every attachment as a file chip.

@@ -21,7 +21,10 @@ export interface SessionFamily {
   revokedReason: string | null;
 }
 
-export type NewSessionFamily = Omit<SessionFamily, 'revokedAt' | 'revokedReason'>;
+export type NewSessionFamily = Omit<
+  SessionFamily,
+  'revokedAt' | 'revokedReason'
+>;
 
 export interface SessionFamilyRepository {
   /** Creates the family; false when one with this id already exists (nothing is changed then). */

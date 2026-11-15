@@ -66,7 +66,8 @@ function approvalSubject(item: PendingApprovalItem): InboxSubject {
   const destination = subjectText(item.reason?.destination, 512);
   return {
     action: {
-      name: subjectText(item.displayName ?? item.toolName, 512) ?? item.toolName,
+      name:
+        subjectText(item.displayName ?? item.toolName, 512) ?? item.toolName,
       app: toolApp(item.toolName),
       // ADR-INBOX-02: the client words the call from its id as the approval card does, so the two never drift.
       ...(tool !== undefined ? { tool } : {}),

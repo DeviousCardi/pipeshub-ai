@@ -1,4 +1,4 @@
-import { escapeSlackText } from "./slack-escape";
+import { escapeSlackText } from './slack-escape';
 
 export interface AskUserQuestionOption {
   id: string;

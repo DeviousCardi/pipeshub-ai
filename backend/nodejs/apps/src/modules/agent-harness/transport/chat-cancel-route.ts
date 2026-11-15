@@ -52,7 +52,7 @@ export function chatCancelMiddleware(
         sessionId,
         runId,
         ...(options.kind === 'agent'
-          ? { agentKey: req.params['agentKey'] as string }
+          ? { agentKey: req.params['agentKey'] }
           : {}),
         via: requestVia(req),
         ...(req.context?.requestId !== undefined

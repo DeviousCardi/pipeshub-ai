@@ -33,7 +33,9 @@ export function canonicalLocale(value: string | undefined): string | undefined {
 }
 
 /** The locale an `Accept-Language` header prefers most: its highest-weighted well-formed tag; `*` names none. */
-export function requestLocale(header: string | string[] | undefined): string | undefined {
+export function requestLocale(
+  header: string | string[] | undefined,
+): string | undefined {
   const value = Array.isArray(header) ? header.join(',') : header;
   if (value === undefined || value.length > MAX_HEADER_CHARS) return undefined;
   let best: { tag: string; q: number } | undefined;
@@ -59,4 +61,3 @@ export function withOutputLocale(
   const { locale: _previous, ...rest } = input;
   return locale === undefined ? rest : { ...rest, locale };
 }
-

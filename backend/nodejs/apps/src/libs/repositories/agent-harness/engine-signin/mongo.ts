@@ -3,7 +3,8 @@ import type { StoredEngineSignIn } from '../../../../modules/agent-harness/domai
 import type { EngineSignInStore } from '../../../../modules/agent-harness/ports/engine-signins';
 import { EngineSignInModel } from './schema/engine-signin.schema';
 
-const userKey = (orgId: string, userId: string): string => `${orgId}:u:${userId}`;
+const userKey = (orgId: string, userId: string): string =>
+  `${orgId}:u:${userId}`;
 const orgKey = (orgId: string): string => `${orgId}:org`;
 
 export class MongoEngineSignIns implements EngineSignInStore {
@@ -12,7 +13,10 @@ export class MongoEngineSignIns implements EngineSignInStore {
     userId: string,
   ): Promise<{ stored: StoredEngineSignIn; serviceAccount: boolean } | null> {
     const [user, doc] = await Promise.all([
-      Users.findOne({ _id: userId, orgId, isDeleted: { $ne: true } }, { kind: 1 })
+      Users.findOne(
+        { _id: userId, orgId, isDeleted: { $ne: true } },
+        { kind: 1 },
+      )
         .lean<{ kind?: string }>()
         .exec(),
       EngineSignInModel.findById(userKey(orgId, userId)).lean().exec(),
@@ -47,7 +51,9 @@ export class MongoEngineSignIns implements EngineSignInStore {
     )
       .lean<Array<{ userId?: string | null }>>()
       .exec();
-    return docs.flatMap((d) => (typeof d.userId === 'string' ? [d.userId] : [])).sort();
+    return docs
+      .flatMap((d) => (typeof d.userId === 'string' ? [d.userId] : []))
+      .sort();
   }
 
   async orgAllows(orgId: string): Promise<boolean> {

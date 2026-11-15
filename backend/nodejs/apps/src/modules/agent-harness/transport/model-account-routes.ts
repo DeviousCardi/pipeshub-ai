@@ -57,7 +57,9 @@ export const createOrgModelAccountSchema = z.object({
 
 export const rotateOrgModelAccountSchema = z.object({
   params: z.object({ accountId: pathId }),
-  body: z.object({ label, credentials: z.record(z.string(), z.unknown()) }).strict(),
+  body: z
+    .object({ label, credentials: z.record(z.string(), z.unknown()) })
+    .strict(),
 });
 
 export const orgModelAccountSchema = z.object({

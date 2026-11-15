@@ -16,9 +16,7 @@ export interface SourceReadQuery {
 export type SourceStatus = 'readable' | 'denied' | 'unresolved';
 
 export type RecordAccessFailure =
-  | 'refused'
-  | 'unavailable'
-  | 'invalid_response';
+  'refused' | 'unavailable' | 'invalid_response';
 
 /** The authority could not say which sources the viewer may read. */
 export class RecordAccessUnavailableError extends Error {

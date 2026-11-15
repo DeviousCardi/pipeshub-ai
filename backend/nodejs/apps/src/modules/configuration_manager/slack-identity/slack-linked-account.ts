@@ -2,7 +2,12 @@ import { getUserRepository } from '../../../libs/repositories/user';
 import { loadConfigurationManagerConfig } from '../config/config';
 import { KeyValueStoreService } from '../../../libs/services/keyValueStore.service';
 import { getSlackUserLinkRepository } from '../../../libs/repositories/slack-user-link';
-import { SlackIdentity, SlackIdentityLink, SlackIdentityLinks, SlackLinkKv } from './slack-identity-links';
+import {
+  SlackIdentity,
+  SlackIdentityLink,
+  SlackIdentityLinks,
+  SlackLinkKv,
+} from './slack-identity-links';
 import { chainSlackIdentityAudit } from './slack-identity-audit';
 
 export interface LinkedAccount {
@@ -14,8 +19,18 @@ export interface LinkedAccount {
 
 /** Only what liveness needs of the user repository, so tests can pass a fake. */
 export interface LinkedAccountUsers {
-  getLive(orgId: string, id: string): Promise<{ _id: string; orgId: string; email: string; fullName?: string } | null>;
-  getAccountState(id: string): Promise<{ kind?: 'human' | 'service'; isDisabled?: boolean } | null>;
+  getLive(
+    orgId: string,
+    id: string,
+  ): Promise<{
+    _id: string;
+    orgId: string;
+    email: string;
+    fullName?: string;
+  } | null>;
+  getAccountState(
+    id: string,
+  ): Promise<{ kind?: 'human' | 'service'; isDisabled?: boolean } | null>;
 }
 
 /**
@@ -33,7 +48,10 @@ export async function liveLinkedAccount(
   if (!link) return null;
   const standing = await accountStanding(link, orgId, users);
   if ('account' in standing) return standing.account;
-  await links.revoke(orgId, identity, { by: 'system', reason: standing.reason });
+  await links.revoke(orgId, identity, {
+    by: 'system',
+    reason: standing.reason,
+  });
   return null;
 }
 
@@ -47,14 +65,22 @@ export async function accountStanding(
   orgId: string,
   users: LinkedAccountUsers = getUserRepository(),
 ): Promise<LinkedAccountStanding> {
-  if (String(link.orgId) !== String(orgId)) return { reason: 'account_removed' };
+  if (String(link.orgId) !== String(orgId))
+    return { reason: 'account_removed' };
   const user = await users.getLive(orgId, link.userId);
   if (!user) return { reason: 'account_removed' };
   const state = await users.getAccountState(link.userId);
   if (!state) return { reason: 'account_removed' };
   if (state.isDisabled === true) return { reason: 'account_disabled' };
   if (state.kind === 'service') return { reason: 'service_account' };
-  return { account: { orgId: String(user.orgId), userId: String(user._id), email: user.email, fullName: user.fullName } };
+  return {
+    account: {
+      orgId: String(user.orgId),
+      userId: String(user._id),
+      email: user.email,
+      fullName: user.fullName,
+    },
+  };
 }
 
 export async function accountOf(
@@ -70,7 +96,13 @@ let shared: SlackIdentityLinks | undefined;
 
 /** The deployment's links, over the process's KV store. */
 export function slackIdentityLinks(kv?: SlackLinkKv): SlackIdentityLinks {
-  if (kv) return new SlackIdentityLinks(kv, getSlackUserLinkRepository(), Date.now, chainSlackIdentityAudit());
+  if (kv)
+    return new SlackIdentityLinks(
+      kv,
+      getSlackUserLinkRepository(),
+      Date.now,
+      chainSlackIdentityAudit(),
+    );
   shared ??= new SlackIdentityLinks(
     KeyValueStoreService.getInstance(loadConfigurationManagerConfig()),
     getSlackUserLinkRepository(),
@@ -80,6 +112,8 @@ export function slackIdentityLinks(kv?: SlackLinkKv): SlackIdentityLinks {
   return shared;
 }
 
-export function setSlackIdentityLinksForTests(links: SlackIdentityLinks | undefined): void {
+export function setSlackIdentityLinksForTests(
+  links: SlackIdentityLinks | undefined,
+): void {
   shared = links;
 }

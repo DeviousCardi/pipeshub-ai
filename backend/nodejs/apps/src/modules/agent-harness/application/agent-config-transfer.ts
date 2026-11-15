@@ -169,9 +169,7 @@ export class AgentConfigTransfer<C> {
     raw: unknown,
   ): Promise<AgentImportResult> {
     const document = this.parse(raw);
-    const { sections, notImported } = this.offered(
-      document.policy as PortableSections,
-    );
+    const { sections, notImported } = this.offered(document.policy);
     const engines = document.agent.engineProfile?.engines ?? [];
     if (engines.length > 0) {
       await this.deps.assertEnginesUsable(caller.orgId, engines);
@@ -235,8 +233,7 @@ export class AgentConfigTransfer<C> {
     for (const [name, value] of Object.entries(all) as Array<
       [keyof PortableSections, unknown]
     >) {
-      const offered =
-        this.deps.policy?.offers(name) ?? !isEditionSection(name);
+      const offered = this.deps.policy?.offers(name) ?? !isEditionSection(name);
       if (offered) sections[name] = value;
       else notImported.push({ section: name, reason: 'not_offered' });
     }

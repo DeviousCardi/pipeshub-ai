@@ -162,15 +162,15 @@ export interface ChildRunServiceOptions {
    * parent; absent: such a child is refused unavailable, never pinned unchecked.
    */
   engineAccess?:
-    | ((subject: AccessSubject) => Promise<ModelAccessDecision | null>)
-    | null;
+    ((subject: AccessSubject) => Promise<ModelAccessDecision | null>) | null;
   /** The control plane's pin for a child (CPD-5); absent: `CONTROL_PLANE_PIN=off`. */
   pinning?: ChildPinning | null;
   /**
    * Whether the parent's conversation is shared (SIGNIN): read only when the
    * actor chose their own plan. Absent: read as shared, so no plan is used.
    */
-  sessionShared?: ((orgId: string, sessionId: string) => Promise<boolean>) | null;
+  sessionShared?:
+    ((orgId: string, sessionId: string) => Promise<boolean>) | null;
   /**
    * The deployment's configured models, read only for a spawn whose role sets
    * a model and that no pin decides (MA1): a role's model that is no longer
@@ -192,8 +192,10 @@ export interface ChildRunServiceOptions {
    * the actor's groups refuse falls back to the run's own model if they allow
    * that, else the spawn is refused. Absent: no model is limited to groups.
    */
-  groupAccess?: Pick<GroupAccess, 'admits'> &
-    Partial<Pick<GroupAccess, 'allowedModelNames'>> | null;
+  groupAccess?:
+    | (Pick<GroupAccess, 'admits'> &
+        Partial<Pick<GroupAccess, 'allowedModelNames'>>)
+    | null;
   /** ADR-OPS-01: the operator controls a child is held to as every admission is; absent: nothing is stopped. */
   operatorControls?: Pick<OperatorControlService, 'controls'> | null;
   /**
@@ -229,8 +231,7 @@ export class ChildRunService {
     parent: ChildEngineParent,
   ) => Promise<PinnedEngineProfile | null>;
   private readonly engineAccess:
-    | ((subject: AccessSubject) => Promise<ModelAccessDecision | null>)
-    | null;
+    ((subject: AccessSubject) => Promise<ModelAccessDecision | null>) | null;
   private readonly pinning: ChildPinning | null;
   private readonly configuredLlms: ConfiguredLlmSource | null;
   private readonly engineCarry:
@@ -241,16 +242,21 @@ export class ChildRunService {
       ) => Promise<EngineCarry | null>)
     | null;
   private readonly sessionShared:
-    | ((orgId: string, sessionId: string) => Promise<boolean>)
-    | null;
+    ((orgId: string, sessionId: string) => Promise<boolean>) | null;
   private readonly engineImages: EngineImageSource | null;
   private readonly groupAccess:
     | (Pick<GroupAccess, 'admits'> &
         Partial<Pick<GroupAccess, 'allowedModelNames'>>)
     | null;
-  private readonly operatorControls: Pick<OperatorControlService, 'controls'> | null;
+  private readonly operatorControls: Pick<
+    OperatorControlService,
+    'controls'
+  > | null;
   private readonly engineEligibility: Pick<EngineEligibility, 'check'> | null;
-  private readonly workerFeatures: Pick<WorkerFeatureAvailability, 'live' | 'metrics'> | null;
+  private readonly workerFeatures: Pick<
+    WorkerFeatureAvailability,
+    'live' | 'metrics'
+  > | null;
 
   constructor(options: ChildRunServiceOptions) {
     this.runs = options.runs;
@@ -276,7 +282,10 @@ export class ChildRunService {
    * `ask_user` only then; `undefined` (not pinned) while no live worker reads it.
    */
   private async parentAsks(parentSpec: RunSpec): Promise<boolean | undefined> {
-    if (this.workerFeatures !== null && !(await this.workerFeatures.live(CHILD_ASKS_FEATURE))) {
+    if (
+      this.workerFeatures !== null &&
+      !(await this.workerFeatures.live(CHILD_ASKS_FEATURE))
+    ) {
       this.workerFeatures.metrics.withheld(CHILD_ASKS_FEATURE);
       return undefined;
     }
@@ -607,7 +616,9 @@ export class ChildRunService {
             model ?? undefined,
           ),
           // SIGNGAP: the person's own plan could not be carried here; the chat says the task ran on the org's access.
-          ...(access?.notice !== undefined ? [runNoticeEvent(access.notice)] : []),
+          ...(access?.notice !== undefined
+            ? [runNoticeEvent(access.notice)]
+            : []),
         ]),
       );
       const budget = {
@@ -692,7 +703,10 @@ export class ChildRunService {
           harnessLogMeta('child.signin_unavailable', {
             ...fields,
             childRunId,
-            engine: childExecutorPinned.kind === 'engine' ? childExecutorPinned.engine.kind : null,
+            engine:
+              childExecutorPinned.kind === 'engine'
+                ? childExecutorPinned.engine.kind
+                : null,
             reason: 'no_live_worker',
           }),
         );
@@ -898,7 +912,7 @@ export class ChildRunService {
         actorId: parent.actorId,
         definition,
         model: inputModel(parent.input.model, model),
-        engineProfile: profile as PinnedEngineProfile,
+        engineProfile: profile,
         ...(signIn !== undefined ? { signIn } : {}),
       });
     } catch (error) {

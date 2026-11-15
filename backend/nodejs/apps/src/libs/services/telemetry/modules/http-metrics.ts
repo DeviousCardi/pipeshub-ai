@@ -30,7 +30,9 @@ const SESSION_API_SURFACES: ReadonlyArray<[string, RegExp]> = [
 
 /** The session API surface a route template belongs to, or null for every other route. */
 export function sessionApiSurface(route: string): string | null {
-  return SESSION_API_SURFACES.find(([, pattern]) => pattern.test(route))?.[0] ?? null;
+  return (
+    SESSION_API_SURFACES.find(([, pattern]) => pattern.test(route))?.[0] ?? null
+  );
 }
 
 // Unbounded route values grow the push payload until the collector rejects it.
@@ -67,7 +69,10 @@ export function recordHttpRequest(
   httpRequests.inc(labels);
   const surface = sessionApiSurface(route);
   if (surface !== null) {
-    sessionApiRequests.inc({ surface, outcome: statusCode >= 500 ? 'server_error' : 'ok' });
+    sessionApiRequests.inc({
+      surface,
+      outcome: statusCode >= 500 ? 'server_error' : 'ok',
+    });
   }
   if (typeof durationSeconds === 'number') {
     httpRequestDuration.observe(

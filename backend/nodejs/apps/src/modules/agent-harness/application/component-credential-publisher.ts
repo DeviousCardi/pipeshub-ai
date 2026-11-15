@@ -55,14 +55,18 @@ export class ComponentCredentialPublisher {
   /** The components published; one that cannot be is logged and skipped, never the others. */
   async publish(): Promise<SandboxPlaneComponent[]> {
     const published: SandboxPlaneComponent[] = [];
-    for (const component of Object.keys(SANDBOX_PLANE_COMPONENTS) as SandboxPlaneComponent[]) {
+    for (const component of Object.keys(
+      SANDBOX_PLANE_COMPONENTS,
+    ) as SandboxPlaneComponent[]) {
       const store = this.options.documents[component];
       if (store === undefined) continue;
       try {
         const document = await this.document(component);
         if (document === null) continue;
         await updateConfigDocument(store, (current) =>
-          current !== null && isDeepStrictEqual(current, document) ? null : document,
+          current !== null && isDeepStrictEqual(current, document)
+            ? null
+            : document,
         );
         await this.options.logins?.apply(component);
         published.push(component);
@@ -88,7 +92,10 @@ export class ComponentCredentialPublisher {
     if (own === null) return null;
     const accepts: ComponentDocument['accepts'] = {};
     const families = COMPONENT_ACCEPTS[component];
-    const roles = new Set<HarnessCredentialRole>([...families.control, ...families.metrics]);
+    const roles = new Set<HarnessCredentialRole>([
+      ...families.control,
+      ...families.metrics,
+    ]);
     for (const admitted of roles) {
       const set = await this.options.authority.credentialSetFor(admitted);
       if (set !== null) accepts[admitted] = acceptedDigests(set);

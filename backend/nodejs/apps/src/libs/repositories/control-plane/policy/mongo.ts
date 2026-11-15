@@ -5,7 +5,10 @@ import {
   ControlPlaneUnavailableError,
 } from '../../../../modules/control-plane/domain/errors';
 import type { PolicyLayer } from '../../../../modules/control-plane/domain/policy-alias';
-import { readPolicyLayer, scopeKindOf } from '../../../../modules/control-plane/domain/policy-layer';
+import {
+  readPolicyLayer,
+  scopeKindOf,
+} from '../../../../modules/control-plane/domain/policy-layer';
 import { InvalidObject } from '../../../../modules/control-plane/domain/store-errors';
 import { writeEach } from '../../../../modules/control-plane/domain/policy-layer';
 import type {

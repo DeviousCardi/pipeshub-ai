@@ -478,7 +478,7 @@ describe('CPD-10 §3: the resolved-turn header, signed by Node', () => {
               unreadableApprovals: resolution.unreadableApprovals,
             });
             const applied = strictestFlows([...(deployment.rule === null ? [] : [deployment.rule]), ...flow]);
-            expect(applied, `${source.id}`).to.deep.equal(expected.rules[deployment.id]);
+            expect(applied, source.id).to.deep.equal(expected.rules[deployment.id]);
           }
         });
       }

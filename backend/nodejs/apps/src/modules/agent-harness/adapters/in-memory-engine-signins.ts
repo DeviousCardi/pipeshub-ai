@@ -39,12 +39,17 @@ export class InMemoryEngineSignIns implements EngineSignInStore {
     const found: string[] = [];
     for (const [key, { stored }] of this.users) {
       const [org, user] = key.split('/') as [string, string];
-      if (org === orgId && stored.enabled && (stored.signedInAt ?? -1) >= since) found.push(user);
+      if (org === orgId && stored.enabled && (stored.signedInAt ?? -1) >= since)
+        found.push(user);
     }
     return Promise.resolve(found.sort());
   }
 
-  write(orgId: string, userId: string, next: StoredEngineSignIn): Promise<void> {
+  write(
+    orgId: string,
+    userId: string,
+    next: StoredEngineSignIn,
+  ): Promise<void> {
     const found = this.users.get(`${orgId}/${userId}`);
     if (found === undefined)
       return Promise.reject(new HarnessNotFoundError('User not found'));

@@ -79,7 +79,7 @@ export function zodFor(schemaPath: string): ZodTypeAny {
   if (root === undefined) throw new Error(`no contract root for ${schemaPath}`);
   const parts = schemaPath.slice(root.prefix.length + 1).replace(/\.schema\.json$/, '').split('/');
   const stem = parts.pop()!.replace(/[._]/g, '-');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+   
   const mod = require(join(root.generated, ...parts, stem)) as Record<string, ZodTypeAny>;
   const names = Object.keys(mod).filter((k) => k.endsWith('Schema'));
   if (names.length !== 1) throw new Error(`expected one schema export in ${schemaPath}, found ${names.join(',')}`);

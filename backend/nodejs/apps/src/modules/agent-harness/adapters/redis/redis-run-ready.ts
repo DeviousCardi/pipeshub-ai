@@ -25,7 +25,11 @@ export class RedisRunReadyNotifier implements RunReadyNotifier {
       try {
         await this.provider.getClient().publish(
           channel,
-          JSON.stringify({ orgId: notice.orgId, runId: notice.runId, kind: notice.kind }),
+          JSON.stringify({
+            orgId: notice.orgId,
+            runId: notice.runId,
+            kind: notice.kind,
+          }),
         );
       } catch (error) {
         dependencyHealth.report('kv');

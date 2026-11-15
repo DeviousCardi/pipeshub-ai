@@ -85,7 +85,7 @@ export async function auditedConfigUpdate<T>(
           }
         });
       }
-      const stored = next ?? (value as T);
+      const stored = next ?? value;
       const before = write.section(value);
       const after = write.section(stored);
       return {
@@ -141,21 +141,29 @@ export class CachedConfigDocument<T> {
     if (cached !== null && this.now() - cached.loadedAt < this.ttlMs) {
       return cached.value;
     }
-    if (cached !== null && this.servingStale && this.withinStaleBound(cached.loadedAt)) {
+    if (
+      cached !== null &&
+      this.servingStale &&
+      this.withinStaleBound(cached.loadedAt)
+    ) {
       this.revalidate();
       return cached.value;
     }
     try {
       return await this.reload();
     } catch (error) {
-      if (cached === null || !this.withinStaleBound(cached.loadedAt)) throw error;
+      if (cached === null || !this.withinStaleBound(cached.loadedAt))
+        throw error;
       this.servedStale(error, cached.loadedAt);
       return cached.value;
     }
   }
 
   private withinStaleBound(loadedAt: number): boolean {
-    return this.stale !== undefined && this.now() - loadedAt < this.ttlMs + this.stale.maxMs;
+    return (
+      this.stale !== undefined &&
+      this.now() - loadedAt < this.ttlMs + this.stale.maxMs
+    );
   }
 
   /** The reload behind a stale copy: one at a time; its failure keeps the copy serving. */

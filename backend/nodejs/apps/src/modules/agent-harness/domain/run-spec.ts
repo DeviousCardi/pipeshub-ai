@@ -614,7 +614,11 @@ const narrowed = (granted: string[], requested: string[] | null): string[] =>
 type PinnedKnowledge = PipeshubRunSpecExtension['knowledge'];
 
 /** The keys a request selects below app level by (main #4255 `SELECTION_FILTER_KEYS`). */
-export const SELECTION_KEYS = ['recordGroups', 'records', 'recordsExact'] as const;
+export const SELECTION_KEYS = [
+  'recordGroups',
+  'records',
+  'recordsExact',
+] as const;
 
 const uniqueIds = (ids: readonly string[]): string[] =>
   [...new Set(ids.filter((id) => ID.test(id)))].sort();
@@ -700,7 +704,9 @@ export function pinnedKnowledge(
 }
 
 /** SYNC4: the pin names a selection or an agent's source limits, which an older worker's strict model refuses. */
-export const pinsKnowledgeSelection = (knowledge: PinnedKnowledge | undefined): boolean =>
+export const pinsKnowledgeSelection = (
+  knowledge: PinnedKnowledge | undefined,
+): boolean =>
   knowledge !== undefined &&
   (SELECTION_KEYS.some((key) => (knowledge[key]?.length ?? 0) > 0) ||
     (knowledge.sourceLimits?.length ?? 0) > 0);

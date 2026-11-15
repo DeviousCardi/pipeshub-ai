@@ -17,5 +17,7 @@ type Inline = Extract<Envelope, { data: unknown }>;
 export type EnvelopeParity = [
   Assert<Equal<JournalEvent['writer'], Inline['writer']>>,
   Assert<Equal<JournalEvent['visibility'], Inline['visibility']>>,
-  Assert<Equal<Exclude<Exclude<keyof Inline, 'data'>, keyof JournalEvent>, never>>,
+  Assert<
+    Equal<Exclude<Exclude<keyof Inline, 'data'>, keyof JournalEvent>, never>
+  >,
 ];

@@ -84,9 +84,11 @@ export class SessionRotation {
       sid: familyId,
       jti: tokenId,
     });
-    const exp = (JSON.parse(
-      Buffer.from(probe.split('.')[1] ?? '', 'base64url').toString('utf8'),
-    ) as { exp?: number }).exp;
+    const exp = (
+      JSON.parse(
+        Buffer.from(probe.split('.')[1] ?? '', 'base64url').toString('utf8'),
+      ) as { exp?: number }
+    ).exp;
     if (typeof exp !== 'number') throw new Error('refresh token has no expiry');
     await this.repo().start({
       orgId,
@@ -104,7 +106,10 @@ export class SessionRotation {
    * The refresh token to answer a verified refresh with. Throws `SessionReuseDetected` for a replayed token and
    * `UnauthorizedError` for a family that is gone or ended.
    */
-  async rotate(presented: string, claims: RefreshClaims): Promise<RotatedSession> {
+  async rotate(
+    presented: string,
+    claims: RefreshClaims,
+  ): Promise<RotatedSession> {
     return this.judge(presented, claims, true);
   }
 
@@ -155,7 +160,13 @@ export class SessionRotation {
       const next = newId();
       if (await repo.rotate(orgId, familyId, tokenId, next, now)) {
         return {
-          refreshToken: this.mint(userId, orgId, familyId, next, family.expiresAt),
+          refreshToken: this.mint(
+            userId,
+            orgId,
+            familyId,
+            next,
+            family.expiresAt,
+          ),
           familyId,
           outcome: 'rotated',
         };
@@ -172,12 +183,23 @@ export class SessionRotation {
         return { refreshToken: presented, familyId, outcome: 'grace' };
       }
       return {
-        refreshToken: this.mint(userId, orgId, familyId, family.currentTokenId, family.expiresAt),
+        refreshToken: this.mint(
+          userId,
+          orgId,
+          familyId,
+          family.currentTokenId,
+          family.expiresAt,
+        ),
         familyId,
         outcome: 'grace',
       };
     }
-    const endedNow = await repo.revoke(orgId, familyId, REFRESH_REUSE_REASON, now);
+    const endedNow = await repo.revoke(
+      orgId,
+      familyId,
+      REFRESH_REUSE_REASON,
+      now,
+    );
     throw new SessionReuseDetected(familyId, endedNow);
   }
 
@@ -186,15 +208,21 @@ export class SessionRotation {
    * issued in the second before it, so a refresh answered just then would otherwise outlive it. The tokens are read
    * unchecked: only a family of `userId` in `orgId` (the caller the route authenticated) is ended. Returns how many.
    */
-  async endSignedOut(orgId: string, userId: string, tokens: readonly string[]): Promise<number> {
+  async endSignedOut(
+    orgId: string,
+    userId: string,
+    tokens: readonly string[],
+  ): Promise<number> {
     const repo = this.repo();
     let ended = 0;
     for (const token of tokens) {
       const sid = (jwt.decode(token) as { sid?: unknown } | null)?.sid;
       if (typeof sid !== 'string' || !sid) continue;
       const family = await repo.get(orgId, sid);
-      if (!family || family.userId !== userId || family.revokedAt !== null) continue;
-      if (await repo.revoke(orgId, sid, SIGNED_OUT_REASON, this.clock())) ended += 1;
+      if (!family || family.userId !== userId || family.revokedAt !== null)
+        continue;
+      if (await repo.revoke(orgId, sid, SIGNED_OUT_REASON, this.clock()))
+        ended += 1;
     }
     return ended;
   }

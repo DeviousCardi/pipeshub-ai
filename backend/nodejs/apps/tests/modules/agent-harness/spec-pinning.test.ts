@@ -468,7 +468,7 @@ describe('P-8: pinned spec upcasters', () => {
   /** The same run as a v2 Node pinned it: no executor. */
   const v2 = () => {
     const { executor: _executor, ...rest } = current();
-    void _executor;
+    _executor;
     return { ...rest, schemaVersion: 2 };
   };
 
@@ -519,7 +519,7 @@ describe('P-8: pinned spec upcasters', () => {
       ...RUN_SPEC_UPCASTERS,
       1: (spec) => {
         const { legacyBudget: _dropped, ...rest } = spec;
-        void _dropped;
+        _dropped;
         return { ...rest, schemaVersion: 2 };
       },
     });

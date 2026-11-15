@@ -1,10 +1,5 @@
 import { harnessEditionOf, mountEditionRoutes } from '../edition';
-import {
-  NextFunction,
-  Request,
-  Response,
-  Router,
-} from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import { ServiceUnavailableError } from '../../../libs/errors/http.errors';
 import type { OperatorControlService } from '../application/operator-controls';
 import { AGENT_HARNESS_OPERATOR_CONTROLS } from '../binders/tokens';
@@ -342,15 +337,9 @@ export function createAgentHarnessInternalRouter(container: Container): Router {
       ...runTokenRoute(gateway.modelGrant),
     );
     // SEC2 O-2: the gateways report a refusal of the run's request with the same token.
-    router.post(
-      '/runs/:runId/refusals',
-      ...runTokenRoute(gateway.refusal),
-    );
+    router.post('/runs/:runId/refusals', ...runTokenRoute(gateway.refusal));
     // OB-03: the egress proxy reports a destination it let the run reach, the same way.
-    router.post(
-      '/runs/:runId/egress',
-      ...runTokenRoute(gateway.egressAllowed),
-    );
+    router.post('/runs/:runId/egress', ...runTokenRoute(gateway.egressAllowed));
     // C6.12: an unusual egress volume of the run's sandboxes, the same way.
     router.post(
       '/runs/:runId/egress-volume',

@@ -85,10 +85,10 @@ export class EngineSignInService implements EngineSignInEraser {
     const reason = !carried
       ? ('engine_signin_unavailable' as const)
       : !allowed
-      ? ('engine_signin_off' as const)
-      : serviceAccount
-        ? ('account_requires_interactive' as const)
-        : undefined;
+        ? ('engine_signin_off' as const)
+        : serviceAccount
+          ? ('account_requires_interactive' as const)
+          : undefined;
     const claude: EngineSignInView['claude'] = {
       state:
         reason !== undefined
@@ -116,7 +116,10 @@ export class EngineSignInService implements EngineSignInEraser {
   }
 
   /** Whether the person's turn may pin their plan: their switch on, the org's on, a person (not a service account). */
-  async usable(orgId: string, userId: string): Promise<{ enabled: boolean; allowed: boolean }> {
+  async usable(
+    orgId: string,
+    userId: string,
+  ): Promise<{ enabled: boolean; allowed: boolean }> {
     const [found, allowed] = await Promise.all([
       this.options.store.read(orgId, userId),
       this.options.store.orgAllows(orgId),
@@ -128,7 +131,11 @@ export class EngineSignInService implements EngineSignInEraser {
   }
 
   /** The person's switch: use their Claude account for their own tasks. Off ends every live sign-in. */
-  async setEnabled(orgId: string, userId: string, enabled: boolean): Promise<EngineSignInView> {
+  async setEnabled(
+    orgId: string,
+    userId: string,
+    enabled: boolean,
+  ): Promise<EngineSignInView> {
     const { stored, serviceAccount } = await this.read(orgId, userId);
     if (enabled) {
       await this.assertCarried();
@@ -149,11 +156,18 @@ export class EngineSignInService implements EngineSignInEraser {
       return this.disconnect(orgId, userId, userId, 'user');
     }
     const next: StoredEngineSignIn = { ...stored, enabled };
-    await this.audited(orgId, userId, userScope(userId), `user/${userId}`, ['enabled'], {
-      write: () => this.options.store.write(orgId, userId, next),
-      before: stored.enabled,
-      after: enabled,
-    });
+    await this.audited(
+      orgId,
+      userId,
+      userScope(userId),
+      `user/${userId}`,
+      ['enabled'],
+      {
+        write: () => this.options.store.write(orgId, userId, next),
+        before: stored.enabled,
+        after: enabled,
+      },
+    );
     this.log('engine_account.enabled', { orgId, userId, enabled });
     return this.view(orgId, userId);
   }
@@ -169,19 +183,36 @@ export class EngineSignInService implements EngineSignInEraser {
     by: SignOutBy,
   ): Promise<EngineSignInView> {
     const { stored } = await this.read(orgId, userId);
-    const next: StoredEngineSignIn = { enabled: false, disconnectedAt: this.now() };
-    await this.audited(orgId, actorId, userScope(userId), `user/${userId}`, ['enabled', 'lastSignIn'], {
-      write: () => this.options.store.write(orgId, userId, next),
-      before: { enabled: stored.enabled, signedIn: stored.signedInAt ?? null },
-      after: { enabled: false, signedIn: null },
-    });
+    const next: StoredEngineSignIn = {
+      enabled: false,
+      disconnectedAt: this.now(),
+    };
+    await this.audited(
+      orgId,
+      actorId,
+      userScope(userId),
+      `user/${userId}`,
+      ['enabled', 'lastSignIn'],
+      {
+        write: () => this.options.store.write(orgId, userId, next),
+        before: {
+          enabled: stored.enabled,
+          signedIn: stored.signedInAt ?? null,
+        },
+        after: { enabled: false, signedIn: null },
+      },
+    );
     await this.revoke({ orgId, userId, reason: by });
     this.log('engine_account.signed_out', { orgId, userId, by });
     return this.view(orgId, userId);
   }
 
   /** The org's switch (admins). Off ends every live sign-in in the org. */
-  async setOrgAllowed(orgId: string, adminId: string, allowed: boolean): Promise<{ claude: boolean }> {
+  async setOrgAllowed(
+    orgId: string,
+    adminId: string,
+    allowed: boolean,
+  ): Promise<{ claude: boolean }> {
     if (allowed) await this.assertCarried();
     const before = await this.orgAllows(orgId);
     await this.audited(orgId, adminId, orgScope(orgId), 'org', ['claude'], {
@@ -208,33 +239,51 @@ export class EngineSignInService implements EngineSignInEraser {
    * The org's switch, and (SIGNIN-5) who has a Claude sign-in now: their switch on and signed in within the
    * deployment's maximum lifetime (no sandbox keeps a login longer). Ids only: Members already lists the people.
    */
-  async orgPolicy(
-    orgId: string,
-  ): Promise<{ claude: boolean; available: boolean; signedIn: string[]; keep: SignInKeep }> {
+  async orgPolicy(orgId: string): Promise<{
+    claude: boolean;
+    available: boolean;
+    signedIn: string[];
+    keep: SignInKeep;
+  }> {
     const [claude, available] = await Promise.all([
       this.orgAllows(orgId),
       this.options.access.signInsCarried(),
     ]);
     const since = this.now() - this.keep.maxHours * 3_600_000;
-    const signedIn = claude ? await this.options.store.signedInSince(orgId, since) : [];
+    const signedIn = claude
+      ? await this.options.store.signedInSince(orgId, since)
+      : [];
     return { claude, available, signedIn, keep: { ...this.keep } };
   }
 
   /** Turning a sign-in on where no worker can carry it is refused; turning one off never is. */
   private async assertCarried(): Promise<void> {
     if (!(await this.options.access.signInsCarried())) {
-      throw new HarnessModelAccessRefusedError('engine_signin_unavailable', UNAVAILABLE_MESSAGE);
+      throw new HarnessModelAccessRefusedError(
+        'engine_signin_unavailable',
+        UNAVAILABLE_MESSAGE,
+      );
     }
   }
 
   /** The owner's open sign-in: Anthropic's link while it waits. Not found for anyone else. */
-  async describe(caller: Caller, attemptId: string): Promise<SignInAttemptView> {
-    const answer = await this.ask(caller, attemptId, { op: 'describe' }, DESCRIBE_TIMEOUT_MS);
+  async describe(
+    caller: Caller,
+    attemptId: string,
+  ): Promise<SignInAttemptView> {
+    const answer = await this.ask(
+      caller,
+      attemptId,
+      { op: 'describe' },
+      DESCRIBE_TIMEOUT_MS,
+    );
     const view: SignInAttemptView = {
       attemptId,
       runId: String(answer['runId'] ?? ''),
       sessionId: String(answer['sessionId'] ?? ''),
-      state: (answer['state'] as SignInAttemptView['state'] | undefined) ?? 'waiting',
+      state:
+        (answer['state'] as SignInAttemptView['state'] | undefined) ??
+        'waiting',
       expiresAt: new Date(Number(answer['expiresAt'] ?? 0)).toISOString(),
     };
     if (typeof answer['link'] === 'string') view.link = answer['link'];
@@ -246,7 +295,11 @@ export class EngineSignInService implements EngineSignInEraser {
    * sandbox; it is never stored or logged. On success the account's email and
    * plan, as Claude Code reports them, are kept for the owner's page.
    */
-  async submitCode(caller: Caller, attemptId: string, code: string): Promise<SignInCodeResult> {
+  async submitCode(
+    caller: Caller,
+    attemptId: string,
+    code: string,
+  ): Promise<SignInCodeResult> {
     if (!(await this.orgAllows(caller.orgId))) {
       throw new HarnessModelAccessRefusedError(
         'engine_signin_off',
@@ -254,32 +307,53 @@ export class EngineSignInService implements EngineSignInEraser {
       );
     }
     const workPlansOnly = !(await this.consumerPlans(caller.orgId));
-    const answer = await this.ask(caller, attemptId, { op: 'code', code, workPlansOnly }, CODE_TIMEOUT_MS);
+    const answer = await this.ask(
+      caller,
+      attemptId,
+      { op: 'code', code, workPlansOnly },
+      CODE_TIMEOUT_MS,
+    );
     const result: SignInCodeResult = {
       state: answer['state'] === 'signed_in' ? 'signed_in' : 'failed',
       retry: answer['retry'] === true,
     };
-    if (typeof answer['reasonCode'] === 'string') result.reasonCode = answer['reasonCode'];
+    if (typeof answer['reasonCode'] === 'string')
+      result.reasonCode = answer['reasonCode'];
     const email = answer['email'];
     const plan = answer['plan'];
-    if (result.state === 'signed_in' && typeof email === 'string' && typeof plan === 'string') {
+    if (
+      result.state === 'signed_in' &&
+      typeof email === 'string' &&
+      typeof plan === 'string'
+    ) {
       await this.signedIn(caller, email, plan);
       result.email = email;
       result.plan = plan;
     }
-    this.log(result.state === 'signed_in' ? 'engine_account.signed_in' : 'engine_account.signin_failed', {
-      orgId: caller.orgId,
-      userId: caller.userId,
-      attemptId,
-      ...(result.reasonCode !== undefined ? { reasonCode: result.reasonCode } : {}),
-      ...(plan !== undefined && typeof plan === 'string' ? { plan } : {}),
-    });
+    this.log(
+      result.state === 'signed_in'
+        ? 'engine_account.signed_in'
+        : 'engine_account.signin_failed',
+      {
+        orgId: caller.orgId,
+        userId: caller.userId,
+        attemptId,
+        ...(result.reasonCode !== undefined
+          ? { reasonCode: result.reasonCode }
+          : {}),
+        ...(plan !== undefined && typeof plan === 'string' ? { plan } : {}),
+      },
+    );
     return result;
   }
 
   async cancel(caller: Caller, attemptId: string): Promise<void> {
     await this.ask(caller, attemptId, { op: 'cancel' }, DESCRIBE_TIMEOUT_MS);
-    this.log('engine_account.signin_cancelled', { orgId: caller.orgId, userId: caller.userId, attemptId });
+    this.log('engine_account.signin_cancelled', {
+      orgId: caller.orgId,
+      userId: caller.userId,
+      attemptId,
+    });
   }
 
   /** A conversation gained a participant: a sign-in in it ends (ARCH §4.9). */
@@ -293,14 +367,23 @@ export class EngineSignInService implements EngineSignInEraser {
   }
 
   async eraseUser(orgId: string, userId: string): Promise<void> {
-    await engineSignInEraser(this.options.store, this.options.relay).eraseUser(orgId, userId);
+    await engineSignInEraser(this.options.store, this.options.relay).eraseUser(
+      orgId,
+      userId,
+    );
   }
 
   async eraseOrg(orgId: string): Promise<void> {
-    await engineSignInEraser(this.options.store, this.options.relay).eraseOrg(orgId);
+    await engineSignInEraser(this.options.store, this.options.relay).eraseOrg(
+      orgId,
+    );
   }
 
-  private async signedIn(caller: Caller, email: string, plan: string): Promise<void> {
+  private async signedIn(
+    caller: Caller,
+    email: string,
+    plan: string,
+  ): Promise<void> {
     const { stored } = await this.read(caller.orgId, caller.userId);
     const next: StoredEngineSignIn = {
       enabled: stored.enabled,
@@ -315,7 +398,8 @@ export class EngineSignInService implements EngineSignInEraser {
       `user/${caller.userId}`,
       ['lastSignIn'],
       {
-        write: () => this.options.store.write(caller.orgId, caller.userId, next),
+        write: () =>
+          this.options.store.write(caller.orgId, caller.userId, next),
         // The digest covers the plan kind and the time only: the audit never holds the email.
         before: { plan: stored.plan ?? null, at: stored.signedInAt ?? null },
         after: { plan, at: next.signedInAt ?? null },
@@ -331,17 +415,25 @@ export class EngineSignInService implements EngineSignInEraser {
   ): Promise<SignInRelayAnswer> {
     const relay = this.options.relay;
     if (relay === undefined) {
-      throw new HarnessUnavailableError('Engine sign-in is not available on this deployment');
+      throw new HarnessUnavailableError(
+        'Engine sign-in is not available on this deployment',
+      );
     }
     const answer = await relay.ask(attemptId, caller, request, timeoutMs);
     // Anyone but the owner, an answer that names no owner, and an attempt no worker holds, are the same: not found.
-    if (answer === null || answer.ok !== true || answer['ownerId'] !== caller.userId) {
+    if (
+      answer === null ||
+      answer.ok !== true ||
+      answer['ownerId'] !== caller.userId
+    ) {
       throw new HarnessNotFoundError('No such sign-in');
     }
     return answer;
   }
 
-  private async revoke(revocation: Parameters<EngineSignInRelay['revoke']>[0]): Promise<void> {
+  private async revoke(
+    revocation: Parameters<EngineSignInRelay['revoke']>[0],
+  ): Promise<void> {
     try {
       await this.options.relay?.revoke(revocation);
     } catch (error) {
@@ -357,12 +449,17 @@ export class EngineSignInService implements EngineSignInEraser {
     }
   }
 
-  private async read(orgId: string, userId: string): Promise<{ stored: StoredEngineSignIn; serviceAccount: boolean }> {
+  private async read(
+    orgId: string,
+    userId: string,
+  ): Promise<{ stored: StoredEngineSignIn; serviceAccount: boolean }> {
     let found;
     try {
       found = await this.options.store.read(orgId, userId);
     } catch {
-      throw new HarnessUnavailableError('The engine sign-in settings could not be read');
+      throw new HarnessUnavailableError(
+        'The engine sign-in settings could not be read',
+      );
     }
     if (found === null) throw new HarnessNotFoundError('User not found');
     return found;
@@ -372,7 +469,9 @@ export class EngineSignInService implements EngineSignInEraser {
     try {
       return await this.options.store.orgAllows(orgId);
     } catch {
-      throw new HarnessUnavailableError('The organization settings could not be read');
+      throw new HarnessUnavailableError(
+        'The organization settings could not be read',
+      );
     }
   }
 
@@ -399,7 +498,10 @@ export class EngineSignInService implements EngineSignInEraser {
             object: { type: 'engine-signin', id },
             revisionFrom: null,
             revisionTo: null,
-            changeDigest: canonicalDigest({ before: change.before, after: change.after }),
+            changeDigest: canonicalDigest({
+              before: change.before,
+              after: change.after,
+            }),
             changed,
           },
         });
@@ -407,8 +509,11 @@ export class EngineSignInService implements EngineSignInEraser {
     );
   }
 
-  private log(event: string, fields: Record<string, string | boolean | undefined>): void {
-    this.options.logger?.info(event, harnessLogMeta(event, fields as Record<string, string | boolean>));
+  private log(
+    event: string,
+    fields: Record<string, string | boolean | undefined>,
+  ): void {
+    this.options.logger?.info(event, harnessLogMeta(event, fields));
   }
 }
 
@@ -422,7 +527,9 @@ export function engineSignInEraser(
   store: Pick<EngineSignInStore, 'eraseUser' | 'eraseOrg'>,
   relay?: Pick<EngineSignInRelay, 'revoke'>,
 ): EngineSignInEraser {
-  const revoke = async (revocation: Parameters<EngineSignInRelay['revoke']>[0]): Promise<void> => {
+  const revoke = async (
+    revocation: Parameters<EngineSignInRelay['revoke']>[0],
+  ): Promise<void> => {
     try {
       await relay?.revoke(revocation);
     } catch {

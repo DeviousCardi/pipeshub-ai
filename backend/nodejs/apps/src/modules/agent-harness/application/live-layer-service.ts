@@ -48,7 +48,9 @@ export class LiveLayerService {
       killSwitch,
       websitesCap: this.options.websitesCap ?? null,
       repositoriesCap: this.options.repositoriesCap ?? null,
-      ...(this.options.carried !== undefined ? { carried: this.options.carried } : {}),
+      ...(this.options.carried !== undefined
+        ? { carried: this.options.carried }
+        : {}),
     });
   }
 }

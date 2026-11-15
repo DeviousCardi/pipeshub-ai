@@ -53,8 +53,7 @@ catalogItemSchema.index(
 
 export const CatalogItemModel: Model<CatalogItemDocument> =
   (mongoose.models.ControlPlaneCatalogItem as
-    | Model<CatalogItemDocument>
-    | undefined) ??
+    Model<CatalogItemDocument> | undefined) ??
   mongoose.model<CatalogItemDocument>(
     'ControlPlaneCatalogItem',
     catalogItemSchema,

@@ -26,7 +26,10 @@ export function reapLabels(
   reason: SweepReason,
 ): Record<string, string> | null {
   const features = run.requires?.features ?? [];
-  if (!features.includes('executor_engine') && !features.includes('agent_code')) {
+  if (
+    !features.includes('executor_engine') &&
+    !features.includes('agent_code')
+  ) {
     return null;
   }
   const labels: Record<string, string> = {

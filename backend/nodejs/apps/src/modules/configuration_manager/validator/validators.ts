@@ -245,7 +245,9 @@ export const platformSettingsSchema = z.object({
       .positive()
       .max(1024 * 1024 * 1024, { message: 'Max 1GB per file' }) // safety upper bound
       .optional()
-      .describe('Max per-file upload size in bytes; when omitted the stored value is kept'),
+      .describe(
+        'Max per-file upload size in bytes; when omitted the stored value is kept',
+      ),
     featureFlags: z
       .record(z.string(), z.boolean())
       .default({})
@@ -254,11 +256,13 @@ export const platformSettingsSchema = z.object({
       ),
     notices: z
       .object({
-        durableAgentDefault: z.enum(['adopted', 'kept', 'dismissed']).optional(),
+        durableAgentDefault: z
+          .enum(['adopted', 'kept', 'dismissed'])
+          .optional(),
       })
       .strict()
       .optional()
-      .describe('The admin\'s answer to a one-time notice (UX1)'),
+      .describe("The admin's answer to a one-time notice (UX1)"),
     expected: z
       .object({
         featureFlags: z.record(z.string(), z.boolean()).optional(),

@@ -8,7 +8,6 @@ import {
 } from '../application/harness-log';
 import { identityString } from './request-identity';
 
-
 /**
  * Adds `conversation.activeRunId` to the conversation GET of a durable
  * session (REPORT 8; the P0.13 follow-up): the run to reattach to, or
@@ -28,8 +27,7 @@ export function activeRunIdMiddleware(
       return;
     }
     const user = (req as AuthenticatedUserRequest).user as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     const orgId = identityString(user?.['orgId']);
     const actorId = identityString(user?.['userId']);
     const sessionId = req.params['conversationId'];
@@ -42,9 +40,7 @@ export function activeRunIdMiddleware(
         orgId,
         actorId,
         sessionId,
-        ...(kind === 'agent'
-          ? { agentKey: req.params['agentKey'] as string }
-          : {}),
+        ...(kind === 'agent' ? { agentKey: req.params['agentKey'] } : {}),
       })
       .then((activeRunId) => {
         if (activeRunId !== undefined) {

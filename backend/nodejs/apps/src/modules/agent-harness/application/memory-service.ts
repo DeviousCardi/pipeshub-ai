@@ -118,8 +118,7 @@ export function pinnedMemory(
   pinned: PinnedRunSpec | null | undefined,
 ): MemoryPin | null {
   const extension = pinned?.spec.extensions?.['x.pipeshub'] as
-    | { memory?: MemoryPin }
-    | undefined;
+    { memory?: MemoryPin } | undefined;
   return extension?.memory ?? null;
 }
 
@@ -380,7 +379,13 @@ export class MemoryService {
     // child's own. Settled at the child's end, which has no transcript and so no label, they were held for review
     // and never recalled (an engine asked to remember during a hand-off).
     const turnRunId = await this.turnRunId(run);
-    const replaces = await this.replaced(run, turnRunId, pin, scope, proposal.replaces);
+    const replaces = await this.replaced(
+      run,
+      turnRunId,
+      pin,
+      scope,
+      proposal.replaces,
+    );
     const memoryId = proposedMemoryId({
       orgId,
       runId: turnRunId,
@@ -453,7 +458,10 @@ export class MemoryService {
     for (let depth = 0; depth < CHILD_MAX_DEPTH; depth += 1) {
       const parent = childOf(current);
       if (parent === null) return current.runId;
-      const subject = await this.runs.readClaimSubject(current.orgId, parent.runId);
+      const subject = await this.runs.readClaimSubject(
+        current.orgId,
+        parent.runId,
+      );
       if (subject === null) return parent.runId;
       current = subject.run;
     }
@@ -598,7 +606,10 @@ export class MemoryService {
           pending.orgId,
           'agent-harness.memory-settle',
           async () => {
-            const ending = await this.runs.readEnding(pending.orgId, pending.runId);
+            const ending = await this.runs.readEnding(
+              pending.orgId,
+              pending.runId,
+            );
             if (ending === null) return false;
             await this.settleRun(ending.run, ending.label);
             return true;

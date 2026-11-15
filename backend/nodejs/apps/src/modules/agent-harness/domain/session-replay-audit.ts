@@ -15,10 +15,14 @@ export interface SessionReplay {
 }
 
 /** One sign-in's stream of the org's chain. */
-export const sessionFamilyStreamId = (familyId: string): string => `signin:${familyId}`;
+export const sessionFamilyStreamId = (familyId: string): string =>
+  `signin:${familyId}`;
 
 /** The chain entry of an ended sign-in. `at` is the time in milliseconds, which orders the stream. */
-export function sessionReplayAuditEntry(replay: SessionReplay, at: number): AuditEntry {
+export function sessionReplayAuditEntry(
+  replay: SessionReplay,
+  at: number,
+): AuditEntry {
   return {
     kind: SESSION_REPLAYED_KIND,
     sessionId: null,

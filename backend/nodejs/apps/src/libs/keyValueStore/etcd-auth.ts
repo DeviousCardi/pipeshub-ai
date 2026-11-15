@@ -96,7 +96,10 @@ export class Etcd3AuthAdmin implements EtcdAuthAdmin {
     await this.auth.roleAdd({ name: role });
   }
 
-  async grantPermission(role: string, permission: EtcdPermission): Promise<void> {
+  async grantPermission(
+    role: string,
+    permission: EtcdPermission,
+  ): Promise<void> {
     await this.auth.roleGrantPermission({
       name: role,
       perm: {
@@ -107,7 +110,11 @@ export class Etcd3AuthAdmin implements EtcdAuthAdmin {
     });
   }
 
-  async revokePermission(role: string, key: string, rangeEnd: string): Promise<void> {
+  async revokePermission(
+    role: string,
+    key: string,
+    rangeEnd: string,
+  ): Promise<void> {
     await this.auth.roleRevokePermission({
       role,
       key: Buffer.from(key, 'utf8'),

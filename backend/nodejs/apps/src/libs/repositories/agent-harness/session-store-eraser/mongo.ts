@@ -243,7 +243,11 @@ export class MongoSessionStoreEraser implements SessionStoreEraser {
       const written = await AgentRunModel.bulkWrite(
         batch.map((run) => ({
           updateOne: {
-            filter: { orgId, runId: run.runId, idempotencyKey: run.idempotencyKey },
+            filter: {
+              orgId,
+              runId: run.runId,
+              idempotencyKey: run.idempotencyKey,
+            },
             update: {
               $set: {
                 idempotencyKey: this.runKeys.digest(orgId, run.idempotencyKey),
@@ -257,7 +261,7 @@ export class MongoSessionStoreEraser implements SessionStoreEraser {
       batch = [];
     };
     for await (const run of cursor) {
-      batch.push(run as { runId: string; idempotencyKey: string });
+      batch.push(run);
       if (batch.length >= ERASE_BATCH) await flush();
     }
     await flush();
@@ -307,7 +311,7 @@ export class MongoSessionStoreEraser implements SessionStoreEraser {
       const plain = await this.cipher.open(
         event.orgId,
         'journal.data',
-        journalSealContext(event as unknown as JournalEvent, event.type),
+        journalSealContext(event, event.type),
         event.sealed,
       );
       return JSON.parse(plain.toString('utf8')) as unknown;
@@ -336,7 +340,7 @@ export class MongoSessionStoreEraser implements SessionStoreEraser {
       const plain = await this.cipher.openBlob(
         orgId,
         'journal.payload',
-        journalPayloadSealContext(event as unknown as JournalEvent, event.type),
+        journalPayloadSealContext(event, event.type),
         bytes,
       );
       return JSON.parse(plain.toString('utf8')) as unknown;

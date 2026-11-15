@@ -15,9 +15,7 @@ const TransportBase = (
 export const DEFAULT_MAX_BUFFERED_BYTES = 1024 * 1024;
 
 export type SinkEvent =
-  | 'logger.sink_failed'
-  | 'logger.sink_overflow'
-  | 'logger.sink_recovered';
+  'logger.sink_failed' | 'logger.sink_overflow' | 'logger.sink_recovered';
 
 export interface SinkReport {
   event: SinkEvent;

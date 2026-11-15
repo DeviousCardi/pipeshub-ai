@@ -1,8 +1,4 @@
-import type {
-  AuditFields,
-  AuditFieldValue,
-  AuditRecord,
-} from './audit';
+import type { AuditFields, AuditFieldValue, AuditRecord } from './audit';
 import { principalRefFor } from './run-spec';
 import { SESSION_REPLAYED_KIND } from './session-replay-audit';
 import { SLACK_LINKED_KIND, SLACK_UNLINKED_KIND } from './slack-identity-audit';
@@ -106,10 +102,16 @@ const addedKinds = new Map<string, AuditSearchKindSpec>();
  */
 export function addAuditSearchKind(spec: AuditSearchKindSpec): void {
   const added = addedKinds.get(spec.kind);
-  if (CATEGORY_OF_KIND.has(spec.kind) || (added !== undefined && added.category !== spec.category)) {
+  if (
+    CATEGORY_OF_KIND.has(spec.kind) ||
+    (added !== undefined && added.category !== spec.category)
+  ) {
     throw new Error(`Audit search kind ${spec.kind} is already shown`);
   }
-  addedKinds.set(spec.kind, Object.freeze({ ...spec, fields: [...spec.fields] }));
+  addedKinds.set(
+    spec.kind,
+    Object.freeze({ ...spec, fields: [...spec.fields] }),
+  );
 }
 
 export const auditSearchCategoryOf = (
@@ -204,7 +206,9 @@ export function actingUserOf(fields: AuditFields): string | null {
 export function personOfRecord(fields: AuditFields): string | null {
   const acting = actingUserOf(fields);
   if (acting !== null) return acting;
-  return fields['actor'] === 'system' ? userIdOfPrincipal(fields['account']) : null;
+  return fields['actor'] === 'system'
+    ? userIdOfPrincipal(fields['account'])
+    : null;
 }
 
 /** The fields that name the person a row is about, as a person filter matches them. */
@@ -244,8 +248,8 @@ export function auditSearchView(
   const timed =
     TIMED_BY_SEQ.has(record.kind) ||
     addedKinds.get(record.kind)?.timedBySeq === true
-    ? new Date(record.journalSeq)
-    : null;
+      ? new Date(record.journalSeq)
+      : null;
   return {
     seq: record.seq,
     at:

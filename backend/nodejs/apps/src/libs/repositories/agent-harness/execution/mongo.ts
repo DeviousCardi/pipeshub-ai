@@ -322,8 +322,8 @@ export class MongoExecutionStore
       answered: plain(document.answered ?? null),
       modelAccess: plain(document.modelAccess ?? null),
       // Runs admitted before `via` was recorded came in with a session.
-      via: (document.via as RunVia | undefined) ?? 'session',
-      surface: (document.surface as RunSurface | undefined) ?? null,
+      via: document.via ?? 'session',
+      surface: document.surface ?? null,
       audience: plain(document.audience ?? null),
       trigger: plain(document.trigger ?? null),
       memory: plain(document.memory ?? null),
@@ -593,7 +593,10 @@ export class MongoExecutionStore
       and.push({
         $or: [
           { createdAt: { $lt: query.after.createdAt } },
-          { createdAt: query.after.createdAt, runId: { $lt: query.after.runId } },
+          {
+            createdAt: query.after.createdAt,
+            runId: { $lt: query.after.runId },
+          },
         ],
       });
     }
@@ -700,7 +703,14 @@ export class MongoExecutionStore
       const row = bySession.get(sessionId);
       return row === undefined
         ? []
-        : [{ sessionId, runId: row.runId, status: row.status, endedAt: row.endedAt }];
+        : [
+            {
+              sessionId,
+              runId: row.runId,
+              status: row.status,
+              endedAt: row.endedAt,
+            },
+          ];
     });
   }
 
@@ -1241,7 +1251,9 @@ export class MongoExecutionStore
             }
             const appended = [];
             for (const append of journal) {
-              appended.push(await this.journal.append(append, mongoTx(session)));
+              appended.push(
+                await this.journal.append(append, mongoTx(session)),
+              );
             }
             const first = appended.at(0);
             const last = appended.at(-1);

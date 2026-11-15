@@ -1,7 +1,10 @@
 import { getUserRepository } from '../../../libs/repositories/user';
 import { getCredentialRepository } from '../../../libs/repositories/credential';
 import type { PrincipalDeactivationPort } from '../../agent-harness/application/principal-deactivation';
-import { oauthUserTokenRevoker, type UserTokenRevoker } from './user-token-revoker';
+import {
+  oauthUserTokenRevoker,
+  type UserTokenRevoker,
+} from './user-token-revoker';
 
 /** What switching a sample account off stops besides its sign-in (SEC-AZ-08). */
 export interface SampleAccountStops {

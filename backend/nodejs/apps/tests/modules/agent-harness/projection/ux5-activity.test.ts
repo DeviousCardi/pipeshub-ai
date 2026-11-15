@@ -169,7 +169,7 @@ describe('agent-harness activity view: live output (UX5 AP-2, AP-3)', () => {
   it('keeps the newest 4,000 characters of a stream and says it cut', () => {
     let view = applyLive(emptyActivity('run-ux5'), started);
     for (let i = 0; i < 9; i += 1) {
-      view = applyLive(view, frame(i + 2, 'command_output', { commandId: 'inv_1', stream: 'stdout', text: `${String(i)}`.repeat(1_000) }));
+      view = applyLive(view, frame(i + 2, 'command_output', { commandId: 'inv_1', stream: 'stdout', text: String(i).repeat(1_000) }));
     }
     const [command] = view.commands;
     expect(command!.stdout).to.have.length(MAX_COMMAND_TAIL_CHARS);

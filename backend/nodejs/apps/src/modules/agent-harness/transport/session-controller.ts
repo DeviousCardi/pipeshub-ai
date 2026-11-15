@@ -227,7 +227,7 @@ function executionScope(
     orgId,
     actorId,
     sessionId: req.params['sessionId'] as string,
-    ...(kind === 'agent' ? { agentKey: req.params['agentKey'] as string } : {}),
+    ...(kind === 'agent' ? { agentKey: req.params['agentKey'] } : {}),
   };
 }
 
@@ -1027,11 +1027,9 @@ export class AgentHarnessSessionController {
           orgId,
           actorId,
           ...(this.sessionKind === 'agent'
-            ? { agentKey: req.params['agentKey'] as string }
+            ? { agentKey: req.params['agentKey'] }
             : {}),
-          ...(existingSession
-            ? { sessionId: req.params['sessionId'] as string }
-            : {}),
+          ...(existingSession ? { sessionId: req.params['sessionId'] } : {}),
           ...(typeof req.headers?.authorization === 'string'
             ? { authorization: req.headers.authorization }
             : {}),

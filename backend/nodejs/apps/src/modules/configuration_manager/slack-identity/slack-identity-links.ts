@@ -2,7 +2,10 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { SlackUserLinkRepository } from '../../../libs/repositories/slack-user-link';
 import { Logger } from '../../../libs/services/logger.service';
 import type { SlackUnlinkReason } from '../../agent-harness/domain/slack-identity-audit';
-import { type SlackIdentityAudit, unauditedSlackIdentity } from './slack-identity-audit';
+import {
+  type SlackIdentityAudit,
+  unauditedSlackIdentity,
+} from './slack-identity-audit';
 
 /**
  * Who a Slack person is in PipesHub (ADR-SLACKID-01). A Slack team id and user id are bound to one PipesHub
@@ -15,7 +18,11 @@ export interface SlackLinkKv {
   get<T>(key: string): Promise<T | null>;
   set<T>(key: string, value: T): Promise<void>;
   delete(key: string): Promise<void>;
-  compareAndSet<T>(key: string, expectedValue: T | null, newValue: T): Promise<boolean>;
+  compareAndSet<T>(
+    key: string,
+    expectedValue: T | null,
+    newValue: T,
+  ): Promise<boolean>;
   listKeysInDirectory(directory: string): Promise<string[]>;
 }
 
@@ -58,10 +65,13 @@ const LINK_TOKEN = /^[A-Za-z0-9_-]{43}$/;
 
 const ROOT = '/services/slackIdentity';
 const requestKey = (hash: string) => `${ROOT}/requests/${hash}`;
-const latestRequestKey = (orgId: string, id: SlackIdentity) => `${ROOT}/latestRequest/${orgId}/${id.teamId}/${id.slackUserId}`;
-const tokenHash = (token: string) => createHash('sha256').update(token, 'utf8').digest('hex');
+const latestRequestKey = (orgId: string, id: SlackIdentity) =>
+  `${ROOT}/latestRequest/${orgId}/${id.teamId}/${id.slackUserId}`;
+const tokenHash = (token: string) =>
+  createHash('sha256').update(token, 'utf8').digest('hex');
 
-export type SlackLinkRequestProblem = 'unknown' | 'expired' | 'used' | 'other_org';
+export type SlackLinkRequestProblem =
+  'unknown' | 'expired' | 'used' | 'other_org';
 
 export class SlackLinkRequestError extends Error {
   constructor(readonly problem: SlackLinkRequestProblem) {
@@ -70,9 +80,14 @@ export class SlackLinkRequestError extends Error {
   }
 }
 
-export const SLACK_LINK_REQUEST_MESSAGES: Record<SlackLinkRequestProblem, string> = {
-  unknown: 'This link is not valid. Send the PipesHub bot a message in Slack to get a new one.',
-  expired: 'This link has expired. Send the PipesHub bot a message in Slack to get a new one.',
+export const SLACK_LINK_REQUEST_MESSAGES: Record<
+  SlackLinkRequestProblem,
+  string
+> = {
+  unknown:
+    'This link is not valid. Send the PipesHub bot a message in Slack to get a new one.',
+  expired:
+    'This link has expired. Send the PipesHub bot a message in Slack to get a new one.',
   used: 'This link was already used. Send the PipesHub bot a message in Slack if you need a new one.',
   other_org:
     'This link is for another organization. Sign in to the PipesHub account of the organization whose Slack bot sent it.',
@@ -82,7 +97,9 @@ export function isSlackId(value: unknown): value is string {
   return typeof value === 'string' && SLACK_ID.test(value);
 }
 
-export function isSlackIdentity(value: Partial<SlackIdentity>): value is SlackIdentity {
+export function isSlackIdentity(
+  value: Partial<SlackIdentity>,
+): value is SlackIdentity {
   return isSlackId(value.teamId) && isSlackId(value.slackUserId);
 }
 
@@ -113,11 +130,23 @@ export class SlackIdentityLinks {
     private readonly audit: SlackIdentityAudit = unauditedSlackIdentity,
   ) {}
 
-  async find(orgId: string, identity: SlackIdentity): Promise<SlackIdentityLink | null> {
+  async find(
+    orgId: string,
+    identity: SlackIdentity,
+  ): Promise<SlackIdentityLink | null> {
     if (!isSlackIdentity(identity)) return null;
-    const row = await this.store.get(orgId, identity.teamId, identity.slackUserId);
+    const row = await this.store.get(
+      orgId,
+      identity.teamId,
+      identity.slackUserId,
+    );
     // A stored row must still name the identity and organisation it is filed under.
-    if (!row || row.orgId !== orgId || row.teamId !== identity.teamId || row.slackUserId !== identity.slackUserId) {
+    if (
+      !row ||
+      row.orgId !== orgId ||
+      row.teamId !== identity.teamId ||
+      row.slackUserId !== identity.slackUserId
+    ) {
       return null;
     }
     return asLink(row);
@@ -125,8 +154,14 @@ export class SlackIdentityLinks {
 
   /** A fresh single-use link for this Slack person in this organisation; the one sent before stops working.
    * Returns the secret token, which is stored only as its hash. */
-  async request(input: SlackLinkRequest | Omit<SlackLinkRequest, 'expiresAt'>): Promise<{ token: string; expiresAt: number }> {
-    if (!isSlackIdentity(input) || typeof input.orgId !== 'string' || input.orgId === '') {
+  async request(
+    input: SlackLinkRequest | Omit<SlackLinkRequest, 'expiresAt'>,
+  ): Promise<{ token: string; expiresAt: number }> {
+    if (
+      !isSlackIdentity(input) ||
+      typeof input.orgId !== 'string' ||
+      input.orgId === ''
+    ) {
       throw new SlackLinkRequestError('unknown');
     }
     const token = randomBytes(32).toString('base64url');
@@ -146,7 +181,8 @@ export class SlackIdentityLinks {
     const previous = await this.kv.get<string>(latest);
     await this.kv.set(requestKey(hash), JSON.stringify(record));
     await this.kv.set(latest, hash);
-    if (typeof previous === 'string' && previous !== hash) await this.kv.delete(requestKey(previous));
+    if (typeof previous === 'string' && previous !== hash)
+      await this.kv.delete(requestKey(previous));
     return { token, expiresAt };
   }
 
@@ -165,7 +201,11 @@ export class SlackIdentityLinks {
   ): Promise<SlackIdentityLink> {
     const { hash, raw, record } = await this.open(token, account.orgId);
     await this.spend(hash, raw, record);
-    const previous = await this.store.get(account.orgId, record.teamId, record.slackUserId);
+    const previous = await this.store.get(
+      account.orgId,
+      record.teamId,
+      record.slackUserId,
+    );
     const row = await this.store.upsert({
       orgId: account.orgId,
       workspaceId: record.teamId,
@@ -189,8 +229,12 @@ export class SlackIdentityLinks {
       if (previous) {
         const { linkedAt: _linkedAt, ...restored } = previous;
         await this.store.upsert(restored);
-      }
-      else await this.store.remove(account.orgId, record.teamId, record.slackUserId);
+      } else
+        await this.store.remove(
+          account.orgId,
+          record.teamId,
+          record.slackUserId,
+        );
       throw error;
     }
     await this.forget(hash, record);
@@ -203,9 +247,17 @@ export class SlackIdentityLinks {
     await this.forget(hash, record);
   }
 
-  async revoke(orgId: string, identity: SlackIdentity, cause: SlackUnlinkCause): Promise<boolean> {
+  async revoke(
+    orgId: string,
+    identity: SlackIdentity,
+    cause: SlackUnlinkCause,
+  ): Promise<boolean> {
     if (!isSlackIdentity(identity)) return false;
-    const existing = await this.store.get(orgId, identity.teamId, identity.slackUserId);
+    const existing = await this.store.get(
+      orgId,
+      identity.teamId,
+      identity.slackUserId,
+    );
     if (!existing) return false;
     await this.store.remove(orgId, identity.teamId, identity.slackUserId);
     try {
@@ -221,43 +273,66 @@ export class SlackIdentityLinks {
       });
     } catch (error) {
       // Taking authority away never waits on the audit store: the link stays removed and the gap is logged.
-      Logger.getInstance({ service: 'SlackIdentityLinks' }).error('slack_identity.unlink_not_audited', {
-        reason: cause.by === 'admin' ? 'admin_removed' : cause.reason,
-        errorType: error instanceof Error ? error.name : typeof error,
-      });
+      Logger.getInstance({ service: 'SlackIdentityLinks' }).error(
+        'slack_identity.unlink_not_audited',
+        {
+          reason: cause.by === 'admin' ? 'admin_removed' : cause.reason,
+          errorType: error instanceof Error ? error.name : typeof error,
+        },
+      );
     }
     return true;
   }
 
   async list(orgId: string): Promise<SlackIdentityLink[]> {
     const rows = await this.store.listForOrg(orgId);
-    return rows.map(asLink).sort((a, b) => a.linkedAt.localeCompare(b.linkedAt));
+    return rows
+      .map(asLink)
+      .sort((a, b) => a.linkedAt.localeCompare(b.linkedAt));
   }
 
   private async open(
     token: string,
     orgId: string,
   ): Promise<{ hash: string; raw: string; record: StoredLinkRequest }> {
-    if (typeof token !== 'string' || !LINK_TOKEN.test(token)) throw new SlackLinkRequestError('unknown');
+    if (typeof token !== 'string' || !LINK_TOKEN.test(token))
+      throw new SlackLinkRequestError('unknown');
     const hash = tokenHash(token);
     const raw = await this.kv.get<string>(requestKey(hash));
     const record = parse<StoredLinkRequest>(raw);
     // A request from before requests named their organisation is not valid: the person asks for a new one.
-    if (typeof raw !== 'string' || !record || !isSlackIdentity(record) || typeof record.orgId !== 'string') {
+    if (
+      typeof raw !== 'string' ||
+      !record ||
+      !isSlackIdentity(record) ||
+      typeof record.orgId !== 'string'
+    ) {
       throw new SlackLinkRequestError('unknown');
     }
     if (record.orgId !== orgId) throw new SlackLinkRequestError('other_org');
     if (record.used) throw new SlackLinkRequestError('used');
-    if (!(record.expiresAt > this.now())) throw new SlackLinkRequestError('expired');
+    if (!(record.expiresAt > this.now()))
+      throw new SlackLinkRequestError('expired');
     return { hash, raw, record };
   }
 
-  private async spend(hash: string, raw: string, record: StoredLinkRequest): Promise<void> {
-    const spent = await this.kv.compareAndSet<string>(requestKey(hash), raw, JSON.stringify({ ...record, used: true }));
+  private async spend(
+    hash: string,
+    raw: string,
+    record: StoredLinkRequest,
+  ): Promise<void> {
+    const spent = await this.kv.compareAndSet<string>(
+      requestKey(hash),
+      raw,
+      JSON.stringify({ ...record, used: true }),
+    );
     if (!spent) throw new SlackLinkRequestError('used');
   }
 
-  private async forget(hash: string, request: StoredLinkRequest): Promise<void> {
+  private async forget(
+    hash: string,
+    request: StoredLinkRequest,
+  ): Promise<void> {
     const latest = latestRequestKey(request.orgId, request);
     if ((await this.kv.get<string>(latest)) === hash) {
       await this.kv.delete(latest);

@@ -45,7 +45,8 @@ export interface EgressAllowed {
 export type RefusalOutcome = 'recorded' | 'duplicate' | 'capped';
 
 /** C6.12: what an egress volume alert is about (`egress.volume_alert`'s `kind`). */
-export type EgressVolumeAlertKind = 'run_threshold' | 'org_baseline' | 'run_cap';
+export type EgressVolumeAlertKind =
+  'run_threshold' | 'org_baseline' | 'run_cap';
 export type EgressVolumeDirection = 'up' | 'down' | 'total';
 export type EgressAlias =
   | 'model-gateway'
@@ -123,7 +124,9 @@ export class GatewayRefusalJournal<Tx> {
     private readonly journals: JournalPreparer & {
       resolve(events: JournalEvent[]): Promise<JournalEvent[]>;
     },
-    private readonly transaction: <T>(work: (tx: Tx) => Promise<T>) => Promise<T>,
+    private readonly transaction: <T>(
+      work: (tx: Tx) => Promise<T>,
+    ) => Promise<T>,
     private readonly logger: HarnessLogger = silentHarnessLogger,
   ) {}
 
@@ -251,7 +254,10 @@ export class GatewayRefusalJournal<Tx> {
   ): Promise<RefusalOutcome> {
     const started = performance.now();
     const prior = await this.prior(run, 'model.fallback');
-    const same = (a: unknown, b: { provider: string; model: string }): boolean => {
+    const same = (
+      a: unknown,
+      b: { provider: string; model: string },
+    ): boolean => {
       const ref = (a ?? {}) as Record<string, unknown>;
       return ref['provider'] === b.provider && ref['model'] === b.model;
     };
@@ -302,7 +308,8 @@ export class GatewayRefusalJournal<Tx> {
     const started = performance.now();
     const prior = await this.prior(run, 'gateway.secret_hidden');
     const outcome = prior.some(
-      ({ data = {} }) => data['gateway'] === hidden.gateway && data['kind'] === hidden.kind,
+      ({ data = {} }) =>
+        data['gateway'] === hidden.gateway && data['kind'] === hidden.kind,
     )
       ? 'duplicate'
       : prior.length >= MAX_SECRETS_HIDDEN_PER_RUN

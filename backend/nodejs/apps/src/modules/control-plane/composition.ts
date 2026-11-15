@@ -111,7 +111,15 @@ export interface ControlPlaneAdminOptions {
   /** CPD-4's policy layers and the check of a layer against those above it; absent, the policy routes are `CP_UNAVAILABLE`. */
   readonly policy?: Pick<
     PolicyAdminDeps,
-    'layers' | 'narrows' | 'context' | 'websites' | 'repositories' | 'deployment' | 'accessGroups' | 'sections' | 'dimensions'
+    | 'layers'
+    | 'narrows'
+    | 'context'
+    | 'websites'
+    | 'repositories'
+    | 'deployment'
+    | 'accessGroups'
+    | 'sections'
+    | 'dimensions'
   >;
   readonly audit?: ConfigAuditPages;
   /** Bound unless `CONTROL_PLANE_PIN=off`. */

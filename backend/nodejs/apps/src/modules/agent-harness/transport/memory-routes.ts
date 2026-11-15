@@ -248,7 +248,10 @@ export function createAdminMemoryRouter(container: Container): Router {
       const { agentKey } = req.query as z.infer<
         typeof listAgentMemoriesSchema
       >['query'];
-      const memories = await service(container).listAgent(viewer(req), agentKey);
+      const memories = await service(container).listAgent(
+        viewer(req),
+        agentKey,
+      );
       res.status(200).json({
         memories,
         ...(await namedAgents(

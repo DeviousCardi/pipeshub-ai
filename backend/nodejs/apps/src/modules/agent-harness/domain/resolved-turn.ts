@@ -78,9 +78,7 @@ export interface ResolvedTurnSubject {
 
 const flowOf = (pin: ResolvedRunConfig): FlowRule[] => {
   const approvals = pin.effectiveConfig.dimensions['approvals']?.value as
-    | { flow?: unknown }
-    | null
-    | undefined;
+    { flow?: unknown } | null | undefined;
   return Array.isArray(approvals?.flow) ? (approvals.flow as FlowRule[]) : [];
 };
 

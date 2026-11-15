@@ -147,12 +147,36 @@ export const createSkill = forwardJson(HttpMethod.POST, () => `${SKILLS_BASE}/`,
 export const updateSkill = forwardJson(HttpMethod.PUT, (req) => `${SKILLS_BASE}/${encName(req)}`, 'Update Skill');
 export const patchSkillBody = forwardJson(HttpMethod.PATCH, (req) => `${SKILLS_BASE}/${encName(req)}/body`, 'Patch Skill Body');
 // UI-B4: the name people see; the skill's id stays (Python checks the owner and that no other skill shows it).
-export const renameSkill = forwardJson(HttpMethod.POST, (req) => `${SKILLS_BASE}/${encName(req)}/rename`, 'Rename Skill');
-export const deprecateSkill = forwardJson(HttpMethod.POST, (req) => `${SKILLS_BASE}/${encName(req)}/deprecate`, 'Deprecate Skill');
-export const disableSkill = forwardJson(HttpMethod.POST, (req) => `${SKILLS_BASE}/${encName(req)}/disable`, 'Disable Skill');
-export const enableSkill = forwardJson(HttpMethod.POST, (req) => `${SKILLS_BASE}/${encName(req)}/enable`, 'Enable Skill');
-export const getSkillUsage = forwardJson(HttpMethod.GET, (req) => `${SKILLS_BASE}/${encName(req)}/usage`, 'Get Skill Usage');
-export const deleteSkill = forwardJson(HttpMethod.DELETE, (req) => `${SKILLS_BASE}/${encName(req)}`, 'Delete Skill');
+export const renameSkill = forwardJson(
+  HttpMethod.POST,
+  (req) => `${SKILLS_BASE}/${encName(req)}/rename`,
+  'Rename Skill',
+);
+export const deprecateSkill = forwardJson(
+  HttpMethod.POST,
+  (req) => `${SKILLS_BASE}/${encName(req)}/deprecate`,
+  'Deprecate Skill',
+);
+export const disableSkill = forwardJson(
+  HttpMethod.POST,
+  (req) => `${SKILLS_BASE}/${encName(req)}/disable`,
+  'Disable Skill',
+);
+export const enableSkill = forwardJson(
+  HttpMethod.POST,
+  (req) => `${SKILLS_BASE}/${encName(req)}/enable`,
+  'Enable Skill',
+);
+export const getSkillUsage = forwardJson(
+  HttpMethod.GET,
+  (req) => `${SKILLS_BASE}/${encName(req)}/usage`,
+  'Get Skill Usage',
+);
+export const deleteSkill = forwardJson(
+  HttpMethod.DELETE,
+  (req) => `${SKILLS_BASE}/${encName(req)}`,
+  'Delete Skill',
+);
 
 // ---- Version history ------------------------------------------------------
 
@@ -166,9 +190,21 @@ export const rollbackSkill = forwardJson(HttpMethod.POST, (req) => `${SKILLS_BAS
 
 // ---- Sharing a /command (SLASH1 S4) -----------------------------------------
 
-export const getCommandShareTargets = forwardJson(HttpMethod.GET, () => `${SKILLS_BASE}/commands/share-targets`, 'Get Command Share Targets');
-export const getCommandProvenance = forwardJson(HttpMethod.GET, () => `${SKILLS_BASE}/commands/provenance`, 'Get Command Provenance');
-export const publishCommand = forwardJson(HttpMethod.POST, (req) => `${SKILLS_BASE}/${encName(req)}/publish`, 'Publish Command');
+export const getCommandShareTargets = forwardJson(
+  HttpMethod.GET,
+  () => `${SKILLS_BASE}/commands/share-targets`,
+  'Get Command Share Targets',
+);
+export const getCommandProvenance = forwardJson(
+  HttpMethod.GET,
+  () => `${SKILLS_BASE}/commands/provenance`,
+  'Get Command Provenance',
+);
+export const publishCommand = forwardJson(
+  HttpMethod.POST,
+  (req) => `${SKILLS_BASE}/${encName(req)}/publish`,
+  'Publish Command',
+);
 
 // ---- Bundled resources ------------------------------------------------------
 
@@ -198,7 +234,11 @@ export const finalizeSkillImport = forwardJson(HttpMethod.POST, () => `${SKILLS_
 
 // ---- Supply-chain review of imported skills (ADR-SEC-01): Python checks the caller is an org admin ----
 
-export const getPendingSkillReviews = forwardJson(HttpMethod.GET, () => `${SKILLS_BASE}/reviews/pending`, 'Get Pending Skill Reviews');
+export const getPendingSkillReviews = forwardJson(
+  HttpMethod.GET,
+  () => `${SKILLS_BASE}/reviews/pending`,
+  'Get Pending Skill Reviews',
+);
 export const reviewSkill = forwardJson(
   HttpMethod.POST,
   (req) => `${SKILLS_BASE}/${encParam(req.params.name)}/review`,
@@ -313,11 +353,18 @@ async function learnedForCaller(
       timeout: 30_000,
       validateStatus: () => true,
     });
-    const candidates: unknown = isRecord(response.data) ? response.data['candidates'] : undefined;
+    const candidates: unknown = isRecord(response.data)
+      ? response.data['candidates']
+      : undefined;
     return (
       response.status === 200 &&
       Array.isArray(candidates) &&
-      candidates.some((c) => isRecord(c) && c['candidate_id'] === candidateId && c['mine'] === true)
+      candidates.some(
+        (c) =>
+          isRecord(c) &&
+          c['candidate_id'] === candidateId &&
+          c['mine'] === true,
+      )
     );
   } catch {
     return false;
@@ -339,27 +386,42 @@ export type CandidateWorkflowFactory = ConfigChangeApprovalsFactory;
  * request: it is decided as a skill they write themselves, with Python
  * checking that it is theirs. The reviewer's edits are forwarded either way.
  */
-export function decideSkillCandidateThroughWorkflow(verdict: 'approve' | 'reject') {
-  const action = verdict === 'approve' ? 'Approve Skill Candidate' : 'Reject Skill Candidate';
+export function decideSkillCandidateThroughWorkflow(
+  verdict: 'approve' | 'reject',
+) {
+  const action =
+    verdict === 'approve'
+      ? 'Approve Skill Candidate'
+      : 'Reject Skill Candidate';
   return (appConfig: AppConfig, workflowFor: CandidateWorkflowFactory) =>
-    async (req: AuthenticatedUserRequest, res: Response, next: NextFunction): Promise<void> => {
+    async (
+      req: AuthenticatedUserRequest,
+      res: Response,
+      next: NextFunction,
+    ): Promise<void> => {
       const userId: unknown = req.user?.userId;
       const orgId: unknown = getCurrentOrgId();
       const candidateId = String(req.params.candidateId ?? '');
-      const forward = async (step: 'approve' | 'reject'): Promise<AxiosResponse> => {
+      const forward = async (
+        step: 'approve' | 'reject',
+      ): Promise<AxiosResponse> => {
         const response = await axios.request({
           url: `${appConfig.aiBackend}${SKILLS_BASE}/candidates/${encParam(candidateId)}/${step}`,
           method: HttpMethod.POST,
           data: step === 'approve' && isRecord(req.body) ? req.body : {},
-          headers: buildForwardHeaders(req, { 'Content-Type': 'application/json' }),
+          headers: buildForwardHeaders(req, {
+            'Content-Type': 'application/json',
+          }),
           timeout: 30_000,
           validateStatus: () => true,
         });
-        if (response.status < 200 || response.status >= 300) throw new UpstreamAnswer(response);
+        if (response.status < 200 || response.status >= 300)
+          throw new UpstreamAnswer(response);
         return response;
       };
       try {
-        if (typeof userId !== 'string' || typeof orgId !== 'string') throw new UnauthorizedError('User authentication required');
+        if (typeof userId !== 'string' || typeof orgId !== 'string')
+          throw new UnauthorizedError('User authentication required');
         if (await learnedForCaller(appConfig, req, candidateId)) {
           const own = await forward(verdict);
           res.status(own.status).json(own.data);
@@ -383,7 +445,11 @@ export function decideSkillCandidateThroughWorkflow(verdict: 'approve' | 'reject
           return;
         }
         const mapped = controlPlaneHttpError(error);
-        next(mapped !== error || error instanceof UnauthorizedError ? mapped : mapAxiosError(error, action));
+        next(
+          mapped !== error || error instanceof UnauthorizedError
+            ? mapped
+            : mapAxiosError(error, action),
+        );
       }
     };
 }

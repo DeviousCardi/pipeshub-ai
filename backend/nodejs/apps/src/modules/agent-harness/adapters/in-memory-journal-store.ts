@@ -41,27 +41,26 @@ export class InMemoryJournalStore implements JournalStore<unknown> {
     const stored = this.streams.get(key) ?? [];
     const ts = new Date(this.clock.now()).toISOString();
     const firstSeq = stored.length + 1;
-    const appended = batch.events.map(
-      (event, index): JournalEvent =>
-        defined({
-          orgId: batch.orgId,
-          sessionId: batch.sessionId,
-          streamId: batch.streamId,
-          seq: firstSeq + index,
-          runId: batch.runId,
-          attemptId: batch.attemptId,
-          fence: batch.fence,
-          type: event.type,
-          schemaVersion: event.schemaVersion,
-          critical: event.critical,
-          ts,
-          writer: batch.writer,
-          labels: structuredClone(event.labels),
-          visibility: event.visibility,
-          data: structuredClone(event.data),
-          payloadRef: structuredClone(event.payloadRef),
-          sealed: structuredClone(event.sealed),
-        }),
+    const appended = batch.events.map((event, index): JournalEvent =>
+      defined({
+        orgId: batch.orgId,
+        sessionId: batch.sessionId,
+        streamId: batch.streamId,
+        seq: firstSeq + index,
+        runId: batch.runId,
+        attemptId: batch.attemptId,
+        fence: batch.fence,
+        type: event.type,
+        schemaVersion: event.schemaVersion,
+        critical: event.critical,
+        ts,
+        writer: batch.writer,
+        labels: structuredClone(event.labels),
+        visibility: event.visibility,
+        data: structuredClone(event.data),
+        payloadRef: structuredClone(event.payloadRef),
+        sealed: structuredClone(event.sealed),
+      }),
     );
     this.streams.set(key, [...stored, ...appended]);
     return {

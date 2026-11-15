@@ -21,7 +21,6 @@ import {
   routeTemplate,
 } from './access-log.middleware';
 
-
 /**
  * What a reader is told when the failure is in PipesHub's own plumbing (a
  * broker, cache or database). Those errors describe the machine, so they stay
