@@ -86,7 +86,7 @@
 # Needs: Docker with Compose v2, python:3.12-slim (and apt access once, to build pxh-e2e-app from
 # Dockerfile.app), neo4j:5.26.0,
 # qdrant/qdrant:v1.15.5, the sandbox image (E2E_SANDBOX_IMAGE, default pxh-sandbox:x1),
-# the run image of E2E_ENGINE (durable only; pxh-opencode-tools:… by default), the Playwright image (E2E_PLAYWRIGHT_IMAGE, default
+# the run image of E2E_ENGINE (lanes with engine runs only; pxh-opencode-tools:… by default), the Playwright image (E2E_PLAYWRIGHT_IMAGE, default
 # mcr.microsoft.com/playwright:v<frontend's @playwright/test>-jammy; all local, nothing is pulled), a MongoDB
 # replica set and a Redis container (E2E_MONGO_CONTAINER, E2E_REDIS_CONTAINER; default the shared
 # pxh-mongo-rs and pxh-redis), Node 22 (E2E_NODE_HOME), a Python
@@ -500,7 +500,8 @@ prepare() {
   local images=(python:3.12-slim neo4j:5.26.0 qdrant/qdrant:v1.15.5 "$SANDBOX_IMAGE" "$PW_IMAGE")
   # A laptop's stack runs no Playwright and pulls the public images it lacks; the lanes pull nothing.
   [[ "${E2E_DEV:-}" == "1" ]] && images=(python:3.12-slim neo4j:5.26.0 qdrant/qdrant:v1.15.5 mongo:8.0.17 redis:7.4.12-bookworm "$SANDBOX_IMAGE")
-  if [[ "${E2E_DURABLE:-}" == "1" ]]; then
+  # Only a lane that runs engines starts their run image; the PR lane's worker has engine runs off and never builds it.
+  if [[ "${E2E_DURABLE:-}" == "1" && "${E2E_ENGINE_RUNS:-false}" == "true" ]]; then
     local engine_image
     engine_image="$(python3 "$HERE/engines.py" image "${E2E_ENGINE:-$(default_engine)}")" || die "no run image for E2E_ENGINE"
     images+=("$engine_image")

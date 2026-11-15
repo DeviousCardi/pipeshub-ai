@@ -126,3 +126,31 @@ def test_qafinal_fu_eng_3_an_acp_engine_is_named_in_the_org_ceiling_and_a_native
     seed = (E2E / "seed.py").read_text()
     durable = seed[seed.index("def seed_durable"):seed.index("def seed_harness")]
     assert durable.index("admin/engine-profile") < durable.index('state["engineAgentKey"] = create_tool_agent(')
+
+
+def _engine_images_wanted(env: dict[str, str]) -> list[str]:
+    """Runs prepare()'s engine-image block from run.sh as written, and returns the images it adds."""
+    text = RUN_SH.read_text()
+    block = re.search(r'^  if \[\[ "\$\{E2E_DURABLE:-\}" == "1"[^\n]*\n.*?^  fi$', text, re.M | re.S)
+    assert block, "prepare() keeps its engine-image block"
+    script = "\n".join([
+        f"HERE={str(E2E)!r}",
+        "die() { echo \"die: $*\" >&2; exit 3; }",
+        "default_engine() { python3 -I \"$HERE/engines.py\" kinds | head -1; }",
+        "f() {", "  local images=()", block.group(0), "  printf '%s\\n' \"${images[@]}\"", "}", "f",
+    ])
+    done = subprocess.run(["bash", "-c", script], capture_output=True, text=True, check=True,
+                          env={"PATH": "/usr/bin:/bin", **env})
+    return [line for line in done.stdout.splitlines() if line]
+
+
+def test_r25_el_7_only_a_lane_with_engine_runs_needs_the_engine_run_image(engines) -> None:
+    """The PR lane (run.sh harness) runs the durable worker with engine runs off, and its CI job builds no engine
+    image: prepare() asked for pxh-opencode-tools anyway and the lane died before the stack came up."""
+    default_image = engines.image(engines.default_kind())
+    assert _engine_images_wanted({"E2E_DURABLE": "1", "E2E_ENGINE_RUNS": "false"}) == []
+    assert _engine_images_wanted({"E2E_DURABLE": "1"}) == []
+    assert _engine_images_wanted({"E2E_DURABLE": "1", "E2E_ENGINE_RUNS": "true"}) == [default_image]
+    assert _engine_images_wanted({"E2E_DURABLE": "", "E2E_ENGINE_RUNS": "true"}) == []
+    harness = RUN_SH.read_text().split("\n  all|harness)\n", 1)[1].split("\n    ;;", 1)[0]
+    assert "E2E_ENGINE_RUNS=false" in harness, "the PR lane keeps engine runs off"
