@@ -140,7 +140,7 @@ def test_a_load_that_swallows_the_interrupt_is_still_refused_at_once(monkeypatch
     started = time.monotonic()
     with pytest.raises(wm.WorkbookRefused, match="stayed at its"):
         wm.load_workbook_model(workbook_zip(""), LIMIT, LIMIT, None, None)
-    # Three interrupts 0.3 s apart; a one-shot watcher ran until the 20 s deadline.
+    # wall-clock-ok: the interrupts land 0.3 s apart and the regression is a one-shot watcher that runs to the 20 s deadline
     assert time.monotonic() - started < 10
     assert signal.getsignal(signal.SIGXCPU) == before
 
@@ -152,6 +152,7 @@ def test_a_load_wedged_in_c_at_the_cap_is_stopped_by_the_pool() -> None:
     with pytest.raises(parse_pool.ParseWorkerError) as stopped:
         parse_pool.run_blocking(wedged_at_the_cap, workbook_zip(""), LIMIT, LIMIT, label="wedged", timeout=60)
     assert stopped.value.cause == "at_memory_limit"
+    # wall-clock-ok: the pool stops it about 3 s in; the regression is the CPU limit or pool timeout, about 240 s
     assert time.monotonic() - started < parse_pool._AT_DATA_LIMIT_SECONDS + 10
 
 
