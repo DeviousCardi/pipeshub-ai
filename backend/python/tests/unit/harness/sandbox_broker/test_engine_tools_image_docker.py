@@ -60,7 +60,7 @@ NATIVE_FILES = {
 }
 
 
-def _image_present(image: str) -> tuple[bool, str]:
+def _image_present(image: str, folder: str = "opencode") -> tuple[bool, str]:
     try:
         import docker
 
@@ -68,7 +68,7 @@ def _image_present(image: str) -> tuple[bool, str]:
         client.images.get(image)
         client.close()
     except Exception as exc:
-        return False, f"needs Docker and {image} (deployment/sandbox-images/opencode/build.sh): {type(exc).__name__}"
+        return False, f"needs Docker and {image} (deployment/sandbox-images/{folder}/build.sh): {type(exc).__name__}"
     return True, ""
 
 
@@ -353,7 +353,7 @@ def test_it13_the_runtime_layer_scan_passes_on_every_alpine_run_image(tmp_path: 
     """SKILLPACKS: one runtime layer, one review: the shared approvals hold in each engine's scan."""
     entry = next(e for e in ALLOWLIST["engines"] if e["kind"] == kind)
     for image in (entry["variants"]["tools"], entry["variants"]["engine"]):
-        present, reason = _image_present(image)
+        present, reason = _image_present(image, kind)
         if not present:
             pytest.skip(reason)
     report = _scan(TOOLS / "scan.sh", tmp_path, kind)
@@ -367,7 +367,7 @@ def test_it13_a_debian_image_scan_blocks_only_debian_packages_no_approval_covers
     blocks is the Debian packages their apt layer installs (git, perl and their libraries), which no recorded approval
     covers: legal, not code."""
     image = next(e for e in ALLOWLIST["engines"] if e["kind"] == kind)["image"]
-    present, reason = _image_present(image)
+    present, reason = _image_present(image, folder)
     if not present:
         pytest.skip(reason)
     report = _scan(REPO / "deployment" / "sandbox-images" / folder / "scan.sh", tmp_path)

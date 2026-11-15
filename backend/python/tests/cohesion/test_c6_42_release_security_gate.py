@@ -332,3 +332,21 @@ def test_c6_42_the_engine_job_installs_the_node_workspace_its_durable_lanes_star
     assert steps[install]["run"].startswith("npm ci")
     assert node < install < _step_index(steps, "security_gate.py run engines")
 
+
+def test_c6_42_an_admin_built_engines_scan_skip_names_its_own_build_script(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """IT-13's Claude Code case named opencode's build script when its image was absent, so the gate read the
+    allowed skip of an admin-built image as one for want of a built image."""
+    from tests.unit.harness.sandbox_broker import test_engine_tools_image_docker as it13
+
+    monkeypatch.setenv("DOCKER_HOST", "unix:///nonexistent")
+    allowlist = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
+    claude = next(e for e in allowlist["engines"] if e["kind"] == "claude_code")["image"]
+    present, reason = it13._image_present(claude, "claude-code")  # pyright: ignore[reportPrivateUsage]
+    assert not present and "sandbox-images/claude-code/build.sh" in reason
+    images = _release_images()
+    assert images.main(["check", str(_report(tmp_path, reason, passed=1)), "--min-tests", "2"]) == 0
+    gemini = next(e for e in allowlist["engines"] if e["kind"] == "acp-gemini")["image"]
+    _, reason = it13._image_present(gemini, "acp-gemini")  # pyright: ignore[reportPrivateUsage]
+    assert images.main(["check", str(_report(tmp_path, reason, passed=1)), "--min-tests", "2"]) == 1
