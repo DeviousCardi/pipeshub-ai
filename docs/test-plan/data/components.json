@@ -3676,6 +3676,7 @@
         "backend/python/tests/harness_replay/test_rig_config.py",
         "backend/nodejs/apps/tests/root-hooks.guard.test.ts",
         "backend/nodejs/apps/tests/support/harness/**",
+        "backend/nodejs/apps/tests/modules/agent-harness/support/without.ts",
         "backend/python/tests/unit/harness/test_network_guard_support.py",
         "backend/python/tests/unit/harness/test_qa5_fake_llm_loop.py",
         "backend/python/tests/unit/harness/test_lcfix_fake_llm_usage.py",
