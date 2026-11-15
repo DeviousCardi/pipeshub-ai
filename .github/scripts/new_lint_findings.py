@@ -76,7 +76,9 @@ def lint(tool: str, files: list[str]) -> list[tuple[str, str, int]]:
 
 def _run(tool: str, cwd: str, rel: list[str]) -> list[dict]:
     if tool == "ruff":
-        cmd = ["ruff", "check", "--output-format=json", "--exit-zero", *rel]
+        # Ruff lints a path named on the command line even when the config excludes it; --force-exclude keeps
+        # generated code that pyproject.toml excludes out of the count.
+        cmd = ["ruff", "check", "--force-exclude", "--output-format=json", "--exit-zero", *rel]
     elif tool in SCRIPTS:
         cmd = [sys.executable, SCRIPTS[tool], *rel]
     else:
