@@ -498,6 +498,74 @@
     },
     {
       "schemaVersion": 1,
+      "ref": "mcp:pipeshub/egnyte@c.9cdf296cd849",
+      "kind": "mcp",
+      "publisher": "pipeshub",
+      "name": "egnyte",
+      "version": "c.9cdf296cd849",
+      "orgId": null,
+      "provenance": "release",
+      "source": {
+        "type": "release"
+      },
+      "display": {
+        "name": "Egnyte",
+        "description": "Search, read, and ask questions about files and folders in Egnyte.",
+        "icon": "/icons/connectors/egnyte.svg",
+        "categories": [
+          "storage",
+          "docs"
+        ],
+        "hidden": false
+      },
+      "riskClass": "write-external",
+      "configSchema": {
+        "transport": "streamable_http",
+        "defaultAuthMode": "oauth",
+        "supportedAuthModes": [
+          "oauth"
+        ],
+        "command": null,
+        "args": [],
+        "requiredEnv": [],
+        "optionalEnv": [],
+        "defaultUrl": "https://mcp-server.egnyte.com/mcp",
+        "urlEditable": false,
+        "requireOauthClient": false,
+        "authorizationUrl": "https://mcp-oauth.egnyte.com/external/oauth2/authorize/egnyte-connect",
+        "tokenUrl": "https://mcp-oauth.egnyte.com/egnyte-connect/oauth2/token",
+        "defaultScopes": [],
+        "authorizationParams": {},
+        "clientSecretPrefix": null,
+        "supportsDcr": true,
+        "documentationUrl": "https://developers.egnyte.com/integration/cfs/api-docs/remote-mcp-server",
+        "authHint": {
+          "label": "Egnyte OAuth",
+          "placeholder": null,
+          "helpText": "Sign in with your Egnyte account. Which tools you get depends on your Egnyte plan, and an Egnyte admin may need to allow MCP access first."
+        },
+        "replacedBy": null
+      },
+      "credentialRequirements": [
+        {
+          "mode": "oauth",
+          "owners": [
+            "agent",
+            "user"
+          ],
+          "provider": "egnyte"
+        }
+      ],
+      "descriptors": {
+        "kind": "tool",
+        "items": []
+      },
+      "descriptorSetDigest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "deprecated": false,
+      "createdAt": 0
+    },
+    {
+      "schemaVersion": 1,
       "ref": "mcp:pipeshub/exa@c.78cdfa5f5270",
       "kind": "mcp",
       "publisher": "pipeshub",
