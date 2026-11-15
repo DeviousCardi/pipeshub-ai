@@ -2,7 +2,7 @@
 stored as one ``editionFields`` map: written only once set, a key the source dropped written as null so the merging
 upsert clears it, and read back from either store (Neo4j holds the map as JSON text).
 
-SMD-1..SMD-6.
+SMD-1..SMD-7.
 """
 
 from __future__ import annotations
@@ -11,9 +11,11 @@ import json
 
 from app.config.constants.arangodb import Connectors, OriginTypes
 from app.connectors.core.base.source_metadata import (
+    KEEP_HELD_METADATA,
     apply_source_metadata,
     held_metadata,
     metadata_changed,
+    source_metadata,
 )
 from app.models.entities import (
     EDITION_FIELDS_KEY,
@@ -84,3 +86,36 @@ def test_smd5_fields_read_back_from_a_map_or_its_json_text() -> None:
 def test_smd6_the_record_schema_admits_the_map_and_neo4j_decodes_it() -> None:
     assert record_schema["rule"]["properties"][EDITION_FIELDS_KEY] == {"type": ["object", "null"]}
     assert EDITION_FIELDS_KEY in JSON_ENCODED_FIELDS["records"]
+
+
+async def test_smd7_this_builds_reader_gives_a_sync_no_fields_to_write() -> None:
+    """With no edition reader, every connector read answers what the record holds: a new record and one stored
+    without fields are written without an ``editionFields`` key, so they still fit the previous release's schema."""
+    from unittest.mock import MagicMock
+
+    reader = source_metadata()
+    assert reader is KEEP_HELD_METADATA
+
+    async def no_service(scopes: object) -> object:
+        raise AssertionError("this build asks the source for nothing")
+
+    logger = MagicMock()
+    drive = await reader.drive_metadata(no_service, logger)
+    item = reader.item_metadata(lambda: None, logger)
+    item.new_sync()
+    content = reader.confluence_metadata(logger)
+    content.new_sync()
+    answers = [
+        drive.fields_for({"id": "f1", "properties": {"tag": "x"}}, {}),
+        await item.fields_for("d1", "i1", {}, changed=True),
+        await content.fields_for(None, "page", "p1", "s1", {}),
+        reader.box_metadata({"id": "b1", "metadata": {"tag": "x"}}, {}),
+        reader.mail_metadata(object(), {}),
+    ]
+    assert (reader.box_fields(), reader.mail_expand()) == ((), ())
+
+    for fields in answers:
+        for existing in (None, _record()):
+            record = _record()
+            assert apply_source_metadata(record, existing, fields) is False
+            assert EDITION_FIELDS_KEY not in record.to_arango_base_record()
