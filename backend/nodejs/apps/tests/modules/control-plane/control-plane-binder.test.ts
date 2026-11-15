@@ -33,7 +33,22 @@ import { fakeCollections } from './support/fake-mongo-models';
 import { InMemoryBindingStore } from './support/in-memory-stores';
 import { testControlPlane } from './support/in-memory';
 
-function bind(env: string | undefined, appConfig: boolean, pinner = true): Container {
+/** Restores `name` after `run`; unset (`undefined`) deletes it for the duration. */
+function withEnv<T>(name: string, value: string | undefined, run: () => T): T {
+  const previous = process.env[name];
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+  try {
+    return run();
+  } finally {
+    if (previous === undefined) delete process.env[name];
+    else process.env[name] = previous;
+  }
+}
+
+// An unset CONTROL_PLANE_PIN follows the harness switch, so each bind names the switch rather than inheriting the
+// runner's: the codegen job runs these files with `--no-config`, without the suite's harness-on helper.
+function bind(env: string | undefined, appConfig: boolean, pinner = true, harness = 'true'): Container {
   const container = new Container();
   if (appConfig) container.bind('AppConfig').toConstantValue({ aiBackend: 'http://q', jwtSecret: 'j', scopedJwtSecret: 's' });
   const context = {
@@ -42,16 +57,12 @@ function bind(env: string | undefined, appConfig: boolean, pinner = true): Conta
     controlPlane: testControlPlane(),
     logger: undefined,
   } as unknown as HarnessBindingContext;
-  const previous = process.env.CONTROL_PLANE_PIN;
-  if (env === undefined) delete process.env.CONTROL_PLANE_PIN;
-  else process.env.CONTROL_PLANE_PIN = env;
-  try {
-    if (pinner) bindControlPlanePin(context);
-    bindControlPlaneCapabilities(context);
-  } finally {
-    if (previous === undefined) delete process.env.CONTROL_PLANE_PIN;
-    else process.env.CONTROL_PLANE_PIN = previous;
-  }
+  withEnv('AGENT_HARNESS_WORKER_ENABLED', harness, () =>
+    withEnv('CONTROL_PLANE_PIN', env, () => {
+      if (pinner) bindControlPlanePin(context);
+      bindControlPlaneCapabilities(context);
+    }),
+  );
   return container;
 }
 
@@ -63,8 +74,8 @@ describe('CPD-7 control-plane binder', () => {
     expect(bind('shadow', false).isBound(CONTROL_PLANE_CAPABILITY_SYNC)).to.equal(false);
   });
 
-  it('off, or no pinner bound: the agent authority is left as it is (nothing to compare with); the sync is bound all the same', () => {
-    for (const container of [bind('off', true), bind('shadow', true, false)]) {
+  it('off, harness off with the pin unset, or no pinner bound: the agent authority is left as it is (nothing to compare with); the sync is bound all the same', () => {
+    for (const container of [bind('off', true), bind('shadow', true, false), bind(undefined, true, true, 'false')]) {
       expect(container.isBound(AGENT_HARNESS_AGENT_ACCESS)).to.equal(false);
       expect(container.isBound(CONTROL_PLANE_CAPABILITY_SYNC)).to.equal(true);
     }
