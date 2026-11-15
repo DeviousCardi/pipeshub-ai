@@ -9054,11 +9054,11 @@
     },
     {
       "schemaVersion": 1,
-      "ref": "toolset:pipeshub/knowledgegraph@c.63280b97237a",
+      "ref": "toolset:pipeshub/knowledgegraph@c.d49d21e4b369",
       "kind": "toolset",
       "publisher": "pipeshub",
       "name": "knowledgegraph",
-      "version": "c.63280b97237a",
+      "version": "c.d49d21e4b369",
       "orgId": null,
       "provenance": "release",
       "source": {
@@ -9143,6 +9143,12 @@
                   "default": 50
                 },
                 {
+                  "name": "cursor",
+                  "type": "string",
+                  "description": "Cursor printed in the previous page's Next: line, copied exactly, with the same node_id and depth. It chooses the next page and keeps that page's filters; page is then ignored. Page numbers stop at 50, a cursor does not.",
+                  "required": false
+                },
+                {
                   "name": "depth",
                   "type": "integer",
                   "description": "How many levels of children to return in this one call (1-3, default 1). depth=1 returns direct children only. depth=2 also fetches each child's own children. depth=3 goes one level deeper. Results are returned as a flat list sorted by creation date (latest first), with each row showing its level in the hierarchy. Works for any parent type (app, recordGroup, record, folder). Use depth=2/3 for hierarchy-overview questions instead of calling navigate() once per level.",
@@ -9178,7 +9184,7 @@
             "effect": "read",
             "sink": null,
             "provider": "platform",
-            "digest": "sha256:acb68c8e2937cc15b6c22c3f4632ea244ebe49605d95bbf3440bd237ff126aa6"
+            "digest": "sha256:87429e1e6f48c663fb815e1844161601c013cc6709821bccc66f69c76b588bf3"
           },
           {
             "name": "lookup_record",
@@ -9767,7 +9773,7 @@
                 {
                   "name": "cursor",
                   "type": "string",
-                  "description": "The next-page token from the selection listed in the prompt. Pass it with any query; the cursor chooses the page. Omit it to start at the first page.",
+                  "description": "The cursor a previous page's output printed, copied exactly. It chooses the page and keeps that listing's filters; page is then ignored. Omit it to start at the first page.",
                   "required": false
                 }
               ]
@@ -9775,7 +9781,7 @@
             "effect": "read",
             "sink": null,
             "provider": "platform",
-            "digest": "sha256:844799fde2690ec05c08c1d883d33f5760ee8bed7a5de2cbb16598d66fcd63ce"
+            "digest": "sha256:47b007283e0e616ac56795ed6068ed0506ceb7f9ee7e305b5611ff6ac906cb86"
           },
           {
             "name": "search_timeline",
@@ -9834,7 +9840,7 @@
           }
         ]
       },
-      "descriptorSetDigest": "sha256:46c8dc1fbd7368ef6f8fe91c275918c310a6d5dc7d0ab030b0c68143b9eddd3f",
+      "descriptorSetDigest": "sha256:3bb86b8b5dbd730c49ddc37e383f88c2be3c0a03283834e0031a2695d8861905",
       "deprecated": false,
       "createdAt": 0
     },
