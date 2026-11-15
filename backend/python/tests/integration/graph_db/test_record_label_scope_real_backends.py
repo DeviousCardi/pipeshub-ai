@@ -45,6 +45,7 @@ from app.models.blocks import SemanticMetadata
 from app.modules.entity_resolution.keys import taxonomy_node_key
 from app.modules.entity_resolution.models import ResolutionMode
 from app.modules.entity_resolution.resolver import EntityResolver
+from app.modules.indexing.connector_sweep import key_of
 from app.modules.indexing.record_label_repair import (
     REPAIR_VERSION,
     RecordLabelRepair,
@@ -517,6 +518,28 @@ class _Leader:
         return True
 
 
+class _OwnConnector:
+    """The graph with only this test's connector in the apps collection, for the sweep to pick from.
+
+    The sweep takes the first pending connector by key across the whole database, and the Neo4j job shares one
+    database with every other suite: their leftover connectors came first and used up the ticks (and had their own
+    repair state written by this test).
+    """
+
+    def __init__(self, graph: IGraphDBProvider, connector_id: str) -> None:
+        self._graph = graph
+        self._connector_id = connector_id
+
+    def __getattr__(self, name: str) -> Any:  # noqa: ANN401 - every other call goes to the real provider
+        return getattr(self._graph, name)
+
+    async def get_all_documents(self, collection: str, transaction: str | None = None) -> list[dict[str, Any]]:
+        documents = await self._graph.get_all_documents(collection, transaction)
+        if collection != CollectionNames.APPS.value:
+            return documents
+        return [d for d in documents if key_of(d) == self._connector_id]
+
+
 class TestTheRepairOnARealGraph:
     async def test_a_rewritten_copy_gets_its_own_labels_back(self, env: _Env) -> None:
         s = env.suffix
@@ -538,7 +561,7 @@ class TestTheRepairOnARealGraph:
             }
 
         repair = RecordLabelRepair(
-            logger=logger, graph_provider=env.graph, blob_store=blob, lock=_Leader(),
+            logger=logger, graph_provider=_OwnConnector(env.graph, env.connector_id), blob_store=blob, lock=_Leader(),
             cutoff_ms=get_epoch_timestamp_in_ms(), page_size=1,
         )
         for _ in range(20):
