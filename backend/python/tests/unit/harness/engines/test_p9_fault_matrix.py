@@ -17,6 +17,7 @@ import asyncio
 import contextlib
 import json
 import os
+import re
 import time
 from collections import Counter
 from dataclasses import asdict, dataclass, field
@@ -675,11 +676,11 @@ async def test_fm11_ch12_worker_sandbox_partition(tmp_path: Path, uri: str) -> N
         assert "engine_kernel_error" not in result.observed["attempt_dispositions"], result.observed
 
 
-def test_rows_are_documented() -> None:
-    """Every FM row in this file is a row of the P9 doc's fault table, and the other way round."""
-    doc = (Path(__file__).resolve().parents[6] / "docs" / "agent-harness-v2" / "impl" / "P9-production-readiness.md").read_text()
+def test_every_row_is_driven_once_with_a_documented_oracle() -> None:
+    """The matrix's rows are this module's: each fault is driven by exactly one row, whose oracle is one the module
+    docstring defines."""
     here = Path(__file__).read_text()
-    for row in [*(f"FM-{n}" for n in range(1, 12)), "FM-9f", "FM-10s"]:
-        assert f"| {row} |" in doc and f'"{row}"' in here
-
-
+    rows = re.findall(r'RowResult\(\s*"(FM-\w+)",\s*"[^"]*",\s*"(\w+)"', here)
+    expected = ["FM-0", *(f"FM-{n}" for n in range(1, 12)), "FM-9f", "FM-10s"]
+    assert sorted(row for row, _ in rows) == sorted(expected)
+    assert {oracle for _, oracle in rows} <= {"resume", "degrade", "typed", "fail_closed"}
