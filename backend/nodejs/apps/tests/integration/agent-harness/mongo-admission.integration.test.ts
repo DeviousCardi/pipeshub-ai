@@ -112,7 +112,11 @@ describeWithMongo('Mongo durable run admission integration', function () {
     const replayed = await admit(service, request);
 
     expect(admitted.created).to.equal(true);
-    expect(replayed).to.deep.equal({ ...admitted, created: false });
+    // A replay answers the stored admission; only the first call created the conversation.
+    expect(admitted.createdSession).to.deep.equal({ title: 'Create a durable artifact' });
+    const stored: Partial<RunAdmissionResult> = { ...admitted, created: false };
+    delete stored.createdSession;
+    expect(replayed).to.deep.equal(stored);
     expect(admitted.run.status).to.equal('queued');
     expect(admitted.run.input?.previousConversations).to.deep.equal([]);
     expect(await ChatSession.countDocuments()).to.equal(1);
