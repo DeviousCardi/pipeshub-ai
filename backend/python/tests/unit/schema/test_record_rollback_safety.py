@@ -15,7 +15,12 @@ from jsonschema import Draft7Validator
 from app.config.constants.arangodb import Connectors, OriginTypes
 from app.models.entities import Record, RecordType
 from app.schema.arango.documents import record_schema
-from app.services.chat_attachments.uploads import AttachmentFile, Uploader, UploaderKind, attachment_documents
+from app.services.chat_attachments.uploads import (
+    AttachmentFile,
+    Uploader,
+    UploaderKind,
+    attachment_documents,
+)
 
 #: The record fields this release only accepts.
 ACCEPTED_ONLY = frozenset({
