@@ -41,7 +41,7 @@ import { NotFoundError } from '../../../libs/errors/http.errors';
 import { AppConfig, loadAppConfig } from '../../tokens_manager/config/config';
 import { DefaultStorageConfig } from '../../tokens_manager/services/cm.service';
 import {
-  harnessInputMaxBytes,
+  checkInternalUploadLimit,
   internalUploadMaxBytes,
 } from '../utils/internal-upload-limit';
 import { ARTIFACT_FILE_MAX_BYTES } from '../constants/constants';
@@ -60,7 +60,7 @@ export function createStorageRouter(container: Container): Router {
   storageController.watchStorageType(keyValueStoreService);
 
   // J-26: a bad HARNESS_INPUT_MAX_MB stops the app at start, not at a run's first large input.
-  harnessInputMaxBytes();
+  checkInternalUploadLimit();
 
   router.post(
     '/internal/upload',

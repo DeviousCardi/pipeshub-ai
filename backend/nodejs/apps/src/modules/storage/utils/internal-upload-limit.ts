@@ -1,7 +1,10 @@
+import { envFlag } from '../../../libs/utils/env-flags';
+
 /**
  * J-26: the agent harness's worker stores a run's inputs through the internal upload route as workspace objects,
  * so that route takes files as large as the deployment's largest input (`HARNESS_INPUT_MAX_MB`, read here as the
- * worker reads it), even where the platform's user-facing upload cap is lower.
+ * worker reads it), even where the platform's user-facing upload cap is lower. With the harness switched off
+ * (AGENT_HARNESS_WORKER_ENABLED) no worker uploads, and the route keeps the platform's cap alone.
  */
 export const INPUT_MAX_ENV = 'HARNESS_INPUT_MAX_MB';
 export const DEFAULT_INPUT_MAX_MB = 100;
@@ -21,10 +24,21 @@ export function harnessInputMaxBytes(
   return Number(raw) * MIB;
 }
 
-/** The internal upload route's cap: the platform's, or the deployment's largest input where that is larger. */
+/**
+ * The internal upload route's cap: the platform's, or, with the harness switched on, the deployment's largest input
+ * where that is larger.
+ */
 export function internalUploadMaxBytes(
   platformMaxBytes: number,
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): number {
+  if (!envFlag('AGENT_HARNESS_WORKER_ENABLED', env)) return platformMaxBytes;
   return Math.max(platformMaxBytes, harnessInputMaxBytes(env));
+}
+
+/** Throws on a bad HARNESS_INPUT_MAX_MB where the harness is on; an install without it never reads the setting. */
+export function checkInternalUploadLimit(
+  env: Readonly<Record<string, string | undefined>> = process.env,
+): void {
+  if (envFlag('AGENT_HARNESS_WORKER_ENABLED', env)) harnessInputMaxBytes(env);
 }

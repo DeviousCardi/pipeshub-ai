@@ -4,6 +4,7 @@
  */
 import { expect } from 'chai'
 import {
+  checkInternalUploadLimit,
   DEFAULT_INPUT_MAX_MB,
   harnessInputMaxBytes,
   internalUploadMaxBytes,
@@ -25,9 +26,20 @@ describe('J26-N3: the deployment input cap on the internal upload route', () => 
     })
   }
 
-  it("takes the larger of the platform's upload cap and the input cap", () => {
-    expect(internalUploadMaxBytes(30 * MIB, {})).to.equal(100 * MIB)
-    expect(internalUploadMaxBytes(500 * MIB, {})).to.equal(500 * MIB)
-    expect(internalUploadMaxBytes(30 * MIB, { HARNESS_INPUT_MAX_MB: '20' })).to.equal(30 * MIB)
+  const ON = { AGENT_HARNESS_WORKER_ENABLED: 'true' }
+
+  it("takes the larger of the platform's upload cap and the input cap with the harness on", () => {
+    expect(internalUploadMaxBytes(30 * MIB, ON)).to.equal(100 * MIB)
+    expect(internalUploadMaxBytes(500 * MIB, ON)).to.equal(500 * MIB)
+    expect(internalUploadMaxBytes(30 * MIB, { ...ON, HARNESS_INPUT_MAX_MB: '20' })).to.equal(30 * MIB)
+  })
+
+  // The real storage cell (test_kb_push_storage_e2e) stores exactly 30 MiB and refuses one byte more on an install
+  // without the harness; widening there too let a KB push past the platform's cap.
+  it("keeps the platform's cap alone with the harness off, and never reads the input cap", () => {
+    expect(internalUploadMaxBytes(30 * MIB, {})).to.equal(30 * MIB)
+    expect(internalUploadMaxBytes(30 * MIB, { AGENT_HARNESS_WORKER_ENABLED: 'false', HARNESS_INPUT_MAX_MB: '512' })).to.equal(30 * MIB)
+    expect(() => checkInternalUploadLimit({ HARNESS_INPUT_MAX_MB: 'lots' })).not.to.throw()
+    expect(() => checkInternalUploadLimit({ ...ON, HARNESS_INPUT_MAX_MB: 'lots' })).to.throw(/HARNESS_INPUT_MAX_MB/)
   })
 })
