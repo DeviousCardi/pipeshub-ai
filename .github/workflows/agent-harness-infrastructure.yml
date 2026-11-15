@@ -141,10 +141,14 @@ jobs:
       - name: Build the Compose-selected sandbox
         run: docker compose --file deployment/docker-compose/docker-compose.yml build sandbox-image
 
+      # The image's Node is the major its Dockerfile copies from node:<major>-slim, so a Node upgrade there moves
+      # this check with it.
       - name: Verify the sandbox Node dependency boundary
         run: |
-          docker run --rm --entrypoint sh "$SANDBOX_TEST_IMAGE" -lc '
-            node --version | grep "^v22\." &&
+          node_major="$(sed -n 's/^FROM node:\([0-9][0-9]*\)-slim@.*/\1/p' deployment/sandbox/Dockerfile)"
+          test -n "$node_major"
+          docker run --rm -e NODE_MAJOR="$node_major" --entrypoint sh "$SANDBOX_TEST_IMAGE" -lc '
+            node --version | grep "^v$NODE_MAJOR\." &&
             test ! -e /home/sandbox/node_modules/image-size &&
             cd /home/sandbox &&
             npm ls uuid --all | grep "uuid@11\.1\.1 overridden"

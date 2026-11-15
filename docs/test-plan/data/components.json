@@ -3505,6 +3505,7 @@
         "backend/python/tests/cohesion/test_r31_gviso_stack_runtime.py",
         "backend/python/tests/cohesion/test_r24fu_runner_flags.py",
         "backend/python/tests/cohesion/test_pptxprev_e2e_image_converts.py",
+        "backend/python/tests/cohesion/test_sandbox_contract_node_major.py",
         "backend/python/tests/unit/harness/test_testinfra_smoke_state.py",
         "backend/python/tests/unit/harness/test_r31hot_smoke_codex_jobs.py",
         "backend/python/tests/unit/harness/test_r32uifu_knowledge_ready.py",
