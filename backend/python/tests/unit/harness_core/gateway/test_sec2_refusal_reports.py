@@ -143,3 +143,18 @@ async def test_gr6_a_failing_sink_leaves_the_answer_unchanged_and_is_logged_once
     # Forgotten after a failure, so a later refusal retries; logged once until a report succeeds again.
     assert sink.calls == 3
     assert caplog.text.count("refusal_report.failed") == 1
+
+
+def test_a_site_path_is_printable_ascii_without_a_query_or_fragment() -> None:
+    from harness_core.gateway.refusal_reports import SiteReport
+
+    allowed = {chr(c) for c in range(0x21, 0x7F)} - {"#", "?"}
+    for code in range(0x300):
+        char = chr(code)
+        shown = SiteReport.of(f"/a{char}b", "read", "read")
+        assert (shown is not None) is (char in allowed), repr(char)
+    assert SiteReport.of("/" + "a" * 120, "read", "read") is not None
+    assert SiteReport.of("/" + "a" * 121, "read", "read") is None
+    # A trailing line break would end the activity line early.
+    assert SiteReport.of("/docs\n", "read", "read") is None
+    assert SiteReport.of("docs", "read", "read") is None

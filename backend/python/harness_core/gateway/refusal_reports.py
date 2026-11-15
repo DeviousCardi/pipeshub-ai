@@ -55,8 +55,8 @@ _MAX_BYTES = 2**53 - 1
 _REASON = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,63}$")
 _PARAM = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 _HOST = re.compile(r"^[a-z0-9]([a-z0-9.-]{0,251}[a-z0-9])?$")
-# A site's path as an activity line shows it: printable, no query or fragment, bounded.
-_SITE_PATH = re.compile(r'^/[!-"$->@-~]{0,120}$')
+# A site's path as an activity line shows it: printable ASCII, no query or fragment, bounded.
+_SITE_PATH = re.compile(r"/(?:(?![#?])[!-~]){0,120}")
 # WP-63: how a site was reached and what the request did there.
 SiteAccessShown = Literal["read", "read-write", "host-level"]
 SiteUseShown = Literal["read", "write"]
@@ -80,7 +80,7 @@ class SiteReport:
 
     @classmethod
     def of(cls, path: str, access: str, use: str) -> SiteReport | None:
-        return cls(path, access, use) if _SITE_PATH.match(path) and access in SITE_ACCESSES and use in SITE_USES else None  # pyright: ignore[reportArgumentType]
+        return cls(path, access, use) if _SITE_PATH.fullmatch(path) and access in SITE_ACCESSES and use in SITE_USES else None  # pyright: ignore[reportArgumentType]
 
 
 @dataclass(frozen=True, slots=True)
