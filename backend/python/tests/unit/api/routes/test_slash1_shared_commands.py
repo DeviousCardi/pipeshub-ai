@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -26,9 +27,14 @@ from app.api.routes.skills import (
     command_provenance,
     command_share_targets,
     create_skill,
+    _build_manager,
     expand_command,
+    export_skill,
+    get_categories,
+    get_skill,
     list_skills,
     publish_command,
+    search_skills,
     update_skill,
 )
 from app.harness.contracts.state import RunCommand
@@ -252,6 +258,34 @@ def test_a_worker_takes_the_command_node_sends_and_refuses_display_fields() -> N
     assert RunCommand.model_validate(sent).owner == "team"
     with pytest.raises(ValidationError):
         RunCommand.model_validate({**sent, "authorId": "u-asha"})
+
+
+class TestOnlyARouteThatNeedsTheAnswerAsksForTheRole:
+    """Node is asked whether the caller is an org admin only by a route that hands ``_build_manager`` the question:
+    a read of an org command never asks, however the caller stands."""
+
+    async def test_reading_an_org_command_never_asks_node(self, graph) -> None:
+        asha = _req(graph, "asha")
+        await create_skill(asha, TRIAGE)
+        with _as_role("admin"):
+            await publish_command(asha, "triage", PublishRequest(scope="org"))
+        cy = _req(graph, "cy")
+        never = AsyncMock(side_effect=AssertionError("a read asked Node for the caller's role"))
+        with patch("app.api.routes.skills.fetch_caller_role", new=never):
+            assert "triage" in await _menu(cy)
+            for read in (
+                get_categories(cy),
+                search_skills(cy, q="triage", limit=10),
+                get_skill(cy, "triage"),
+                export_skill(cy, "triage"),
+                expand_command(cy, "triage", ExpandRequest(args="INC-1")),
+            ):
+                await read
+        never.assert_not_awaited()
+
+    async def test_changing_a_skill_without_the_question_is_refused_before_anything_is_read(self, graph) -> None:
+        with pytest.raises(TypeError, match="ask_admin"):
+            await _build_manager(_req(graph, "asha"), manage="triage")
 
 
 @pytest.fixture(autouse=True)

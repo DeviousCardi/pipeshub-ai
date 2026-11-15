@@ -26,6 +26,7 @@ Safe-delete additionally checks REFERENTIAL integrity against
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from logging import Logger
 from typing import Annotated, Any, Literal
@@ -734,13 +735,29 @@ async def _is_admin(request: Request) -> bool:
     return (await fetch_caller_role(request, request.app.container.config_service())).is_admin
 
 
+AskAdmin = Callable[[], Awaitable[bool]]
+
+
+def _admin_question(request: Request) -> AskAdmin:
+    """Asks Node whether the caller is an org admin, when called. A route that may need the answer passes this to
+    ``_build_manager``; a route that never does passes nothing, so it can be seen not to ask."""
+    return lambda: _is_admin(request)
+
+
 async def _build_manager(
-    request: Request, *, manage: str | None = None, admin: bool = False, governs: bool = False,
+    request: Request,
+    *,
+    ask_admin: AskAdmin | None = None,
+    manage: str | None = None,
+    admin: bool = False,
+    governs: bool = False,
 ) -> tuple[SkillManager, dict[str, Any]]:
     """The caller's skills manager. It reads their own skills, the builtins and the team and org commands shared
-    with them (SLASH1 S4), and changes the shared commands it governs. Node is asked whether the caller is an org
-    admin only when the answer matters: the route needs it (``admin``), or the skill it would change (``manage``),
-    or any skill of the org (``governs``, the editor's listing), is shared and not the caller's team's."""
+    with them (SLASH1 S4), and changes the shared commands it governs. ``ask_admin`` is called only when the answer
+    matters: the route needs it (``admin``), or the skill it would change (``manage``), or any skill of the org
+    (``governs``, the editor's listing), is shared and not the caller's team's."""
+    if ask_admin is None and (admin or manage is not None or governs):
+        raise TypeError("_build_manager needs ask_admin to decide shared-skill rights")
     services = await _get_services(request)
     user_context = _get_user_context(request)
     graph = services["graph_provider"]
@@ -758,8 +775,8 @@ async def _build_manager(
             (sharing := SkillSharing.of(d)).scope in SkillScope.SHARED and not rights.manages(sharing.scope, sharing.team_id)
             for d in docs if d
         )
-    if admin:
-        rights = replace(rights, org_admin=await _is_admin(request))
+    if admin and ask_admin is not None:
+        rights = replace(rights, org_admin=await ask_admin())
     visibility = SkillVisibility.of([user_key], teams=teams)
     manager = await build_management_skill_manager(
         graph, org_id, user_key, services["retrieval_service"], visibility=visibility, rights=rights,
@@ -783,7 +800,7 @@ async def list_skills(
     q: str | None = None,
     invocation: Literal["user"] | None = None,
 ) -> JSONResponse:
-    manager, ctx = await _build_manager(request, governs=invocation != "user")
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), governs=invocation != "user")
     # Only the read/list route seeds builtins (write routes stay pure): a
     # fresh org otherwise sees no builtin skills until its first chat, since
     # seeding is normally a runtime (agent-turn) side effect — see
@@ -938,7 +955,7 @@ async def expand_command(request: Request, name: str, payload: ExpandRequest) ->
 @router.get("/commands/share-targets", dependencies=[Depends(require_scopes(OAuthScopes.SKILL_READ))])
 async def command_share_targets(request: Request) -> JSONResponse:
     """Where the caller may share a /command (SLASH1 S4): the teams they own, and the org when they are its admin."""
-    _manager, ctx = await _build_manager(request, admin=True)
+    _manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), admin=True)
     rights: SharedSkillRights = ctx["rights"]
     teams = []
     for team_id in sorted(rights.owned_teams):
@@ -970,7 +987,7 @@ async def publish_command(request: Request, name: str, payload: PublishRequest) 
 
     An org command is an org admin's to publish and change; a team command its team's owners' (or an org
     admin's). The team must be one of the caller's org: its id comes from the body, so it is checked here."""
-    manager, ctx = await _build_manager(request, admin=True)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), admin=True)
     metadata = await _reject_if_builtin_skill(manager, name, ctx)
     team_id = payload.team_id if payload.scope == SkillScope.TEAM else None
     if payload.scope == SkillScope.TEAM and team_id is None:
@@ -1028,7 +1045,7 @@ async def update_skill(
     payload: SkillWriteRequest,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
 ) -> JSONResponse:
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     existing_metadata = await _reject_if_builtin_skill(manager, name, ctx)
     content = _build_content(payload, name=name, existing=existing_metadata)
     try:
@@ -1051,7 +1068,7 @@ async def patch_skill_body(
     payload: PatchBodyRequest,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
 ) -> JSONResponse:
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     await _reject_if_builtin_skill(manager, name, ctx)
     try:
         ok = await manager.patch(
@@ -1077,7 +1094,7 @@ async def rename_skill(
 ) -> JSONResponse:
     """UI-B4: the name people see. The skill's id (``name``) stays, so agents that use it, its installation, its
     /command and its history keep reaching it; a name another skill of the org shows is refused (409)."""
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     await _reject_if_builtin_skill(manager, name, ctx)
     store: GraphSkillStore = ctx["store"]
     try:
@@ -1092,7 +1109,7 @@ async def rename_skill(
 
 @router.post("/{name}/deprecate", dependencies=[Depends(require_scopes(OAuthScopes.SKILL_WRITE))])
 async def deprecate_skill(request: Request, name: str, payload: DeprecateRequest) -> JSONResponse:
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     await _reject_if_builtin_skill(manager, name, ctx)
     ok = await manager.deprecate(name, payload.reason, payload.replaced_by)
     if not ok:
@@ -1106,7 +1123,7 @@ async def disable_skill(request: Request, name: str) -> JSONResponse:
     creator (store visibility). Builtin skills: org admin only. An
     illegal transition (already disabled, or deprecated) surfaces as 409
     via `_handle_registry_error`."""
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     existing = await _load_skill_metadata(manager, name)
     await _require_admin_for_builtin_availability(request, existing)
     _require_manager_of(ctx, await ctx["store"].sharing(name))
@@ -1121,7 +1138,7 @@ async def disable_skill(request: Request, name: str) -> JSONResponse:
 async def enable_skill(request: Request, name: str) -> JSONResponse:
     """Reverses `disable`. Never undeprecates — see `SkillManager.enable`.
     Same authorization as `disable_skill`."""
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     existing = await _load_skill_metadata(manager, name)
     await _require_admin_for_builtin_availability(request, existing)
     _require_manager_of(ctx, await ctx["store"].sharing(name))
@@ -1165,7 +1182,7 @@ async def delete_skill(request: Request, name: str, detach: Annotated[bool, Quer
     would leave the dependent skill's instructions pointing at nothing).
     The guard lives on `SkillManager.delete` so the `skill_manage` tool
     cannot bypass it."""
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     await _reject_if_builtin_skill(manager, name, ctx)
     try:
         ok = await manager.delete(name, detach=detach)
@@ -1243,7 +1260,7 @@ async def get_version(request: Request, name: str, version: str) -> JSONResponse
 
 @router.post("/{name}/rollback", dependencies=[Depends(require_scopes(OAuthScopes.SKILL_WRITE))])
 async def rollback_skill(request: Request, name: str, payload: RollbackRequest) -> JSONResponse:
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     await _reject_if_builtin_skill(manager, name, ctx)
     try:
         metadata = await manager.rollback(name, payload.version)
@@ -1268,7 +1285,7 @@ async def get_resource(request: Request, name: str, path: str = Query(..., min_l
 
 @router.put("/{name}/resource", dependencies=[Depends(require_scopes(OAuthScopes.SKILL_WRITE))])
 async def write_resource(request: Request, name: str, payload: ResourceWriteRequest) -> JSONResponse:
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     await _reject_if_builtin_skill(manager, name, ctx)
     try:
         ok = await manager.write_resource(name, payload.path, payload.content)
@@ -1281,7 +1298,7 @@ async def write_resource(request: Request, name: str, payload: ResourceWriteRequ
 
 @router.delete("/{name}/resource", dependencies=[Depends(require_scopes(OAuthScopes.SKILL_WRITE))])
 async def remove_resource(request: Request, name: str, path: str = Query(..., min_length=1)) -> JSONResponse:
-    manager, ctx = await _build_manager(request, manage=name)
+    manager, ctx = await _build_manager(request, ask_admin=_admin_question(request), manage=name)
     await _reject_if_builtin_skill(manager, name, ctx)
     ok = await manager.remove_resource(name, path)
     if not ok:
