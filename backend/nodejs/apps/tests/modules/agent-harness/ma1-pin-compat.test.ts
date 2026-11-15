@@ -50,6 +50,7 @@ import { pinnerOf } from './support/a-pin';
 import { agentDefinition, grantingAccess } from './support/agent-definition';
 import { testCipher } from './support/data-protection';
 import { HARNESS_ENABLED } from './support/rollout';
+import { without } from './support/without';
 
 const V2 = { ...HARNESS_ENABLED, harnessMajor: 2 as const };
 const ORG = 'org-compat';
@@ -85,7 +86,7 @@ const tableWithout = (...dropped: string[]): DimensionRegistry =>
 const PREVIOUS_TABLE = tableWithout(CEILINGS);
 
 /** What this release would compute for the pin's members (its own `digest` member aside). */
-const digestOf = ({ digest: _stored, ...fields }: ResolvedRunConfig): string => pinDigest(fields);
+const digestOf = (pin: ResolvedRunConfig): string => pinDigest(without(pin, 'digest'));
 
 /** A golden pin exactly as the vector holds it: its members, its config, its digest. */
 const goldenPin = (vector: Vector): ResolvedRunConfig => {

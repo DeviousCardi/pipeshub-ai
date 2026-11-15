@@ -23,7 +23,7 @@ import { policySettingsWorld } from './support/policy-settings-world';
 
 const VECTORS = join(__dirname, '../../../../../../contracts/harness/vectors');
 const GOLDEN = join(VECTORS, 'policy-store-live-layers.json');
-const read = <T>(name: string): T => JSON.parse(readFileSync(join(VECTORS, name), 'utf8')) as T;
+const read = (name: string): unknown => JSON.parse(readFileSync(join(VECTORS, name), 'utf8'));
 
 const ENGINE_ORG = 'org-1';
 
@@ -55,8 +55,8 @@ const MODEL_ACCESS: Source[] = [
 ].map((entry) => ({ ...entry, source: 'inline', orgId: 'org-1', agentKey: null }));
 
 function sources(): Source[] {
-  const approvals = read<{ documents: Array<{ id: string; document: unknown; orgId: string; agentKey: string | null }> }>('approvals.json');
-  const engines = read<{ cases: Array<{ id: string; layers: { org?: unknown } }> }>('engine-profiles.json');
+  const approvals = read('approvals.json') as { documents: Array<{ id: string; document: unknown; orgId: string; agentKey: string | null }> };
+  const engines = read('engine-profiles.json') as { cases: Array<{ id: string; layers: { org?: unknown } }> };
   return [
     ...approvals.documents.map((vector) => ({
       id: vector.id,
@@ -143,7 +143,7 @@ describe('CPD10-43: the live layer Node serves for the vectors’ documents with
 
   it('the org’s engine ceiling travels as it was saved, and model access as the two fields a gateway reads', () => {
     const byId = new Map(cases.map((entry) => [entry.id, entry]));
-    const engines = read<{ cases: Array<{ id: string; layers: { org?: unknown } }> }>('engine-profiles.json');
+    const engines = read('engine-profiles.json') as { cases: Array<{ id: string; layers: { org?: unknown } }> };
     for (const vector of engines.cases.filter((c) => c.layers.org !== undefined)) {
       const entry = byId.get(vector.id)!;
       if (entry.live === null) continue;

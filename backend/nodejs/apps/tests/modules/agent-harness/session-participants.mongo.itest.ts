@@ -10,7 +10,7 @@ import type { Tx } from '../../../src/libs/repositories/uow';
 import 'reflect-metadata';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { ClientSession, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { ChatSession } from '../../../src/modules/enterprise_search/schema/chat.session.schema';
 import { setUserRepository, type UserRepository } from '../../../src/libs/repositories/user';
 import { appendMessages } from '../../../src/modules/enterprise_search/utils/utils';
@@ -40,7 +40,7 @@ import {
 import { HARNESS_ENABLED } from './support/rollout';
 import { testCipher } from './support/data-protection';
 import { describeSessionParticipantRecorderContract } from './support/session-participant-recorder-contract';
-import { inMongoDurableTransaction, inMongoTransaction } from '../../../src/libs/repositories/agent-harness/durable-transaction/mongo';
+import { inMongoDurableTransaction } from '../../../src/libs/repositories/agent-harness/durable-transaction/mongo';
 
 const V2 = { ...HARNESS_ENABLED, harnessMajor: 2 as const };
 const RECIPIENT = String(new Types.ObjectId());

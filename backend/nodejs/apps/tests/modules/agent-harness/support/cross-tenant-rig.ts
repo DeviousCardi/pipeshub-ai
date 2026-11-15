@@ -200,7 +200,7 @@ export async function startCrossTenantRig(tenants: readonly Tenant[]): Promise<C
   }
   const agents = new Map(tenants.map((t) => [t.orgId, t.agentKey]));
   const authenticate = (req: Request, res: Response, next: NextFunction): void => {
-    const identity = identities.get(String(req.headers.authorization ?? '').replace(/^Bearer /, ''));
+    const identity = identities.get((req.headers.authorization ?? '').replace(/^Bearer /, ''));
     if (identity === undefined) {
       res.status(401).json({ error: { message: 'unauthenticated' } });
       return;
@@ -433,7 +433,7 @@ export async function seedTenant(rig: CrossTenantRig, t: Tenant): Promise<Seeded
     attemptId: agentRun.attemptId,
     // As the broker signs a binding when it holds SECRET_KEY (R38IDENT-FU-7).
     bindingProof: bindingProof(ringBindingKey(process.env.SECRET_KEY ?? ''), {
-      orgId: t.orgId, runId: agentRunId, attemptId: String(agentRun.attemptId),
+      orgId: t.orgId, runId: agentRunId, attemptId: agentRun.attemptId,
     }),
   });
   expectStatus(gateway, [200], 'gateway token');

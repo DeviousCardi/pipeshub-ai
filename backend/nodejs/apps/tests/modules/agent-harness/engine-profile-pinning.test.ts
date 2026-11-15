@@ -23,10 +23,6 @@ import {
   EngineProfilesDocument,
   RELEASE_ENGINE_PROFILES,
 } from '../../../src/modules/agent-harness/domain/engine-profiles';
-import {
-  HarnessEngineProfileRefusedError,
-  HarnessUnavailableError,
-} from '../../../src/modules/agent-harness/domain/errors';
 import { HarnessRun } from '../../../src/modules/agent-harness/domain/execution';
 import {
   ExecutorResolver,
@@ -34,7 +30,6 @@ import {
   runSpecResolver,
 } from '../../../src/modules/agent-harness/domain/run-spec';
 import { EngineProfileCeilings } from '../../../src/modules/agent-harness/ports/engine-profiles';
-import { transportError } from '../../../src/modules/agent-harness/transport/errors';
 import { agentDefinition, grantingAccess } from './support/agent-definition';
 import { testCipher } from './support/data-protection';
 import { HARNESS_ENABLED } from './support/rollout';
@@ -94,15 +89,6 @@ describe('E4a: admission resolves the engine profile once; the claim pins it', (
       attemptId: `attempt-${worker}-${target.runId}`,
       leaseDurationMs: 1_000,
     });
-
-  const refusal = async (): Promise<unknown> => {
-    try {
-      await admit();
-    } catch (error) {
-      return error;
-    }
-    return expect.fail('expected a refusal');
-  };
 
   beforeEach(async () => {
     now = 1_000;

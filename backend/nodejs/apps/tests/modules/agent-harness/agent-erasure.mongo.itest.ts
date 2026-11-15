@@ -68,7 +68,7 @@ class FakeQueryService {
       if (match === null) return reply(404, { detail: 'not found' });
       const agentKey = decodeURIComponent(match[1]!);
       if (request.method === 'GET' && match[2] !== undefined) {
-        const token = String(request.headers.authorization ?? '').replace(/^Bearer /, '');
+        const token = (request.headers.authorization ?? '').replace(/^Bearer /, '');
         void this.tokens
           .verifyScopedToken(token, TokenScopes.AGENT_ERASE)
           .then(() => reply(200, { state: this.deleted.has(agentKey) ? 'deleted' : 'live' }))

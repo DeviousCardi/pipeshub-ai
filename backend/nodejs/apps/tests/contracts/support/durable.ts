@@ -77,7 +77,7 @@ export function rechunked(journal: GoldenJournal, pieces: number): GoldenJournal
     if (same) {
       messages[messages.length - 1] = {
         ...last,
-        frame: { ...last.frame, data: { text: `${String(last.frame.data.text ?? '')}${String(recorded.frame.data.text ?? '')}` } },
+        frame: { ...last.frame, data: { text: `${last.frame.data.text ?? ''}${recorded.frame.data.text ?? ''}` } },
       }
     } else {
       messages.push(recorded)
@@ -86,7 +86,7 @@ export function rechunked(journal: GoldenJournal, pieces: number): GoldenJournal
   const live: RecordedDelta[] = []
   const numbered = new Map<string, number>()
   for (const recorded of messages) {
-    const text = String(recorded.frame.data.text ?? '')
+    const text = recorded.frame.data.text ?? ''
     const size = Math.max(1, Math.ceil(text.length / pieces))
     const parts = text.match(new RegExp(`[\\s\\S]{1,${size}}`, 'g')) ?? [text]
     const key = `${recorded.frame.fence}.${recorded.frame.modelAttempt}`
@@ -273,7 +273,8 @@ export function normalizeFrames(frames: AguiFrame[], opts: { goal?: string } = {
     if (frame.type === 'RUN_FINISHED') shaped = { type: 'RUN_FINISHED', result: '<conversation>' }
     // The one additive difference: the owner's first frame names its run (LAT1), which a legacy turn has none of.
     if (frame.type === 'CUSTOM' && frame.name === 'conversation_created') {
-      const { runId: _runId, ...value } = frame.value as Record<string, unknown>
+      const value = { ...(frame.value as Record<string, unknown>) }
+      delete value['runId']
       shaped = { ...shaped, value }
     }
     if (opts.goal !== undefined && frame.type === 'STATE_SNAPSHOT' && 'goal_description' in (frame.snapshot as Record<string, unknown>)) {

@@ -565,9 +565,6 @@ export function paramValue(name: string, path: string, ids: TenantIds): string {
       return 'pypi';
     case 'digest':
       return `sha256:${'a'.repeat(64)}`;
-    case 'key':
-      // ADR-AGB-01 D4: a skill category by its key, a name each org has its own of.
-      return 'qa26 category';
     case 'grantId':
       // ADR-GRANT-01 D8: a grant is named within its conversation (its tool and destination, digested).
       return `cg_${'0'.repeat(40)}`;

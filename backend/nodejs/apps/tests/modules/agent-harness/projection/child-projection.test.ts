@@ -141,7 +141,7 @@ describe('agent-harness projection: child runs (P6.1, minimal)', () => {
         completed(5, 'answered'),
       ])
       .map((f) => f.frame)
-      .filter((f) => f['runId'] === CHILD || String(f['stepName'] ?? '').startsWith('sub_agent:'));
+      .filter((f) => f['runId'] === CHILD || (typeof f['stepName'] === 'string' && f['stepName'].startsWith('sub_agent:')));
     expect(frames.map((f) => f.type)).to.deep.equal([
       AGUI.STEP_STARTED,
       AGUI.RUN_STARTED,

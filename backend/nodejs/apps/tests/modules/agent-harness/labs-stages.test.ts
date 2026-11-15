@@ -18,6 +18,7 @@ import {
 import { labsStages, WORKER_STAGES } from '../../../src/modules/agent-harness/domain/labs-stages';
 import { policyLayerSchema } from '../../../src/modules/agent-harness/contracts/generated/core/policy/policy-layer';
 import { singleStoreOrgSettings } from '../../../src/modules/agent-harness/adapters/configuration/single-store-org-settings';
+import { without } from './support/without';
 
 const VECTORS = JSON.parse(
   readFileSync(join(__dirname, '../../../../../../contracts/harness/vectors/labs-stages.json'), 'utf8'),
@@ -62,7 +63,7 @@ describe('CPD-6 Labs stages in the pin (CPD6-15)', () => {
     it('AiModelsConfiguredLlms reads the stored models without what reaches them; none stored: none', async () => {
       const stored = { llm: [{ modelKey: 'mk-1', provider: 'openAI', isDefault: true, configuration: { model: 'gpt-x', apiKey: 'k' } }] };
       const read = await new AiModelsConfiguredLlms(singleStoreOrgSettings({ get: async () => JSON.stringify(stored) } as never)).read('org-1');
-      expect(read.llms.map(({ configDigest: _digest, ...model }) => model)).to.deep.equal([
+      expect(read.llms.map((model) => without(model, 'configDigest'))).to.deep.equal([
         { modelKey: 'mk-1', provider: 'openai', modelNames: ['gpt-x'], isDefault: true },
       ]);
       expect(read.families).to.deep.equal({ byKey: new Map([['mk-1', 'openai']]), ofDefault: 'openai' });

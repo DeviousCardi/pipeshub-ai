@@ -11,7 +11,6 @@
 import { expect } from 'chai';
 import { releaseLayers } from '../../../src/modules/agent-harness/domain/pin-shadow';
 import { performance } from 'node:perf_hooks';
-import { RELEASE_DEFAULTS } from '../../../src/modules/agent-harness/contracts/generated/core/policy-data';
 import { PARENT_DIMENSIONS, PolicyResolver } from '../../../src/modules/agent-harness/domain/policy';
 import { prefixSources, runSources } from '../../../src/modules/control-plane/application/layer-sources';
 import { PolicyRunConfigPinner } from '../../../src/modules/control-plane/application/run-config-pinner';

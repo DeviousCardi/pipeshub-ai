@@ -125,8 +125,7 @@ const expectRecordsOnlyRedacted = (message: any, readableToo = true, artifactsCh
   // The harness hides an artifact the viewer cannot read (SS0): its id leaves the tool step; the step stays as written.
   const parts = richAnswer().parts.map((part) => {
     if (!artifactsChecked || !('artifactId' in part)) return part
-    const { artifactId: _hidden, ...rest } = part
-    return rest
+    return Object.fromEntries(Object.entries(part).filter(([key]) => key !== 'artifactId'))
   })
   expect(message.parts).to.deep.equal(parts)
   if (readableToo) {

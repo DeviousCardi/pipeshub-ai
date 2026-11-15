@@ -39,7 +39,7 @@ class Store {
     return (this.values.get(key) as T | undefined) ?? null;
   }
 
-  async set<T>(key: string, value: T): Promise<void> {
+  async set(key: string, value: unknown): Promise<void> {
     if (this.failing) throw new Error('store down');
     this.values.set(key, value as unknown as string);
   }

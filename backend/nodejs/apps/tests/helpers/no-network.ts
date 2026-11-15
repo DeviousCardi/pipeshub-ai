@@ -67,10 +67,10 @@ export class NetworkGuard {
   install(): void {
     const realConnect = (this.realConnect = net.Socket.prototype.connect);
     const normalize = (net as unknown as { _normalizeArgs: NormalizeArgs })._normalizeArgs;
-    const guard = this;
+    const admit = (options: ConnectOptions): boolean => this.admit(options);
     net.Socket.prototype.connect = function guardedConnect(this: net.Socket, ...args: unknown[]) {
       const [options] = normalize(args);
-      if (options.path !== undefined || guard.admit(options)) {
+      if (options.path !== undefined || admit(options)) {
         return (realConnect as (...a: unknown[]) => net.Socket).apply(this, args);
       }
       const err = Object.assign(new Error(`unit tests do not reach the network: ${options.host}:${options.port}`), {

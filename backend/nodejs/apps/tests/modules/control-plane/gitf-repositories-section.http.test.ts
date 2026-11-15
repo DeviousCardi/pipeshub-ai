@@ -172,7 +172,7 @@ describe('GITF-37: the section GET carries what the deployment fixes for the scr
       expect((await world.call('GET', '/policy/org/current/websites')).json.deployment).to.deep.equal({ tunnels: true });
       expect((await world.call('GET', '/policy/org/current/budgets')).json).to.not.have.property('deployment');
     } finally {
-      await world.close();
+      world.close();
     }
   });
 });
@@ -184,7 +184,7 @@ describe('GITF: allowed git hosts on a deployment that did not wire their rules'
       const refused = await world.call('PUT', ORG, { body: { value: { hosts: [] } }, ifMatch: '0' });
       expect(refused.status, refused.text).to.equal(503);
     } finally {
-      await world.close();
+      world.close();
     }
   });
 });

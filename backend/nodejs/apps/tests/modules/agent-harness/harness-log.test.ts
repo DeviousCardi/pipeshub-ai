@@ -788,7 +788,7 @@ describe('LG-1 harness decision logs (Node S1-S3 catch-up)', () => {
       token: string,
     ): Promise<unknown> =>
       new Promise((resolve) => {
-        middleware(
+        void middleware(
           {
             headers: { authorization: `Bearer ${token}` },
             params: { runId: 'run-9' },

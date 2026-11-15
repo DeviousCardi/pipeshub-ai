@@ -144,7 +144,7 @@ describe('GA-05 end-of-run summary (G-07)', () => {
   it('GA-05: at most the first files are listed, each once', () => {
     const journal = new ActivityJournal();
     for (let i = 0; i < MAX_DIGEST_ARTIFACTS + 3; i += 1) {
-      for (const _twice of [0, 1]) {
+      for (let twice = 0; twice < 2; twice += 1) {
         journal.add('x.pipeshub.artifact.presented', { artifactId: `a-${String(i)}`, fileName: `f${String(i)}.md`, recordId: `r-${String(i)}` });
       }
     }

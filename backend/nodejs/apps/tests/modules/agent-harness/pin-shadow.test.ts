@@ -20,7 +20,6 @@ import {
   SubmitDurableRun,
 } from '../../../src/modules/agent-harness/application/run-admission-service';
 import { ASSISTANT_AGENT_DEFINITION_KEY } from '../../../src/modules/agent-harness/domain/rollout';
-import { RELEASE_DEFAULTS } from '../../../src/modules/agent-harness/contracts/generated/core/policy-data';
 import type { PolicyLayer } from '../../../src/modules/agent-harness/contracts/generated/core/policy/policy-layer';
 import type { EngineProfilesDocument } from '../../../src/modules/agent-harness/domain/engine-profiles';
 import type { ModelAccessDocument } from '../../../src/modules/agent-harness/domain/model-access';

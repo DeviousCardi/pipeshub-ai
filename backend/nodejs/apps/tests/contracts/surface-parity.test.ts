@@ -64,10 +64,14 @@ interface Steps {
 const meaningful = (found: string[], journal: GoldenJournal): string[] =>
   [...new Set(found)].filter((text) => text.length >= 8 && text !== journal.query)
 
+// Journal payload fields are strings when present; a missing one reads as empty.
+const textOf = (value: unknown): string =>
+  typeof value === 'string' ? value : value === undefined || value === null ? '' : JSON.stringify(value)
+
 function stepsOf(journal: GoldenJournal): Steps {
   const answers = journal.events
     .filter((e) => e.type === 'x.pipeshub.answer.finalized')
-    .map((e) => String(e.data?.['answer'] ?? ''))
+    .map((e) => textOf(e.data?.['answer']))
   const questionCalls = new Set(
     journal.events.filter((e) => e.type === 'x.pipeshub.question.asked').map((e) => String(e.data?.['callId'])),
   )
@@ -75,24 +79,24 @@ function stepsOf(journal: GoldenJournal): Steps {
   for (const [index, event] of journal.events.entries()) {
     const data = (event.data ?? {}) as Record<string, unknown>
     if (event.type === 'x.pipeshub.tool.call_presented' && !questionCalls.has(String(data['callId']))) {
-      steps.toolArgs.push(String(data['argsJson']), String(data['argsSummary'] ?? ''))
+      steps.toolArgs.push(String(data['argsJson']), textOf(data['argsSummary']))
     }
     if (event.type === 'x.pipeshub.tool.result_presented' && !questionCalls.has(String(data['callId']))) {
-      steps.toolResults.push(String(data['content'] ?? ''), String(data['resultSummary'] ?? ''))
+      steps.toolResults.push(textOf(data['content']), textOf(data['resultSummary']))
     }
     if (event.type === 'x.pipeshub.message.presented') {
-      steps.reasoning.push(String(data['reasoning'] ?? ''))
+      steps.reasoning.push(textOf(data['reasoning']))
       // Narration: text of a response that is not the answer (the journal marks the final
       // message next; a final_answer call's text is the finalized answer).
       const next = journal.events[index + 1]
-      const text = stripModelAuthoredMarkers(String(data['text'] ?? '')).trim()
+      const text = stripModelAuthoredMarkers(textOf(data['text'])).trim()
       const answer =
         (next?.type === 'message.completed' && next.data?.['isFinal'] === true) || answers.some((a) => a.includes(text))
       if (!answer) steps.narration.push(text)
     }
   }
   for (const recorded of journal.live) {
-    if (recorded.frame.kind === 'reasoning_delta') steps.reasoning.push(String(recorded.frame.data.text ?? ''))
+    if (recorded.frame.kind === 'reasoning_delta') steps.reasoning.push(recorded.frame.data.text ?? '')
   }
   return {
     toolArgs: meaningful(steps.toolArgs, journal),

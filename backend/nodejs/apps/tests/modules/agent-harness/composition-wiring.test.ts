@@ -188,7 +188,7 @@ describe('agent harness composition: off or partly bound', () => {
       createChatTurnMiddleware(empty, {} as never),
     ]) {
       const next = sinon.spy();
-      middleware({} as never, {} as never, next);
+      void middleware({} as never, {} as never, next);
       expect(next.calledOnceWithExactly()).to.equal(true);
     }
   });

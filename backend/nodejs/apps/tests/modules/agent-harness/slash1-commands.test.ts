@@ -25,6 +25,7 @@ import {
   parseTypedCommand,
   type Expansion,
 } from '../../../src/modules/enterprise_search/utils/chat-command';
+import { without } from './support/without';
 
 const VECTORS = JSON.parse(
   readFileSync(join(__dirname, '../../../../../../contracts/harness/vectors/command-expansion.json'), 'utf8'),
@@ -57,7 +58,9 @@ async function run(
   });
   const req = { body, headers: {} } as unknown as Request;
   const res = { locals: {} } as unknown as Response;
-  const error = await new Promise<unknown>((resolve) => handler(req, res, resolve));
+  const error = await new Promise<unknown>((resolve) => {
+    void handler(req, res, resolve);
+  });
   return { body: req.body as Record<string, unknown>, locals: res.locals, error, calls };
 }
 
@@ -242,7 +245,7 @@ describe('SLASH1: commands on the chat routes', () => {
     });
 
     it('a run typed as text journals no command', () => {
-      const { command: _command, ...plain } = run.input;
+      const plain = without(run.input, 'command');
       const append = admittedJournalAppend({ ...run, input: plain }, 'session');
       expect(append.events.map((event) => event.type)).to.deep.equal(['run.admitted']);
     });

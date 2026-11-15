@@ -408,10 +408,10 @@ describe('QA-21 races and failures at admission (MongoDB replica set)', function
       const cited = (await backend.journal.readStream(h.tenant.orgId, sessionId, 0, 50)).find(
         (event) => event.type === 'session.imported',
       );
-      const importRef = String((cited?.data?.['transcriptRef'] as { ref: string }).ref);
+      const importRef = (cited?.data?.['transcriptRef'] as { ref: string }).ref;
       const named = (await backend.executionStore.readClaimSubject(h.tenant.orgId, admitted.run.runId))?.history?.parts ?? [];
-      expect(blobs.filter((blob) => importRef.includes(String(blob._id)))).to.have.length(1);
-      expect(blobs.filter((blob) => named.some((part) => part.includes(String(blob._id))))).to.have.length(1);
+      expect(blobs.filter((blob) => importRef.includes(blob._id))).to.have.length(1);
+      expect(blobs.filter((blob) => named.some((part) => part.includes(blob._id)))).to.have.length(1);
       await cancel(admitted.run);
       expect(await collect(), 'the imported history outlives the run that imported it').to.equal(0);
       expect(await blobsOf(sessionId)).to.have.length(2);

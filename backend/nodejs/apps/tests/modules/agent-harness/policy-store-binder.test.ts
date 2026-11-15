@@ -13,6 +13,7 @@ import { AGENT_HARNESS_APPROVAL_SETTINGS } from '../../../src/modules/agent-harn
 import type { ConfigApprovalSettings } from '../../../src/modules/agent-harness/application/approval-settings';
 import { testControlPlane } from '../control-plane/support/in-memory';
 import { ORG, policySettingsWorld } from './support/policy-settings-world';
+import { without } from './support/without';
 
 function contextOf(dependencies: Partial<AgentHarnessDependencies>): HarnessBindingContext {
   return {
@@ -63,7 +64,7 @@ describe('CPD-4 WIRE: bindPolicyStore', () => {
     bindPolicyStore(off);
     expect(off.container.isBound(AGENT_HARNESS_POLICY_BACKING)).to.equal(false);
     delete process.env.CONTROL_PLANE_POLICY_STORE;
-    const { policyStore: _store, ...withoutStore } = full() as Record<string, unknown>;
+    const withoutStore = without(full() as Record<string, unknown>, 'policyStore');
     const none = contextOf(withoutStore as Partial<AgentHarnessDependencies>);
     bindPolicyStore(none);
     expect(none.container.isBound(AGENT_HARNESS_POLICY_BACKING)).to.equal(false);

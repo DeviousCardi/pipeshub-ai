@@ -199,7 +199,9 @@ describe('DEEPROUTE: the hand-off to the coding engine', () => {
       const down = new CodingEngineService({
         ceilings: settings,
         access: testModelAccess(),
-        preferences: { ...preferences, read: () => Promise.reject(new Error('mongo down')) } as never,
+        preferences: Object.assign(Object.create(preferences) as InMemoryCodingEnginePreferences, {
+          read: () => Promise.reject(new Error('mongo down')),
+        }) as never,
         transaction: testControlPlane(),
       });
       expect(await down.autoRoute(ORG, USER)).to.equal(true);

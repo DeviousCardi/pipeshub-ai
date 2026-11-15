@@ -10,8 +10,6 @@ import { expect } from 'chai';
 import { PgBudgetLedger } from '../../../src/libs/repositories/agent-harness/budget-ledger/pg';
 import { fixedPgTime } from '../../../src/libs/repositories/agent-harness/time/pg';
 import { activeUnit } from '../../../src/libs/db';
-import { forEnumeratedOrg, orgContextStorage } from '../../../src/libs/context/orgContext';
-import { UnboundOrgError } from '../../../src/libs/repositories/agent-harness/durable-transaction/bound-org';
 import {
   budgetCode,
   describeBudgetLedgerContract,

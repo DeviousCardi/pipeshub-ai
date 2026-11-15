@@ -343,7 +343,7 @@ describe('harness edition extension point', () => {
         AGENT_HARNESS_APPROVER_LINK_NOTICES,
         AGENT_HARNESS_APPROVER_NOTICE_OUTBOX,
       ]) {
-        expect(container.isBound(token), String(token)).to.equal(false);
+        expect(container.isBound(token), token).to.equal(false);
       }
       expect(container.isBound(AGENT_HARNESS_APPROVAL_QUEUE)).to.equal(true);
       expect(container.isBound(AGENT_HARNESS_SESSION_INTERACTIONS)).to.equal(true);

@@ -10,7 +10,7 @@ import { ModelAccessRefusal } from '../../../src/modules/agent-harness/domain/mo
 import type { AccessSubject } from '../../../src/modules/agent-harness/application/model-access-service';
 import type { ModelPlacementSource } from '../../../src/modules/agent-harness/ports/model-access';
 import { agentDefinition } from './support/agent-definition';
-import { DEFAULT_MODEL, InMemoryConfiguredModels, testModelAccess } from './support/model-access';
+import { InMemoryConfiguredModels, testModelAccess } from './support/model-access';
 
 const profileFor = (agent: Record<string, unknown>): PinnedEngineProfile => {
   const decision = resolveEngineProfile({ agent });

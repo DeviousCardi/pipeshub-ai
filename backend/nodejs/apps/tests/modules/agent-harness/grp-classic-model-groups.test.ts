@@ -173,7 +173,7 @@ describe('G-41 / GA-21: the model picker names the models the caller\'s groups d
       membership.remove('org-1', PREMIUM, 'u1');
       expect((await flags()).filter(([, allowed]) => allowed === false)).to.deep.equal([]);
     } finally {
-      await h.close();
+      h.close();
     }
   });
 });

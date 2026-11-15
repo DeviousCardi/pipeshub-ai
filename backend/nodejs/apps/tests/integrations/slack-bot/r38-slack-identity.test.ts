@@ -68,7 +68,7 @@ class MapKv implements SlackLinkKv {
   async get<T>(key: string): Promise<T | null> {
     return (this.data.has(key) ? this.data.get(key) : null) as T | null
   }
-  async set<T>(key: string, value: T): Promise<void> {
+  async set(key: string, value: unknown): Promise<void> {
     this.data.set(key, value)
   }
   async delete(key: string): Promise<void> {
@@ -111,7 +111,9 @@ function users(people: FakeUser[]): LinkedAccountUsers & { getLiveByEmail: sinon
 }
 
 async function serve(app: express.Express): Promise<{ base: string; close: () => Promise<void> }> {
-  const server = http.createServer(app)
+  const server = http.createServer((req, res) => {
+    app(req, res)
+  })
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   const { port } = server.address() as AddressInfo
   return {
@@ -496,6 +498,7 @@ describe('R38-IDENT SEC-C-03: the bot asks, a person approves, an admin sees', (
     a.post('/inspect', inspectSlackLinkRequest(links, people))
     a.post('/decide', decideSlackLinkRequest(links, people))
     a.get('/links', listSlackIdentityLinks(links, people))
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Express treats only a four-parameter handler as an error handler
     a.use((error: Error & { statusCode?: number }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       res.status(error.statusCode ?? 500).json({ message: error.message })
     })

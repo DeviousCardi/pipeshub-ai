@@ -33,6 +33,7 @@ import { continueAs } from '../../helpers/request-org-context';
 import { bindAdminAuthorizer } from './support/admin-authorizer';
 import { assertAnswersContract } from './support/api-contracts';
 import { ADMIN_USER, aSchedule, FakeActors, FakeAdmission, FakeSetting, ORG, TestClock } from './support/schedules';
+import { without } from './support/without';
 
 const admin: ScheduleCaller = { orgId: ORG, userId: ADMIN_USER, via: 'session' };
 const LIMITS = { perOrg: 1_000, perActor: 1_000 };
@@ -53,8 +54,7 @@ class CountingSummaries implements AgentSummaryReader {
 /** The answer as this build's schema reads it: the edition-like section's members are only an edition overlay's. */
 const withoutHeld = (body: Record<string, unknown>): Record<string, unknown> => {
   const drop = (member: unknown) => {
-    const { held: _held, ...rest } = member as Record<string, unknown>;
-    return rest;
+    return without(member as Record<string, unknown>, 'held');
   };
   return { ...body, policy: drop(body.policy), refused: drop(body.refused), names: drop(body.names) };
 };

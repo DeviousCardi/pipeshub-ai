@@ -96,7 +96,7 @@ describe('CJFIX-B: a loop sub-agent is named by its goal (F10)', () => {
 describe('CJFIX-B: a shared viewer sees its jobs live (F3, D14)', () => {
   const lifecycle = (audience: 'owner' | 'shared' | 'slack' | 'external') =>
     frames(spawned('spawn_agent', { role: 'general', goal: GOAL }), audience).filter(
-      (f) => f['parentRunId'] !== undefined || String(f['stepName'] ?? '').startsWith('sub_agent:'),
+      (f) => f['parentRunId'] !== undefined || (typeof f['stepName'] === 'string' && f['stepName'].startsWith('sub_agent:')),
     );
 
   it('gets the child’s RUN_STARTED with its goal and its RUN_FINISHED, and no step frame', () => {

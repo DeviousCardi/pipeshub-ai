@@ -222,7 +222,7 @@ for (const bin of pgBins()) {
               // Read with citations, a link's `citationId` is the citation row (null when it is gone), as Mongo populates it.
               citations: ((dto.citations ?? []) as unknown as Array<{ citationId: Record<string, unknown> | null }>).map(
                 (link) => ({
-                  citationId: String(link.citationId?.['_id'] ?? ''),
+                  citationId: String((link.citationId?.['_id'] as string | number | undefined) ?? ''),
                   data: link.citationId === null ? null : (link.citationId as unknown as ForkCitationData),
                 }),
               ),

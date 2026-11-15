@@ -31,6 +31,7 @@ interface McpParser {
 
 // The package is ESM-only; a real `import()` (not the CommonJS `require` ts-node
 // would emit for `await import(...)`) is the only way to load it from here.
+// eslint-disable-next-line @typescript-eslint/no-implied-eval -- the constant source keeps import() out of ts-node's CommonJS rewrite
 const importESM = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<unknown>
 
 const loadParser = async (): Promise<McpParser> => {

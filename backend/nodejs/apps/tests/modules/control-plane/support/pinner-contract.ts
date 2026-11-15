@@ -5,7 +5,7 @@
  */
 import { expect } from 'chai';
 import fc from 'fast-check';
-import type { ChangeEvent, Problem } from '../../../../src/modules/control-plane/contracts/generated';
+import type { Problem } from '../../../../src/modules/control-plane/contracts/generated';
 import { TOOLS_GRANT } from '../../../../src/modules/control-plane/domain/policy-alias';
 import type { RoutingFacts } from '../../../../src/modules/control-plane/domain/routing';
 import { isProblem } from '../../../../src/modules/control-plane/domain/problem';
@@ -23,7 +23,7 @@ export class StaticSnapshots implements SnapshotSource {
     return this.current;
   }
 
-  onChange(_event: ChangeEvent): void {
+  onChange(): void {
     return undefined;
   }
 }

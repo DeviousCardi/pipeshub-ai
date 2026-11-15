@@ -311,7 +311,7 @@ export class McpHubUpstream {
     const app = express();
     app.use(express.json());
     app.put(`${MCP_HUB_PREFIX}/instances/:instanceId/:part`, (req, res) => {
-      this.probe?.write(`mcp-hub:${String(req.params['part'])}`);
+      this.probe?.write(`mcp-hub:${req.params['part']}`);
       this.received.push({ method: req.method, path: req.path, body: req.body });
       res.status(200).json({ instanceId: req.params['instanceId'], saved: true });
     });

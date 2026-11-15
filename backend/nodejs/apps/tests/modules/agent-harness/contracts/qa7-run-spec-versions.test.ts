@@ -13,12 +13,12 @@ import { CONTRACTS_DIR } from '../../../support/harness/contracts';
  * for every older version and a golden of it that upcasts to the expected
  * form. Python reads the same goldens in test_qa7_run_spec_versions.py.
  */
-const read = <T>(...path: string[]): T => JSON.parse(readFileSync(join(CONTRACTS_DIR, ...path), 'utf8')) as T;
-const VECTOR = read<{
+const read = (...path: string[]): unknown => JSON.parse(readFileSync(join(CONTRACTS_DIR, ...path), 'utf8'));
+const VECTOR = read('vectors', 'run-spec-versions.json') as {
   current: number;
   goldens: Array<{ schemaVersion: number; spec: Record<string, unknown>; upcast: Record<string, unknown> }>;
-}>('vectors', 'run-spec-versions.json');
-const SCHEMA_VERSIONS = read<{ properties: { schemaVersion: { enum: number[] } } }>('core', 'run-spec.schema.json')
+};
+const SCHEMA_VERSIONS = (read('core', 'run-spec.schema.json') as { properties: { schemaVersion: { enum: number[] } } })
   .properties.schemaVersion.enum;
 
 describe('QA7-41 RunSpec versions (Node)', () => {

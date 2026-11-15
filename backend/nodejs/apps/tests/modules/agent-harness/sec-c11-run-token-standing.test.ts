@@ -166,8 +166,8 @@ async function world() {
   };
   const gatewayEvents = async (run: HarnessRun) =>
     (await store.journal.readRun(run.orgId, run.runId, 0, 1_000)).filter((event) =>
-      String(event.type).startsWith('gateway.') || String(event.type).startsWith('egress.') ||
-      String(event.type).startsWith('model.'),
+      event.type.startsWith('gateway.') || event.type.startsWith('egress.') ||
+      event.type.startsWith('model.'),
     );
   const end = async (run: HarnessRun) => {
     await h.service.commit({

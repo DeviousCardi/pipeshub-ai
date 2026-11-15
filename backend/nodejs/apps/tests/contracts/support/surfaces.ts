@@ -41,6 +41,7 @@ export interface McpParser {
 
 // The package is ESM-only; a real `import()` (not the CommonJS `require` ts-node
 // would emit for `await import(...)`) is the only way to load it from here.
+// eslint-disable-next-line @typescript-eslint/no-implied-eval -- the constant source keeps import() out of ts-node's CommonJS rewrite
 const importESM = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<unknown>
 
 export const loadMcpParser = async (): Promise<McpParser> => {
@@ -143,7 +144,7 @@ export function slackRendering(body: string): SlackRender[] {
       const link = resolveSlackArtifactLink(artifact)
       if (!link || artifacts.has(link)) return
       artifacts.add(link)
-      write({ artifact: `*Artifact:* <${link}|${String(artifact.fileName ?? 'artifact')}>` })
+      write({ artifact: `*Artifact:* <${link}|${artifact.fileName ?? 'artifact'}>` })
     },
     onComplete: (conversation) => {
       completion = conversation

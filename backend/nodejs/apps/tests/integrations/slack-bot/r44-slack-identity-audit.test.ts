@@ -48,7 +48,7 @@ class MapKv implements SlackLinkKv {
   async get<T>(key: string): Promise<T | null> {
     return (this.data.has(key) ? this.data.get(key) : null) as T | null
   }
-  async set<T>(key: string, value: T): Promise<void> {
+  async set(key: string, value: unknown): Promise<void> {
     this.data.set(key, value)
   }
   async delete(key: string): Promise<void> {

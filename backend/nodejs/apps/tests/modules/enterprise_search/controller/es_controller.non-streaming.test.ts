@@ -577,12 +577,12 @@ describe('es_controller non-streaming chat routes', () => {
       } as never)
       linkedUserId = null
       setSlackIdentityLinksForTests({
-        find: async (orgId: string) => (linkedUserId && String(orgId) === String(ORG) ? { orgId: String(ORG), userId: linkedUserId } : null),
+        find: async (orgId: string) => (linkedUserId && orgId === String(ORG) ? { orgId: String(ORG), userId: linkedUserId } : null),
         revoke: async () => undefined,
       } as never)
       setUserRepository({
         getLive: async (orgId: string, id: string) =>
-          id === linkedUserId ? { _id: id, orgId: String(orgId), email: 'bot-user@example.com', fullName: 'Bot User' } : null,
+          id === linkedUserId ? { _id: id, orgId, email: 'bot-user@example.com', fullName: 'Bot User' } : null,
         getAccountState: async () => ({ kind: 'human' }),
       } as never)
     })

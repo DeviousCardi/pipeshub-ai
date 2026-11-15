@@ -360,7 +360,7 @@ describeIfMongo('FORKFIX: forked conversations never ask for another conversatio
         })
         const copied = await ChatSessionMessage.find({ sessionId: source.sessionId }).sort({ seq: 1 }).lean()
         await ChatSessionMessage.insertMany(
-          copied.map(({ _id, sessionId: _s, ...rest }) => ({ ...rest, sessionId: forkId })),
+          copied.map((message) => ({ ...Object.fromEntries(Object.entries(message).filter(([key]) => key !== '_id')), sessionId: forkId })),
         )
         const own = `own-${String(forkId)}`
         await seedRun(own, forkId)

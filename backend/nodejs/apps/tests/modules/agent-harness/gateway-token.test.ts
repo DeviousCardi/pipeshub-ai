@@ -140,7 +140,7 @@ describe('E2: gateway-token authority', () => {
       keys: [
         {
           kid: VECTOR.kid,
-          privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+          privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }),
           publicKey: VECTOR.publicKeyPem,
           createdAt: VECTOR.nowSeconds * 1000,
           retiredAt: null,

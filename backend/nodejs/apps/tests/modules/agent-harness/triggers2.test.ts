@@ -51,6 +51,7 @@ import {
   type RecordedLog,
   TestClock,
 } from './support/schedules';
+import { without } from './support/without';
 
 const LIMITS = { perActor: 50, perOrg: 500 };
 const WEEK = 7 * 86_400_000;
@@ -269,7 +270,7 @@ describe('TRIGGERS2 TR-03: event context staged for the run, idempotent on redel
     expect(w.admission.requests[1]?.input.trigger).to.deep.include({ kind: 'manual', scheduleId: schedule.id });
     const input = w.admission.requests[0]!.input;
     expect(admissionRequirements({ input }).features).to.include('trigger_context');
-    const { trigger: _trigger, ...plain } = input;
+    const plain = without(input, 'trigger');
     expect(admissionRequirements({ input: plain }).features).to.not.include('trigger_context');
   });
 });

@@ -3,6 +3,7 @@ import { foldActivity, stepDetail } from '../../../../src/modules/agent-harness/
 import { foldTimeline } from '../../../../src/modules/agent-harness/projection/timeline';
 import { buildParts } from '../../../../src/modules/agent-harness/projection/transcript';
 import { ActivityJournal } from '../support/activity-journal';
+import { without } from '../support/without';
 
 /**
  * ACTRESULTS: the activity panel's snapshot carries each step's line (what it asked for, its outcome, its time,
@@ -174,8 +175,8 @@ describe('ACTRESULTS: snapshot size', () => {
         JSON.stringify({
           ...view,
           tools: view.tools.map((tool) => {
-            const { fingerprint: _f, toolCallId: _t, ...detail } = stepDetail(timeline, tool.toolCallId)!;
-            const { outcome: _o, detail: _d, ...line } = tool;
+            const detail = without(stepDetail(timeline, tool.toolCallId)!, 'fingerprint', 'toolCallId');
+            const line = without(tool, 'outcome', 'detail');
             return { ...line, ...detail };
           }),
         }),

@@ -15,6 +15,7 @@ import { HarnessScheduleRefusedError } from '../../../src/modules/agent-harness/
 import type { RunBudgetCeiling } from '../../../src/modules/agent-harness/ports/cost-ledger';
 import { ALICE, BOB, FakeActors, FakeAdmission, FakeSetting, ORG, TestClock } from './support/schedules';
 import { testControlPlane } from '../control-plane/support/in-memory';
+import { without } from './support/without';
 
 const alice: ScheduleCaller = { orgId: ORG, userId: ALICE, via: 'session' };
 const bob: ScheduleCaller = { orgId: ORG, userId: BOB, via: 'session' };
@@ -89,7 +90,7 @@ describe('UX-07: runtime settings are validated on save (schedule budget within 
 
   it('UX-07: an assistant schedule asks for the ceiling with no agent', async () => {
     budgets.ceilingOf = { usdMicros: micros(1), why: 'x' };
-    const { agentKey: _agent, ...assistant } = CRON;
+    const assistant = without(CRON, 'agentKey');
     expect((await refusal(service.create(alice, { ...assistant, maxCostUsd: 2 }))).code).to.equal(
       'SCHEDULE_BUDGET_EXCEEDS_CEILING',
     );

@@ -219,7 +219,7 @@ export async function runBudgetScenario(
     } catch (error) {
       if (!(error instanceof HarnessConflictError)) throw error;
       expect(error.code, where).to.equal(
-        String(expected['refused'] ?? 'no refusal').toUpperCase(),
+        ((expected['refused'] as string | undefined) ?? 'no refusal').toUpperCase(),
       );
       continue;
     }

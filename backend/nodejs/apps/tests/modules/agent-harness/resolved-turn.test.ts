@@ -701,7 +701,7 @@ describe('CPD-10 §3: the resolved-turn header, signed by Node', () => {
     const request = (headers: Record<string, string>, user?: Record<string, unknown>) =>
       ({ headers, params: {}, body: { chatMode: 'planExecute' }, ...(user !== undefined ? { user } : {}) }) as unknown as Request;
     const through = (guard: RequestHandler, req: Request): Request => {
-      guard(req, {} as Response, () => undefined);
+      void guard(req, {} as Response, () => undefined);
       return req;
     };
 
@@ -720,10 +720,10 @@ describe('CPD-10 §3: the resolved-turn header, signed by Node', () => {
 
     it('createResolvedTurnGuard reads the signer from the container once it is bound, and none before', async () => {
       const container = new Container();
-      let built: Container | undefined;
-      const guard = createResolvedTurnGuard(() => built);
+      const slot: { built?: Container } = {};
+      const guard = createResolvedTurnGuard(() => slot.built);
       expect(signsResolvedTurn(through(guard, request({})))).to.equal(false);
-      built = container;
+      slot.built = container;
       expect(signsResolvedTurn(through(guard, request({})))).to.equal(false);
       const world = await legacyWorld();
       container.bind(AGENT_HARNESS_LEGACY_TURN_HEADER).toConstantValue(world.header);

@@ -168,7 +168,7 @@ describe('SEC-C-01: the scan runs only after authentication', () => {
       expect(response.status).to.equal(401);
       expect(scan.callCount).to.equal(0);
       // The spy sees the guard's own calls: an authenticated body is scanned through it.
-      removePastedSecrets()({ body: { query: 'hello' } } as never, { headersSent: true } as never, () => undefined);
+      void removePastedSecrets()({ body: { query: 'hello' } } as never, { headersSent: true } as never, () => undefined);
       expect(scan.callCount).to.equal(1);
     } finally {
       scan.restore();
@@ -252,6 +252,7 @@ describe('SEC-C-01: the guard bounds what it scans', () => {
     app.post('/t', auth.authenticate as express.RequestHandler, (_req, res) => {
       res.json({});
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Express treats only a four-argument handler as error middleware
     app.use((_err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       res.status(401).end();
     });

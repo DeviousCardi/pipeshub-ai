@@ -407,10 +407,7 @@ describe('O-1 envelope encryption of the journal', () => {
       const stored = await h.raw.readStream('org-1', 'session-1', 0, 10);
       change(stored[1]!.sealed!, stored);
       const tamperedJournal = new SealedJournalStore(
-        {
-          ...h.raw,
-          readStream: async () => stored,
-        } as unknown as InMemoryJournalStore,
+        Object.assign(Object.create(h.raw) as InMemoryJournalStore, { readStream: async () => stored }),
         h.cipher,
       );
       return tamperedJournal.readStream('org-1', 'session-1', 0, 10);

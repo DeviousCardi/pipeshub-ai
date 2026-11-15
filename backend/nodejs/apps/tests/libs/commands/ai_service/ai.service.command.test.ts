@@ -433,7 +433,7 @@ describe('AIServiceCommand', () => {
         uri: 'http://ai.local/stream', method: HttpMethod.POST, headers: {},
       }).executeStream()
       let content = ''
-      for await (const chunk of stream) content += chunk.toString()
+      for await (const chunk of stream as AsyncIterable<Buffer>) content += chunk.toString()
       expect(content).to.equal('data: café 🚀\n\n')
       expect(body.locked).to.equal(false)
     })

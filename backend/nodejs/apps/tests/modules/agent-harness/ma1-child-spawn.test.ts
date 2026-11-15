@@ -52,6 +52,7 @@ import { testCipher } from './support/data-protection';
 import { InMemoryConfiguredModels, testModelAccess, type TestModel } from './support/model-access';
 import { HARNESS_ENABLED } from './support/rollout';
 import { committingTx, InMemoryHeadRevisions } from '../control-plane/support/head-revisions-contract';
+import { without } from './support/without';
 
 const V2 = { ...HARNESS_ENABLED, harnessMajor: 2 as const };
 const ORG = 'org-ma1';
@@ -293,7 +294,7 @@ describe('MA1 a child spawn and its role’s model (QA37-I1, I4, I8, I9)', () =>
       for (const mode of MODES) {
         newStore();
         const parent = await parentIn(mode);
-        const { resolved: _pin, ...child } = await outcomeOf(parent, (await spawnIn(mode, parent)).childRunId);
+        const child = without(await outcomeOf(parent, (await spawnIn(mode, parent)).childRunId), 'resolved');
         seen.push(child);
       }
       expect(seen[1]).to.deep.equal(seen[0]);

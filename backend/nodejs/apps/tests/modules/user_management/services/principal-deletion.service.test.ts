@@ -24,7 +24,7 @@ const BY = new Types.ObjectId().toHexString();
 const NOW = 1_800_000_000_000;
 const TX = { marker: 'tx' } as never;
 
-const query = <T>(value: T) => {
+const query = (value: unknown) => {
   const chain = {
     sort: () => chain,
     batchSize: () => chain,

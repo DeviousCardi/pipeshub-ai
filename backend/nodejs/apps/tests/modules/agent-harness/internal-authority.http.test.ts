@@ -105,6 +105,7 @@ describe('agent harness journal authority over HTTP', function () {
         error: { statusCode?: number; code?: string; message: string },
         _req: express.Request,
         res: express.Response,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Express treats only a four-argument handler as error middleware
         _next: express.NextFunction,
       ) => {
         res
@@ -229,7 +230,7 @@ describe('agent harness journal authority over HTTP', function () {
       transition: { expectedRevision: run.revision, status: 'running' },
     });
     expect(reply.status, JSON.stringify(reply.body)).to.equal(200);
-    const read = await events(run.runId, token, String(run.attemptId), Number(run.fence));
+    const read = await events(run.runId, token, String(run.attemptId), run.fence);
     const outcome = (read.body['events'] as Array<{ type: string; data: { receipt: { body: string } } }>).find(
       (e) => e.type === 'tool.outcome',
     );

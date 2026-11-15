@@ -17,9 +17,7 @@ import {
   RELEASE_ENGINE_PROFILES,
   engineRef,
 } from '../../../src/modules/agent-harness/domain/engine-profiles';
-import { HarnessConflictError } from '../../../src/modules/agent-harness/domain/errors';
 import { EngineAvailability } from '../../../src/modules/agent-harness/ports/engine-availability';
-import { transportError } from '../../../src/modules/agent-harness/transport/errors';
 import { agentDefinition, grantingAccess } from './support/agent-definition';
 import { HARNESS_ENABLED } from './support/rollout';
 import { testControlPlane } from '../control-plane/support/in-memory';

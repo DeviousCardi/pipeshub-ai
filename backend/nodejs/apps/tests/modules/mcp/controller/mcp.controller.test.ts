@@ -84,10 +84,8 @@ describe('MCP Controller — handleMCPRequest', () => {
     const create = sinon.stub().returns({ server: { connect: sinon.stub().resolves() } })
     mcpServerExports.createMCPServer = create
     let options: any
-    mcpCoreExports.PipeshubCore = class {
-      constructor(opts: any) {
-        options = opts
-      }
+    mcpCoreExports.PipeshubCore = function PipeshubCore(opts: any) {
+      options = opts
     }
     await handleMCPRequest(appConfig)(
       createMockRequest({ headers: { authorization: 'Bearer caller-pat' }, body: {} }),

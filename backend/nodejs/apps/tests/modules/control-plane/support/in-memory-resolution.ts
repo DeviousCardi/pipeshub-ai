@@ -78,7 +78,9 @@ export function dimensionsOf(values: unknown): Map<string, unknown> {
     }
     for (const [key, inner] of Object.entries(value as Record<string, unknown>)) walk(inner, path ? `${path}.${key}` : key);
   };
-  const { scope: _scope, schemaVersion: _version, ...sections } = values as Record<string, unknown>;
+  const sections = { ...(values as Record<string, unknown>) };
+  delete sections['scope'];
+  delete sections['schemaVersion'];
   walk(sections, '');
   return out;
 }

@@ -46,7 +46,7 @@ describe('control-plane catalog on a MongoDB replica set (CPD-2)', function () {
   });
 
   after(async () => {
-    if (mongoose.connection.readyState === 1)
+    if (mongoose.connection.readyState === mongoose.ConnectionStates.connected)
       await mongoose.connection.dropDatabase();
     await mongoose.disconnect();
   });

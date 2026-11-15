@@ -195,7 +195,7 @@ describe('RunSweeper: sandboxes of expired engine runs are reaped (E1)', () => {
     expect((init.headers as Record<string, string>)['Authorization']).to.equal(
       'Bearer worker-cred',
     );
-    expect(JSON.parse(String(init.body))).to.deep.equal({
+    expect(JSON.parse(init.body as string)).to.deep.equal({
       labels: { orgId: 'org-1', runId: 'run-1' },
       older_than_s: 0,
     });

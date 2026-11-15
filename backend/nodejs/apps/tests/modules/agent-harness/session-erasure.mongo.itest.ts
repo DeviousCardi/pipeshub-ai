@@ -57,7 +57,7 @@ import { MongoAuditChainStore } from '../../../src/libs/repositories/agent-harne
 import { MongoAuditAnchorSink } from '../../../src/libs/repositories/agent-harness/audit-anchor-sink/mongo';
 import { AgentAuditRecordModel } from '../../../src/libs/repositories/agent-harness/audit/schema/audit.schema';
 import { auditLinksIdle } from '../../../src/libs/repositories/agent-harness/audit/mongo';
-import { inMongoDurableTransaction, inMongoTransaction } from '../../../src/libs/repositories/agent-harness/durable-transaction/mongo';
+import { inMongoDurableTransaction } from '../../../src/libs/repositories/agent-harness/durable-transaction/mongo';
 import {
   migrateErasureStore,
   revertErasureStore,
@@ -97,7 +97,6 @@ import { describeErasureJobMachine } from './support/erasure-job-machine';
 
 import {
   SENTINEL,
-  redis,
   World,
   world,
   Seeded,

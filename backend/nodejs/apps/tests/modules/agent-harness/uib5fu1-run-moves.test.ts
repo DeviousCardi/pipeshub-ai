@@ -9,6 +9,7 @@ import { runEndVerdict } from '../../../src/modules/agent-harness/domain/inbox';
 import { workerEvent } from './support/journal-fixtures';
 import { scheduledWorld, ScheduledWorld } from './support/scheduled-admission';
 import { aSchedule, ALICE, ORG } from './support/schedules';
+import { without } from './support/without';
 
 const LIMITS = { perActor: 50, perOrg: 500 };
 
@@ -128,7 +129,7 @@ describe('UIB5-FU-1: a scheduled run is told as it starts waiting and goes on, n
   it('FU1-3: a run no schedule fired, or not the firing’s own run, tells nothing and never throws', async () => {
     const w = scheduledWorld();
     const { schedule, firing, run } = await firedAndClaimed(w);
-    const { attribution: _attribution, ...unattributed } = run;
+    const unattributed = without(run, 'attribution');
     await w.firer.runMoved({ ...unattributed, idempotencyKey: 'chat-turn-1', status: 'waiting_approval' });
     await w.firer.runMoved({ ...run, runId: 'someone-else', status: 'waiting_approval' });
     expect(w.notifier.notices).to.deep.equal([]);

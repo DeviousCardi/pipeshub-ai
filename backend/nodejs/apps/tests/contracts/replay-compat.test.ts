@@ -32,7 +32,7 @@ interface StoredRun {
   events: JournalEvent[]
 }
 
-const readJson = <T>(file: string): T => JSON.parse(fs.readFileSync(file, 'utf8')) as T
+const readJson = (file: string): unknown => JSON.parse(fs.readFileSync(file, 'utf8'))
 
 const corpora = (): Array<{ dir: string; manifest: Manifest }> =>
   fs.existsSync(CORPORA)
@@ -41,7 +41,7 @@ const corpora = (): Array<{ dir: string; manifest: Manifest }> =>
         .map((name) => path.join(CORPORA, name))
         .filter((dir) => fs.existsSync(path.join(dir, 'manifest.json')))
         .sort()
-        .map((dir) => ({ dir, manifest: readJson<Manifest>(path.join(dir, 'manifest.json')) }))
+        .map((dir) => ({ dir, manifest: readJson(path.join(dir, 'manifest.json')) as Manifest }))
     : []
 
 const partsOf = (events: readonly JournalEvent[], runId: string): unknown[] =>
@@ -60,8 +60,8 @@ describe('contract: replay compatibility, release N read by this build (RU-3c)',
         const partsFile = path.join(dir, 'journals', `${name}.parts.json`)
         if (!fs.existsSync(partsFile)) continue
         it(`${name}: projects to the parts recorded with it`, () => {
-          const journal = readJson<GoldenJournal>(path.join(dir, 'journals', `${name}.journal.json`))
-          const recorded = readJson<{ parts: unknown[] }>(partsFile).parts
+          const journal = readJson(path.join(dir, 'journals', `${name}.journal.json`)) as GoldenJournal
+          const recorded = (readJson(partsFile) as { parts: unknown[] }).parts
           expect(partsOf(journal.events, journal.runId)).to.deep.equal(recorded)
           const frames = project(journal, journalOnlySteps(journal))
           const final = frames.find(
@@ -74,7 +74,7 @@ describe('contract: replay compatibility, release N read by this build (RU-3c)',
       for (const run of manifest.l4) {
         // Their answers are sealed (only Node's content store opens them), so the structure is what replays here.
         it(`${run.name}: a real run's journal projects (${run.status})`, () => {
-          const stored = readJson<StoredRun>(path.join(dir, 'l4', `${run.name}.journal.json`))
+          const stored = readJson(path.join(dir, 'l4', `${run.name}.journal.json`)) as StoredRun
           const timeline = foldTimeline(stored.events, stored.runId)
           expect(() => buildCompletion(timeline)).to.not.throw()
           expect(timeline.end?.status ?? stored.status).to.equal(stored.status)
@@ -82,7 +82,7 @@ describe('contract: replay compatibility, release N read by this build (RU-3c)',
       }
 
       it('the pin reads through this build\'s upcasters', () => {
-        const pinned = readJson<{ pinned: { spec: { schemaVersion: number } } }>(path.join(dir, 'pinned-run-spec.json')).pinned
+        const pinned = (readJson(path.join(dir, 'pinned-run-spec.json')) as { pinned: { spec: { schemaVersion: number } } }).pinned
         expect(() => readPinnedSpec(pinned.spec)).to.not.throw()
       })
     })

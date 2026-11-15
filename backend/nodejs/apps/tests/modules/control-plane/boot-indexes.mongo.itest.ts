@@ -19,7 +19,7 @@ describe('CPD-7 control-plane indexes at boot', function () {
     await mongoose.connect(harnessMongoUri(), { dbName: `cp_boot_it_${Date.now()}_${process.pid}` });
   });
   after(async () => {
-    if (mongoose.connection.readyState === 1) await mongoose.connection.dropDatabase();
+    if (mongoose.connection.readyState === mongoose.ConnectionStates.connected) await mongoose.connection.dropDatabase();
     await mongoose.disconnect();
   });
 

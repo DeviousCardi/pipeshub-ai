@@ -77,7 +77,12 @@ describe('contract: the transcript projection equals the live parts and the lega
       // What only a durable run can save (CTL-3b): its plan as a part and each step's timing from the journal.
       const legacyShaped = (parts as Array<Record<string, unknown>>)
         .filter((part) => part['type'] !== 'plan')
-        .map(({ durationMs: _took, elapsedMs: _total, ...part }) => part)
+        .map((original) => {
+          const part = { ...original }
+          delete part['durationMs']
+          delete part['elapsedMs']
+          return part
+        })
       expect(sameRunIds(legacyShaped), 'parts equal the legacy persisted parts').to.deep.equal(sameRunIds(persisted))
 
       // The Python fold reads the same journal and must agree with these parts

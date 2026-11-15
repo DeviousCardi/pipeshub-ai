@@ -34,6 +34,7 @@ import {
 } from '../../../src/modules/control-plane';
 import { auditedControlPlane } from '../control-plane/support/in-memory';
 import { InMemoryPolicyStore } from '../control-plane/support/in-memory-stores';
+import { without } from './support/without';
 
 const ORG_A = 'org-a';
 const ORG_B = 'org-b';
@@ -586,7 +587,7 @@ describe('WP-56: an agent\'s own gates travel with its export (C4.08 x WP-51)', 
 
   it('WP56-GATES-5: a version 1 export (before gates travelled) still imports, as an agent with no gates', async () => {
     const w = world();
-    const { gates: _left, ...v1Agent } = AGENT;
+    const v1Agent = without(AGENT, 'gates');
 
     await w.transfer.import(MALLORY, 'bearer-mallory', {
       ...document(),
@@ -600,7 +601,7 @@ describe('WP-56: an agent\'s own gates travel with its export (C4.08 x WP-51)', 
 
   it('WP56-GATES-5: a version 2 export without gates, or a version 1 export carrying them, is refused', async () => {
     const w = world();
-    const { gates: _left, ...v1Agent } = AGENT;
+    const v1Agent = without(AGENT, 'gates');
 
     for (const raw of [
       { ...document(), agent: v1Agent },

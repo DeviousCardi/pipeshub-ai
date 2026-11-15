@@ -77,7 +77,7 @@ describe('E1: sandbox folders are erased with their session', () => {
     const [url, init] = fetchImpl.firstCall.args as [string, RequestInit];
     expect(url).to.equal('http://sandbox-broker:8095/v1/erase-session');
     expect((init.headers as Record<string, string>)['Authorization']).to.equal('Bearer worker-cred');
-    expect(JSON.parse(String(init.body))).to.deep.equal({ orgId: 'org-1', sessionId: 'ses-1' });
+    expect(JSON.parse(init.body as string)).to.deep.equal({ orgId: 'org-1', sessionId: 'ses-1' });
   });
 
   it('SF-2: no broker configured erases nothing; a refusal or a malformed answer rejects', async () => {

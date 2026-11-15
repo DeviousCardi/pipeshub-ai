@@ -19,7 +19,6 @@ import {
   AGENT_HARNESS_INBOX,
 } from '../../../src/modules/agent-harness/binders/tokens';
 import type { HarnessRun } from '../../../src/modules/agent-harness/domain/execution';
-import type { InboxCounts } from '../../../src/modules/agent-harness/domain/inbox';
 import type { InboxNotices } from '../../../src/modules/agent-harness/ports/inbox';
 
 const ORG = 'org-1';
@@ -53,7 +52,7 @@ describe('FU-QUICK: Needs you is pushed to approvers and when a queued message m
         inbox: {
           store: new InMemoryInboxStore(),
           notices,
-          publisher: { publish: (userId: string, _counts: InboxCounts) => pushed.push(userId) },
+          publisher: { publish: (userId: string) => pushed.push(userId) },
         },
       },
     } as unknown as HarnessBindingContext);
@@ -79,7 +78,7 @@ describe('FU-QUICK: Needs you is pushed to approvers and when a queued message m
         inbox: {
           store: new InMemoryInboxStore(),
           notices,
-          publisher: { publish: (userId: string, _counts: InboxCounts) => pushed.push(userId) },
+          publisher: { publish: (userId: string) => pushed.push(userId) },
         },
       },
     } as unknown as HarnessBindingContext);

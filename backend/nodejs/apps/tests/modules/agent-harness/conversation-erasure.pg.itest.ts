@@ -168,7 +168,7 @@ for (const bin of pgBins()) {
       ): Promise<ConversationRemains> =>
         stack.admin(async (c) => {
           const count = async (text: string, values: unknown[]) =>
-            Number((await c.query<{ n: number }>(text, values)).rows[0]!.n);
+            Number((await c.query<{ n: string | number }>(text, values)).rows[0]!.n);
           return {
             sessions: await count(
               'SELECT count(*)::int AS n FROM conversation.chat_sessions WHERE org_id = $1 AND id = $2',

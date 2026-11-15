@@ -278,7 +278,7 @@ describe('PERF-B: a run history by reference on a MongoDB replica set', function
     const windows = async () =>
       Object.fromEntries(
         (await AgentAdmissionQuotaModel.find({}).lean()).map((window) => [
-          String(window._id).includes('"user"') ? 'user' : 'org',
+          window._id.includes('"user"') ? 'user' : 'org',
           (window as unknown as { count: number }).count,
         ]),
       );

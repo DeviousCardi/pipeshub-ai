@@ -180,7 +180,8 @@ describe('CPD-10 routing in the pin: routingOf (CPD10-2)', () => {
     const bare: EffectiveRunConfig = { schemaVersion: 1, dimensions: {} };
     expect(routingOf(bare, FAMILIES, open().turn, open().facts)).to.deep.equal({ path: 'legacy', reason: 'org_disabled' });
     const noModes = resolved(open().rollout);
-    const { 'rollout.durable.modes': _modes, ...rest } = noModes.dimensions;
+    const rest = { ...noModes.dimensions };
+    delete rest['rollout.durable.modes'];
     expect(routingOf({ ...noModes, dimensions: rest }, FAMILIES, open().turn, open().facts).reason).to.equal('chat_mode_not_supported');
   });
 });

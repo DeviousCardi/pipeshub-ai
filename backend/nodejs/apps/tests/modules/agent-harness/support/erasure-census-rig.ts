@@ -6,7 +6,7 @@ import type { Tx } from '../../../../src/libs/repositories/uow';
  * erasure races.
  */
 import { expect } from 'chai';
-import mongoose, { ClientSession } from 'mongoose';
+import mongoose from 'mongoose';
 import { Container } from 'inversify';
 import type { Redis } from 'ioredis';
 import { testKeyRing, testRunKeys } from './data-protection';

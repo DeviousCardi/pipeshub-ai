@@ -12,6 +12,7 @@ import {
   WorkspaceWriterStore,
   WriterLeaseRecord,
 } from '../../../../src/modules/agent-harness/ports/workspace-store';
+import { without } from './without';
 
 /** Two organisations, in the shape every store takes. */
 export const WS_ORG = '0000000000000000000000c1';
@@ -121,7 +122,7 @@ export function describeWorkspaceStoresContract(
       });
       const first = await repository.revisions(WS_ORG, 'ws:s1', { limit: 3 });
       expect(first.map((m) => m.revision)).to.deep.equal([5, 4, 3]);
-      const { files: _files, ...summary } = storedManifest('ws:s1', 5);
+      const summary = without(storedManifest('ws:s1', 5), 'files');
       expect(first[0]).to.deep.equal(summary);
       expect(first[0]).not.to.have.property('files');
       const next = await repository.revisions(WS_ORG, 'ws:s1', {
@@ -405,11 +406,10 @@ export function describeWorkspaceStoresContract(
               },
               expectedRevision: 1,
             }),
-          ).catch((error: unknown) =>
-            error instanceof Error && error.message === 'expected a WorkspaceError'
-              ? 'ok'
-              : Promise.reject(error),
-          ),
+          ).catch((error: unknown) => {
+            if (error instanceof Error && error.message === 'expected a WorkspaceError') return 'ok';
+            throw error;
+          }),
         ),
       );
       expect(outcomes.filter((o) => o === 'ok')).to.have.length(1);

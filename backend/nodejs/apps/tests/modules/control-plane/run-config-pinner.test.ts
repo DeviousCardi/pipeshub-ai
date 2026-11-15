@@ -6,7 +6,6 @@
  */
 import { expect } from 'chai';
 import { releaseLayers } from '../../../src/modules/agent-harness/domain/pin-shadow';
-import { RELEASE_DEFAULTS } from '../../../src/modules/agent-harness/contracts/generated/core/policy-data';
 import {
   FoldedPrefix,
   PARENT_DIMENSIONS,

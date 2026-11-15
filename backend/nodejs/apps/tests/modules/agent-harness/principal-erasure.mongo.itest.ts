@@ -24,7 +24,7 @@ import { AgentPrincipalErasureModel } from '../../../src/libs/repositories/agent
 import { MongoScheduleStore } from '../../../src/libs/repositories/agent-harness/schedules/mongo';
 import { AgentScheduleCounterModel, AgentScheduleFiringModel, AgentScheduleModel } from '../../../src/libs/repositories/agent-harness/schedules/schema/schedules.schema';
 import { ModelAccountVault } from '../../../src/modules/agent-harness/adapters/configuration/model-account-vault';
-import { inMongoDurableTransaction, inMongoTransaction } from '../../../src/libs/repositories/agent-harness/durable-transaction/mongo';
+import { inMongoDurableTransaction } from '../../../src/libs/repositories/agent-harness/durable-transaction/mongo';
 import { auditLinksIdle } from '../../../src/libs/repositories/agent-harness/audit/mongo';
 import { PrincipalErasureRunner } from '../../../src/modules/agent-harness/application/principal-erasure';
 import { SessionParticipantJournal } from '../../../src/modules/agent-harness/application/session-participant-journal';
@@ -261,14 +261,3 @@ describe('CLEANUP-G2c: a deleted user\'s control-plane data on a MongoDB replica
   });
 });
 
-/** Outbox rows that name the org, as `topic:key`; only `topic`'s when given. */
-async function outboxOf(orgId: string, topic?: string): Promise<string[]> {
-  const rows = await mongoose.connection
-    .collection('outbox_events')
-    .find({
-      $or: [{ orderingKey: { $regex: orgId } }, { value: { $regex: orgId } }],
-      ...(topic !== undefined ? { topic } : {}),
-    })
-    .toArray();
-  return rows.map((row) => `${String(row['topic'])}:${String(row['key'])}`).sort();
-}

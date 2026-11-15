@@ -17,6 +17,7 @@ import { admissionRequirements, GUARDED_WORKER_FEATURES } from '../../../src/mod
 import { chatTurnInput } from '../../../src/modules/agent-harness/transport/chat-turn-route';
 import { runInputSchema } from '../../../src/modules/agent-harness/transport/schemas';
 import { goldenSpecSubject } from './support/golden-run-spec';
+import { without } from './support/without';
 
 const INPUT: RunInputSnapshot = { ...goldenSpecSubject().run.input!, keywordSearchBudget: 'short' };
 
@@ -32,7 +33,7 @@ describe('R33JGAPS-FU-1: the chat turn\'s keyword search budget on the durable p
   it('KSB-2: a run carrying it requires the guarded keyword_search_budget; one without it does not', () => {
     expect(GUARDED_WORKER_FEATURES).to.include(KEYWORD_SEARCH_BUDGET_FEATURE);
     expect(admissionRequirements({ agentKey: 'a1', input: INPUT }).features).to.include(KEYWORD_SEARCH_BUDGET_FEATURE);
-    const { keywordSearchBudget: _none, ...plain } = INPUT;
+    const plain = without(INPUT, 'keywordSearchBudget');
     expect(admissionRequirements({ agentKey: 'a1', input: plain }).features).to.not.include(
       KEYWORD_SEARCH_BUDGET_FEATURE,
     );

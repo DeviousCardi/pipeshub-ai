@@ -38,6 +38,7 @@ import { SessionDataEraser } from '../../../src/modules/agent-harness/ports/sess
 import { ControlRun } from '../../../src/modules/agent-harness/domain/execution';
 import { sessionAppend } from '../../../src/modules/agent-harness/domain/session-participants';
 import { LeaderLease } from '../../../src/modules/agent-harness/ports/leader-lease';
+import { without } from './support/without';
 
 /** Erasure in these tests runs over no conversation document (E7B's guard reads 'absent'). */
 const NO_CONVERSATION = { state: () => Promise.resolve('absent' as const) };
@@ -593,7 +594,7 @@ describe('E7 typed answers after erasure (ER-13)', () => {
       undefined,
     );
     const [stored] = await inner.readStream('org-1', 'ses-1', 0, 1);
-    const { sealed: _sealed, ...tombstone } = { ...stored!, erased: true, contentBytes: 10 };
+    const tombstone = without({ ...stored!, erased: true, contentBytes: 10 }, 'sealed');
     sinon.stub(inner, 'readStream').resolves([tombstone]);
     let error: unknown;
     try {

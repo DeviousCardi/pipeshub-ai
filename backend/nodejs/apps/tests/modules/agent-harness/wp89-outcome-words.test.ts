@@ -21,6 +21,7 @@ import {
   buildAIResponseMessage,
 } from '../../../src/modules/enterprise_search/utils/utils';
 import { withOutcomeClosing } from '../../../src/integrations/slack-bot/src/utils/cut-short';
+import { without } from './support/without';
 
 const RUN = 'run-1';
 const CLOSING =
@@ -109,7 +110,7 @@ describe('WP89-N (ADR-RUN-01 D1): the chat words the settled outcome', () => {
   });
 
   it('WP89-N3: an outcome journaled without its framing (an older worker) is not worded again', () => {
-    const { presented: _presented, ...older } = SETTLED;
+    const older = without(SETTLED, 'presented');
     const completion = buildCompletion(foldTimeline(answered(older, 'Its answer, with its words.'), RUN)) as Record<string, unknown>;
     expect(completion).to.not.have.property('runOutcome');
     expect(completion['answer']).to.equal('Its answer, with its words.');

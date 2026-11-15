@@ -14,8 +14,8 @@ const VECTORS = join(
   __dirname,
   '../../../../../../../contracts/harness/vectors',
 );
-const read = <T>(name: string): T =>
-  JSON.parse(readFileSync(join(VECTORS, name), 'utf8')) as T;
+const read = (name: string): unknown =>
+  JSON.parse(readFileSync(join(VECTORS, name), 'utf8'));
 
 type NextAction = { kind: string; text: string };
 type Sections = Record<
@@ -26,7 +26,7 @@ type Sections = Record<
 /** UX-06 (C10.02, WP-18): the codes Node answers and ends runs with each say what a person can do next. */
 describe('UX-06: Node’s error codes carry their next action', () => {
   // With the entries an edition's overlay vector adds, as the codes its overlay adds to the enumerations.
-  const next = withOverlayVector('error-next-actions.json', read<Sections>('error-next-actions.json'));
+  const next = withOverlayVector('error-next-actions.json', read('error-next-actions.json') as Sections);
   const kinds = new Set<string>(NEXT_ACTION_KINDS);
 
   it('every catalogue code Node answers with has a next action of a known kind', () => {
@@ -40,7 +40,7 @@ describe('UX-06: Node’s error codes carry their next action', () => {
   });
 
   it('error-next-actions.json names exactly the RUN_ERROR, error answer and tool failure codes', () => {
-    const { codes } = withOverlayVector('run-error-codes.json', read<{ codes: string[] }>('run-error-codes.json'));
+    const { codes } = withOverlayVector('run-error-codes.json', read('run-error-codes.json') as { codes: string[] });
     expect(Object.keys(next.runErrors).sort()).to.deep.equal([...codes].sort());
     expect(Object.keys(next.answerErrors).sort()).to.deep.equal(
       [...ANSWER_ERROR_CODES].sort(),

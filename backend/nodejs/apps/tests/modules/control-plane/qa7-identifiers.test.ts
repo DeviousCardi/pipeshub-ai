@@ -9,11 +9,11 @@ import { ITEM_REF_PATTERN, parseItemRef } from '../../../src/modules/control-pla
  * pattern; it must accept and refuse exactly what the schema's `ItemRef` does.
  */
 const CONTROL_PLANE = join(resolve(__dirname, '..', '..', '..', '..', '..', '..'), 'contracts', 'control-plane');
-const read = <T>(name: string): T => JSON.parse(readFileSync(join(CONTROL_PLANE, name), 'utf8')) as T;
-const cases = read<{ cases: Record<string, { valid: string[]; invalid: string[] }> }>(
-  join('vectors', 'identifiers.json'),
+const read = (name: string): unknown => JSON.parse(readFileSync(join(CONTROL_PLANE, name), 'utf8'));
+const cases = (
+  read(join('vectors', 'identifiers.json')) as { cases: Record<string, { valid: string[]; invalid: string[] }> }
 ).cases['ItemRef']!;
-const schemaPattern = read<{ $defs: Record<string, { pattern: string }> }>('common.schema.json').$defs['ItemRef']!
+const schemaPattern = (read('common.schema.json') as { $defs: Record<string, { pattern: string }> }).$defs['ItemRef']!
   .pattern;
 
 describe('QA7-40 control-plane identifiers (Node)', () => {

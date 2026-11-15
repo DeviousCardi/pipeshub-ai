@@ -62,7 +62,7 @@ const attempt = (attemptId = 'attempt-server', fence = 1) => ({
 });
 
 /** A middleware's `next`, stubbed: `NextFunction`'s overloads leave sinon inferring only the last one. */
-const next = (): NextFunction => sinon.stub<[unknown?], void>();
+const next = (): NextFunction => sinon.stub<[unknown?], undefined>();
 
 describe('AgentHarnessInternalController', () => {
   it('claims for the named org and worker, creates the attempt ID and returns an attempt token', async () => {

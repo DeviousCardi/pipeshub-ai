@@ -121,7 +121,8 @@ describe('CPD5-23: pin-replay determinism (contracts/control-plane/vectors/resol
     expect(child.pin.llm).to.deep.include({ modelKey: 'mk-2', provider: 'anthropic', model: 'claude-haiku-4-5' });
     expect(child.pin.llm).not.to.deep.equal(child.parent?.llm);
     // Pinned on its parent's model instead, the child would have another digest: the vector holds the role's.
-    const { llm: _own, ...inheriting } = child.pin;
+    const inheriting = { ...child.pin };
+    delete inheriting.llm;
     const onParents = pinOf({ ...child, pin: inheriting }, null);
     expect('digest' in onParents && onParents.digest).not.to.equal('digest' in child.expected && child.expected.digest);
     expect('configDigest' in onParents && onParents.configDigest).to.equal('configDigest' in child.expected && child.expected.configDigest);

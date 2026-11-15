@@ -78,8 +78,6 @@ const matchesCondition = (candidates: unknown[], condition: unknown): boolean =>
         return candidates.some((c) => compare(c, argument, (a, b) => a < b))
       case '$lte':
         return candidates.some((c) => compare(c, argument, (a, b) => a <= b))
-      case '$lt':
-        return candidates.some((c) => compare(c, argument, (a, b) => a < b))
       case '$gt':
         return candidates.some((c) => compare(c, argument, (a, b) => a > b))
       case '$regex': {

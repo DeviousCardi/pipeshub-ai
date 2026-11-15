@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { createHash } from 'crypto';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { inspect } from 'util';
 import fc from 'fast-check';
 import {
   assertNoReservedKeys,
@@ -52,7 +53,7 @@ describe('agent-harness contracts: RFC 8785 canonical JSON', () => {
 
   it('rejects values JSON cannot carry', () => {
     for (const bad of [NaN, Infinity, -Infinity, BigInt(1), () => 1, Symbol('s'), new Map(), [undefined]]) {
-      expect(() => canonicalJson(bad), String(bad)).to.throw(CanonicalJsonError);
+      expect(() => canonicalJson(bad), inspect(bad)).to.throw(CanonicalJsonError);
     }
   });
 

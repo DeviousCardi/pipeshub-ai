@@ -75,7 +75,9 @@ export async function startLocalStorageService(): Promise<LocalStorageService> {
   app.use(express.json());
   app.use('/api/v1/document', createStorageRouter(container));
   app.use(ErrorMiddleware.handleError());
-  const server = http.createServer(app);
+  const server = http.createServer((req, res) => {
+    app(req, res);
+  });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   // The controller caches the storage config for the whole process.
   kv.changed(storageEtcdPaths);

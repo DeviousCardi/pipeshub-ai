@@ -59,6 +59,7 @@ import { HARNESS_ENABLED } from './support/rollout';
 import { CURRENT_WORKER_CAPABILITIES } from './support/worker-capabilities';
 import { auditedControlPlane } from '../control-plane/support/in-memory';
 import { proofFor, testBindingKeys } from './support/binding-proof';
+import { without } from './support/without';
 
 const ENGINES = [
   { kind: 'codex', version: '0.160.0' },
@@ -187,7 +188,7 @@ describe('OPS-02 / OPS-03: operator controls on admitted work (C11.06, C6.35, J-
       runs: {
         get: (orgId, runId) => store.get(orgId, runId),
         openRuns: async (filter: OpenRunFilter, limit: number) => {
-          const { engine: _engine, engineOnly: _only, ...rest } = filter;
+          const rest = without(filter, 'engine', 'engineOnly');
           return (await store.openRuns(rest, limit)).map(({ run }) => ({
             run,
             engine: engines.get(run.runId) ?? null,

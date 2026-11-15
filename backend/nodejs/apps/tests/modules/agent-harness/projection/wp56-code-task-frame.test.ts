@@ -101,7 +101,8 @@ describe('WP56-FRAME-5: a code_task result reads in plain words, no ids or JSON'
   it('the saved parts carry the same', () => {
     const [part] = buildParts(foldTimeline(journal(true), RUN)).filter((p) => p['type'] === 'tool_call');
     expect(part!['resultSummary']).to.equal(SUMMARY);
-    expect(String(part!['resultPreview'] ?? '')).to.not.include('{');
+    const preview = part!['resultPreview'] ?? '';
+    expect(typeof preview === 'string' ? preview : JSON.stringify(preview)).to.not.include('{');
   });
 
   it('the activity panel shows no raw document either (it never read the outcome document)', () => {

@@ -38,6 +38,7 @@ import type { RoutingDecider } from '../../../src/modules/agent-harness/ports/ro
 import { CONTROL_PLANE_ME_CAPABILITIES, type MeCapabilitiesSource } from '../../../src/modules/control-plane';
 import { aSnapshot } from '../control-plane/support/resolution-fixtures';
 import { RESOLVED_TURN_VECTOR as VECTOR } from './support/resolved-turn-world';
+import { without } from './support/without';
 
 const ORG = 'org-1';
 const TURN = { orgId: ORG, actorId: 'user-1', agentKey: 'agent-a', chatMode: 'planExecute' };
@@ -124,7 +125,7 @@ describe('CPD-10: the binders of the legacy header and /me/capabilities', () => 
   });
 
   it('on, a deployment without a gateway keyring: the turn is refused, never proxied without a header', async () => {
-    const { gatewayTokens: _none, ...deps } = await dependencies();
+    const deps = without(await dependencies(), 'gatewayTokens');
     const container = await bound('on', deps as AgentHarnessDependencies);
     expect(container.isBound(AGENT_HARNESS_RESOLVED_TURNS)).to.equal(false);
     let thrown: unknown;

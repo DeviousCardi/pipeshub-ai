@@ -99,8 +99,8 @@ export function signingKeyOf(key: VectorKey, createdAt: number): AttemptSigningK
   const privateKey = createPrivateKey({ key: { ...key.jwk }, format: 'jwk' });
   return {
     kid: key.kid,
-    privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
-    publicKey: createPublicKey(privateKey).export({ type: 'spki', format: 'pem' }).toString(),
+    privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+    publicKey: createPublicKey(privateKey).export({ type: 'spki', format: 'pem' }),
     createdAt,
     retiredAt: key.retiredAtMs ?? null,
   };

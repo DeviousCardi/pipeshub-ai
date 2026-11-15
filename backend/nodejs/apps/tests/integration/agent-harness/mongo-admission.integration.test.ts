@@ -72,7 +72,7 @@ describeWithMongo('Mongo durable run admission integration', function () {
   });
 
   after(async () => {
-    if (mongoose.connection.readyState === 1) {
+    if (mongoose.connection.readyState === mongoose.ConnectionStates.connected) {
       await mongoose.connection.dropDatabase();
     }
     await mongoose.disconnect();

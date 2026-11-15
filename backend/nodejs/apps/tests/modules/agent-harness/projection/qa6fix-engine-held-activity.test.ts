@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import { foldActivity } from '../../../../src/modules/agent-harness/projection/activity';
 import { ActivityJournal } from '../support/activity-journal';
+import { without } from '../support/without';
 
 const HELD = 'ix.approve.engine-1';
 const ORG_RULE = { rule: 'writes', layer: 'org', toolId: 'jira@inst-42/create_issue', conversationGrant: false };
@@ -28,7 +29,7 @@ describe('agent-harness activity view: an engine\'s held call (QA6-F6)', () => {
     // Its arguments are read when the step is opened (ACTRESULTS): the snapshot has their fingerprint.
     const [held_] = tools(held());
     expect(held_!.detail).to.be.a('string');
-    const { detail: _detail, ...line } = held_!;
+    const line = without(held_!, 'detail');
     expect(line).to.deep.equal({ toolCallId: HELD, name: 'jira__create_issue', status: 'awaiting_approval', reason: SHOWN });
   });
 

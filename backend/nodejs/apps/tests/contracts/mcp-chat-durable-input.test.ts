@@ -22,6 +22,7 @@ import {
  * `chatTurnInput`: a new SDK field the durable route does not serve fails here, not silently in production.
  */
 
+// eslint-disable-next-line @typescript-eslint/no-implied-eval -- the constant source keeps import() out of ts-node's CommonJS rewrite
 const importESM = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<unknown>
 const esm = async <T>(path: string): Promise<T> =>
   (await importESM(pathToFileURL(require.resolve(`@pipeshub-ai/mcp/esm/${path}`)).href)) as T

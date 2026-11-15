@@ -37,7 +37,6 @@ import { join } from 'path';
 import { policySnapshotLoader } from '../../../src/modules/agent-harness/adapters/control-plane/policy-snapshot-loader';
 import { PolicyPinning } from '../../../src/modules/agent-harness/application/admission/policy-pinning';
 import { canonicalDigest } from '../../../src/modules/agent-harness/contracts/canonical-json';
-import { RELEASE_DEFAULTS } from '../../../src/modules/agent-harness/contracts/generated/core/policy-data';
 import type { PinShadowDimension } from '../../../src/modules/agent-harness/domain/pin-shadow';
 import { PARENT_DIMENSIONS, PolicyResolver } from '../../../src/modules/agent-harness/domain/policy';
 import { PolicyRunConfigPinner, prefixSources, ResolvedSnapshotCache, runSources } from '../../../src/modules/control-plane';

@@ -14,7 +14,7 @@ const SESSION = 'sess-1';
 const aRun = (over: Partial<HarnessRun> = {}): HarnessRun =>
   ({ orgId: ORG, sessionId: SESSION, runId: 'run-1', status: 'waiting_approval', revision: 3, parent: null, ...over }) as HarnessRun;
 
-function world(active: Array<HarnessRun | null>, fail: unknown[] = []) {
+function world(active: Array<HarnessRun | null>, fail: Error[] = []) {
   const controls: Array<Record<string, unknown>> = [];
   const reads: string[] = [];
   const stopper = new SessionRunStopper({

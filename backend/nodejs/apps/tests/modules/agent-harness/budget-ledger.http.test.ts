@@ -47,7 +47,6 @@ describe('P6.5: budget ledger routes over HTTP', function () {
   let clock: ContractClock;
   let credential: string;
   // SEC-C-10: a gateway token is minted with the egress proxy's own credential.
-  let proxyCredential: string;
   let gateway: GatewayTokenAuthority;
   let ledger: InMemoryBudgetLedger;
 
@@ -79,7 +78,7 @@ describe('P6.5: budget ledger routes over HTTP', function () {
     const authority = createHarnessAuthority(stores, h.service, clock);
     await authority.provision(null);
     credential = (await stores.workerCredential.read()).value!.current;
-    proxyCredential = (await authority.credentialFor('egress-proxy'))!;
+    await authority.credentialFor('egress-proxy');
     gateway = new GatewayTokenAuthority({
       signingKeys: new InMemoryConfigDocumentStore(),
       publishedKeys: new InMemoryConfigDocumentStore(),

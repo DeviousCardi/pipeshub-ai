@@ -90,7 +90,7 @@ export const boundStore = <T extends object>(
           return inOrg(org, call);
         } catch (error) {
           // A call bound to another org is refused as the store would refuse it: a rejected promise.
-          return Promise.reject(error);
+          return Promise.reject(error as Error);
         }
       };
     },

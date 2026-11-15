@@ -17,10 +17,13 @@ describe('SEC-C-01: a smaller JSON bound on the routes that take a person\'s tex
     app.post(/.*/, (_req, res) => {
       res.status(200).end();
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Express treats only a four-parameter handler as an error handler
     app.use((err: { status?: number }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       res.status(err.status ?? 500).end();
     });
-    const server = http.createServer(app);
+    const server = http.createServer((req, res) => {
+      app(req, res);
+    });
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     try {
       const response = await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}${path}`, {

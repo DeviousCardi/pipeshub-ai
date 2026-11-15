@@ -547,7 +547,7 @@ describe('ServiceAccountsService', () => {
       expect(erasers.calls.map((c) => c.store)).to.deep.equal(erasers.stores);
       for (const call of erasers.calls) {
         expect(call, call.store).to.deep.include({ hook: 'eraseUser', principalDeleted: false });
-        expect(call.args.map(String)).to.deep.equal([String(orgId), String(id)]);
+        expect(call.args.map(String)).to.deep.equal([orgId, id]);
       }
       expect(account.isDeleted).to.equal(true);
     });
@@ -580,7 +580,7 @@ describe('ServiceAccountsService', () => {
 
       expect(String(failed)).to.include('personalInstances unavailable');
       const call = erasers.calls.find((c) => c.store === 'personalInstances');
-      expect(call?.args.map(String)).to.deep.equal([String(orgId), String(id)]);
+      expect(call?.args.map(String)).to.deep.equal([orgId, id]);
       expect(account.isDeleted).to.equal(false);
       expect(account.save.called).to.equal(false);
       expect(events.publishEvent.called).to.equal(false);
@@ -597,9 +597,9 @@ describe('ServiceAccountsService', () => {
       const service = new ServiceAccountsService(logger as any, events as any, null, null, { handOverUser } as any);
       storesHold(account);
 
-      await service.remove(String(orgId), String(id), 'admin-1');
+      await service.remove(orgId, id, 'admin-1');
 
-      expect(handOverUser.calledOnceWith(String(orgId), String(id), 'admin-1')).to.be.true;
+      expect(handOverUser.calledOnceWith(orgId, id, 'admin-1')).to.be.true;
       expect(account.isDeleted).to.equal(true);
     });
 

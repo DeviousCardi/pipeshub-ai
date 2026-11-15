@@ -5,7 +5,7 @@
  */
 import 'reflect-metadata';
 import { expect } from 'chai';
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import { AddressInfo } from 'node:net';
 import { Server } from 'node:http';
 import { Container } from 'inversify';
@@ -37,7 +37,6 @@ import {
   WorkerCredentialSet,
 } from '../../../src/modules/agent-harness/domain/authority';
 import { HarnessRun } from '../../../src/modules/agent-harness/domain/execution';
-import { gatewayGrantDigests } from '../../../src/modules/agent-harness/domain/gateway-token';
 import { createAgentHarnessInternalRouter } from '../../../src/modules/agent-harness/transport/internal-routes';
 import { ErrorMiddleware } from '../../../src/libs/middlewares/error.middleware';
 import {
@@ -49,6 +48,7 @@ import {
 import { HARNESS_ENABLED } from './support/rollout';
 import { CURRENT_WORKER_CAPABILITIES } from './support/worker-capabilities';
 import { proofFor, testBindingKeys } from './support/binding-proof';
+import { without } from './support/without';
 
 describe('SEC2: gateway refusals over HTTP', function () {
   this.timeout(20_000);
@@ -417,7 +417,7 @@ describe('SEC2: gateway refusals over HTTP', function () {
     await report(run.runId, token, EGRESS);
     await report(run.runId, token, MODEL);
     const blocked = (await h.service.effectivePolicy(run.orgId, run.runId))?.blockedRequests ?? [];
-    expect(blocked.map(({ ts: _ts, ...rest }) => rest)).to.deep.equal([EGRESS, MODEL]);
+    expect(blocked.map((entry) => without(entry, 'ts'))).to.deep.equal([EGRESS, MODEL]);
   });
 
   const fallback = (runId: string, bearer: string | null, body: Record<string, unknown>) =>

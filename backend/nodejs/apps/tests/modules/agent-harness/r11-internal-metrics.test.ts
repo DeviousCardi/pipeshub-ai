@@ -120,6 +120,7 @@ async function harnessState(targets: Array<{ service: string; url: string }>): P
   container.bind(AGENT_HARNESS_METRICS_TARGETS).toConstantValue({ targets: () => targets, timeoutMs: 300 });
   const app = express();
   app.use(AGENT_HARNESS_INTERNAL_PREFIX, createAgentHarnessInternalRouter(container));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Express treats only a four-argument handler as error middleware
   app.use((error: { statusCode?: number }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     res.status(error.statusCode ?? 500).json({});
   });

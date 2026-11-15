@@ -89,7 +89,7 @@ describe('agent-harness platform settings adapters', () => {
         { provider: 'openAI', modelKey: 'no-names', modelNames: [] },
       ]);
       const fake = new InMemoryConfiguredModels(listed.map((entry) => ({ ...entry })));
-      expect(await fake.list('org-1')).to.deep.equal(listed);
+      expect(await fake.list()).to.deep.equal(listed);
       sinon.restore();
       expect(await configured(null).list('org-1')).to.deep.equal([]);
     });

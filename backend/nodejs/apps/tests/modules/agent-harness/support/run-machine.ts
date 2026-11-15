@@ -572,7 +572,7 @@ export class RunModel {
   }
 
   /** The state after `op` answered as expected. */
-  apply(op: Op, world: RunWorld): void {
+  apply(op: Op): void {
     switch (op.kind) {
       case 'admit':
         this.admit(op.session);
@@ -760,7 +760,7 @@ export function expectAnswer(expected: Expected, answered: Outcome, label: strin
 export async function step(model: RunModel, world: RunWorld, op: Op): Promise<Expected> {
   const expected = model.expected(op, world);
   expectAnswer(expected, await world.apply(op), JSON.stringify(op));
-  if ('ok' in expected) model.apply(op, world);
+  if ('ok' in expected) model.apply(op);
   model.agree(await world.snapshot());
   return expected;
 }

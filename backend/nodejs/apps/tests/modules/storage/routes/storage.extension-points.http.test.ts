@@ -128,7 +128,9 @@ describe('Storage extension points over HTTP', () => {
     app.use(express.json())
     app.use('/api/v1/document', createStorageRouter(container))
     app.use(ErrorMiddleware.handleError())
-    server = http.createServer(app)
+    server = http.createServer((req, res) => {
+      app(req, res)
+    })
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/v1/document`
     kv.changed(storageEtcdPaths)

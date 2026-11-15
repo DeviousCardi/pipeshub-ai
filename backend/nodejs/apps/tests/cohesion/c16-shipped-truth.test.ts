@@ -53,11 +53,12 @@ const helmValues = (chain: string): Values =>
 const helmHello = (values: Values): Record<string, unknown> => {
   const mongo = (values['mongodb'] ?? {}) as Values;
   const replicaSet = (mongo['architecture'] ?? 'standalone') === 'replicaset';
+  const setName = mongo['replicaSetName'];
   // Only the Bitnami subchart (mongodb.enabled) can run an arbiter; the built-in StatefulSet has none.
   const arbiter =
     mongo['enabled'] === true && ((mongo['arbiter'] ?? {}) as Values)['enabled'] === true;
   return {
-    ...(replicaSet ? { setName: String(mongo['replicaSetName'] ?? 'rs0') } : {}),
+    ...(replicaSet ? { setName: typeof setName === 'string' ? setName : 'rs0' } : {}),
     arbiters: arbiter ? ['arbiter-0:27017'] : [],
   };
 };

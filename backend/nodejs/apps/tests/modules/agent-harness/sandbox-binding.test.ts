@@ -90,7 +90,7 @@ describe('R38IDENT-FU-7: the broker’s sandbox binding proof', () => {
     const proof = bindingProof(key, binding);
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
     const last = proof.at(-1)!;
-    const sameBytes = [...alphabet].filter(
+    const sameBytes = Array.from(alphabet).filter(
       (ch) =>
         ch !== last &&
         Buffer.from(`${proof.slice(3, -1)}${ch}`, 'base64url').equals(Buffer.from(proof.slice(3), 'base64url')),

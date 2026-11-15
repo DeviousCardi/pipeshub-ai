@@ -194,7 +194,8 @@ describe('libs/config/store-auth (SEC-D-06)', () => {
 
     it('R51-COMPAT: on the compatibility profile an open Redis starts with the finding logged', async () => {
       const logged: Record<string, unknown>[] = [];
-      const { PIPESHUB_HARDENED: _hardened, ...compat } = COMPLETE;
+      const compat: Partial<typeof COMPLETE> = { ...COMPLETE };
+      delete compat.PIPESHUB_HARDENED;
       const findings = await enforceStoreAuth(
         { ...compat, REDIS_PASSWORD: '' },
         { warn: (_m, meta) => logged.push(meta ?? {}) },

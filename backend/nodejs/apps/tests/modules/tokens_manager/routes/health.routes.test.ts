@@ -2000,7 +2000,7 @@ describe('tokens_manager/routes/health.routes', () => {
       const audience = healthAudience(mockAuthMiddleware, async () => true)
       const req: any = { headers: { authorization: 'Bearer admin' } }
       const res: any = { locals: {} }
-      await new Promise<void>((resolve) => audience(req, res, () => resolve()))
+      await new Promise<void>((resolve) => { void audience(req, res, () => resolve()) })
       expect(res.locals.healthDetail).to.equal(true)
     })
 
@@ -2014,7 +2014,7 @@ describe('tokens_manager/routes/health.routes', () => {
         const req: any = { headers: { authorization: 'Bearer x' } }
         const res: any = { locals: {} }
         let error: unknown
-        await new Promise<void>((resolve) => audience(req, res, (e?: unknown) => { error = e; resolve() }))
+        await new Promise<void>((resolve) => { void audience(req, res, (e?: unknown) => { error = e; resolve() }) })
         expect(error).to.equal(undefined)
         expect(res.locals.healthDetail).to.equal(false)
       })
@@ -2026,7 +2026,7 @@ describe('tokens_manager/routes/health.routes', () => {
       for (const headers of [{}, { authorization: 'Bearer member' }]) {
         const req: any = { headers }
         const res: any = { locals: {} }
-        await new Promise<void>((resolve) => audience(req, res, () => resolve()))
+        await new Promise<void>((resolve) => { void audience(req, res, () => resolve()) })
         expect(res.locals.healthDetail).to.equal(true)
       }
     })

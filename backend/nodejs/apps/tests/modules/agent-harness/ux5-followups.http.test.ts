@@ -144,6 +144,7 @@ describe('agent-harness follow-ups: the worker\'s internal route (UX5)', functio
         error: { statusCode?: number; code?: string; message: string },
         _req: express.Request,
         res: express.Response,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Express treats only a four-argument handler as error middleware
         _next: express.NextFunction,
       ) => {
         res.status(error.statusCode ?? 500).json({ error: { code: error.code, message: error.message } });

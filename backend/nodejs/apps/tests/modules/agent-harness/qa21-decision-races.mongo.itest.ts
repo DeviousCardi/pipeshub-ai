@@ -10,7 +10,7 @@
  */
 import 'reflect-metadata';
 import { expect } from 'chai';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import {
   ContractBackend,
   ContractHarness,
@@ -27,13 +27,11 @@ import {
 import { HARNESS_ENABLED } from './support/rollout';
 import { workerEvent } from './support/journal-fixtures';
 import { byParty, codeOf, expectForced, expectValidHistory as expectValid, ordersOf, statusOf, winners } from './support/race-assertions';
-import { firstOn, ReleaseOrder, StoreRace } from './support/store-race';
+import { StoreRace } from './support/store-race';
 import { ChannelRecorder, RedisItRig, recordChannel, redisItRig } from './support/redis-it';
 import { InteractionService } from '../../../src/modules/agent-harness/application/interaction-service';
 import { SessionRunService } from '../../../src/modules/agent-harness/application/session-run-service';
-import { SessionInteractionService } from '../../../src/modules/agent-harness/application/session-interactions';
 import { RedisRunWakeup, wakeChannel } from '../../../src/modules/agent-harness/adapters/redis/redis-run-wakeup';
-import { InMemoryConfigDocumentStore } from '../../../src/modules/agent-harness/adapters/in-memory-config-document-store';
 import {
   CommitBatch,
   HarnessRun,
@@ -42,7 +40,6 @@ import {
 } from '../../../src/modules/agent-harness/domain/execution';
 import { inlineContentRef } from '../../../src/modules/agent-harness/domain/run-content';
 import { HarnessChatSessionRepository } from '../../../src/libs/repositories/agent-harness/chat-session-repository/mongo';
-import { HarnessApproverDirectory } from '../../../src/libs/repositories/agent-harness/approver-directory/mongo';
 import { UserGroups } from '../../../src/modules/user_management/schema/userGroup.schema';
 import { Users } from '../../../src/modules/user_management/schema/users.schema';
 import { PolicyLayerModel } from '../../../src/libs/repositories/control-plane/policy/schema/policy.schema';

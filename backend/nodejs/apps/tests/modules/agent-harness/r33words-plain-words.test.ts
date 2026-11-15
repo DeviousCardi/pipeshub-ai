@@ -97,7 +97,7 @@ describe('R33-WORDS: a job that ran out of memory names its limit (R32SECCOMP-FU
     expect(ending.memoryLimitMb).to.equal(4096);
     const completed = childCompletedEvent({ runId: 'run-child' }, ending);
     expect(completed.data).to.deep.include({ outcome: 'failed', errorType: 'out_of_memory', memoryLimitMb: 4096 });
-    const ref = String((completed.data['resultRef'] as { ref: string }).ref);
+    const ref = (completed.data['resultRef'] as { ref: string }).ref;
     const document = JSON.parse(Buffer.from(ref.slice('inline:'.length), 'base64url').toString('utf8')) as Record<string, unknown>;
     expect(document).to.deep.include({ error: 'out_of_memory', memoryLimitMb: 4096, success: false });
 

@@ -14,6 +14,7 @@ import { foldTimeline } from '../../../src/modules/agent-harness/projection/time
 import { buildCompletion, buildParts } from '../../../src/modules/agent-harness/projection/transcript';
 import { buildAIResponseMessage } from '../../../src/modules/enterprise_search/utils/utils';
 import { IAIResponse } from '../../../src/modules/enterprise_search/types/conversation.interfaces';
+import { without } from './support/without';
 
 const RUN = 'run-fu2';
 const LINE = '**I couldn\'t find anything about “SAAS launch” in your knowledge.** What follows draws on 2 related documents that do not mention it, so check it before you rely on it.';
@@ -74,7 +75,7 @@ describe('ANSWER-CONTRACT-FU-2: the not-found fact travels typed, beside its Eng
   it("another viewer of a shared chat gets the fact without the closest records' names", () => {
     const timeline = foldTimeline(journal(answered({ notFound: NOT_FOUND })), RUN);
     const seen = sharedCompletion({ ...buildCompletion(timeline)!, final: true }, VIEWS.access as never, VIEWS.artifacts as never);
-    const { near: _owners, ...shared } = NOT_FOUND;
+    const shared = without(NOT_FOUND, 'near');
     expect(seen['notFound']).to.deep.equal(shared);
     const finalPart = (seen['parts'] as Array<Record<string, unknown>>).find((part) => part['isFinal'] === true);
     expect(finalPart?.['notFound']).to.deep.equal(shared);

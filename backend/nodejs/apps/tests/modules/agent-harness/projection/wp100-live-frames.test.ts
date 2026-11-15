@@ -37,6 +37,7 @@ import { FrameSink, RunStreamService } from '../../../../src/modules/agent-harne
 import { runTranscript } from '../../../../src/modules/agent-harness/projection/transcript';
 import { parseSse, readJournal } from '../../../contracts/support/durable';
 import { testCipher } from '../support/data-protection';
+import { without } from '../support/without';
 
 const RUN = 'run-1';
 
@@ -194,7 +195,7 @@ describe('WP100-ERR: the live RUN_ERROR carries the typed outcome for a client t
     expect(frame?.['runOutcome'], 'the same typed outcome the conversation writer saves').to.deep.equal(
       failedOutcome(saved as Parameters<typeof failedOutcome>[0]),
     );
-    const { runOutcome: _outcome, ...rest } = frame as Record<string, unknown>;
+    const rest = without(frame as Record<string, unknown>, 'runOutcome');
     expect(rest, 'every legacy field is kept beside it').to.deep.equal(legacyFrame);
   });
 

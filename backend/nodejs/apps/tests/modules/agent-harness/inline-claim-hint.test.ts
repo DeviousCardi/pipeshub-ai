@@ -37,7 +37,7 @@ describe('HttpInlineClaimHint (D-4)', () => {
     expect((init.headers as Record<string, string>)['authorization']).to.equal(
       'Bearer phw_secret',
     );
-    expect(JSON.parse(String(init.body))).to.deep.equal({ orgId: 'org-1' });
+    expect(JSON.parse(init.body as string)).to.deep.equal({ orgId: 'org-1' });
     expect(warnings).to.deep.equal([]);
   });
 

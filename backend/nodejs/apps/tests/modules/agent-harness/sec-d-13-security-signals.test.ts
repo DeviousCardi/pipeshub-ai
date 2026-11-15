@@ -71,7 +71,9 @@ import { metricsBackend } from '../../../src/libs/services/telemetry/metrics-bac
 import { samples, sampleValue } from '../../helpers/metric-samples';
 
 const serve = async (app: express.Express): Promise<{ base: string; close: () => Promise<void> }> => {
-  const server = http.createServer(app);
+  const server = http.createServer((req, res) => {
+    app(req, res);
+  });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
   return {

@@ -180,7 +180,7 @@ describe('ADR-SEC-02: the worker routes bind the org from server-side state', ()
             headers: { authorization: 'Bearer t' },
             params: { runId: 'run-1' },
           } as unknown as Request;
-          guard(req, response(), ((error?: unknown) => {
+          void guard(req, response(), ((error?: unknown) => {
             if (error !== undefined) reject(error as Error);
             else resolve(getCurrentOrgId());
           }) as NextFunction);
@@ -196,7 +196,7 @@ describe('ADR-SEC-02: the worker routes bind the org from server-side state', ()
     const error = await unbound(
       () =>
         new Promise<unknown>((resolve) => {
-          guard(
+          void guard(
             {
               headers: { authorization: 'Bearer t' },
               params: { runId: 'run-1' },

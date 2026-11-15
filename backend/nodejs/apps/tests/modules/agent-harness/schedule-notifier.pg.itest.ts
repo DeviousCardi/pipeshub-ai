@@ -64,7 +64,7 @@ for (const bin of pgBins()) {
             sessionType: 'chat',
           }),
         );
-        const sessionId = String(session._id);
+        const sessionId = session._id;
         await inOrg(orgId, () =>
           getConversationRepository().appendMessages(
             sessionId,

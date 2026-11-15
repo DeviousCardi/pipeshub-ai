@@ -153,7 +153,7 @@ const agentDefinition = (agentKey: string): AgentRunDefinition => ({
 const ENABLED: HarnessRolloutDecision = { useHarness: true, harnessMajor: 2, reason: 'enabled' };
 
 const authenticate = (req: Request, res: Response, next: NextFunction): void => {
-  const [orgId, userId] = String(req.headers.authorization ?? '')
+  const [orgId, userId] = (req.headers.authorization ?? '')
     .replace(/^Bearer /, '')
     .split('.');
   if (!orgId || !userId) {
@@ -445,7 +445,9 @@ async function main(): Promise<void> {
     }),
   );
   app.use(ErrorMiddleware.handleError());
-  const server = http.createServer(app);
+  const server = http.createServer((req, res) => {
+    app(req, res);
+  });
   const requests = trackRequests(server);
   server.listen(PORT, () => {
     logger.info('fault node ready', { port: PORT, broker: broker.type });

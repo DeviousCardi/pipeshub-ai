@@ -95,7 +95,7 @@ export function describePolicyStoreContract(name: string, make: () => Promise<Po
       ]);
       const failed = outcomes.filter((outcome) => outcome.status === 'rejected');
       expect(failed).to.have.length(1);
-      await expectConflict(Promise.reject((failed[0] as PromiseRejectedResult).reason), 2);
+      await expectConflict(Promise.reject((failed[0] as PromiseRejectedResult).reason as Error), 2);
       const history = await store.history(ORG_A, `org:${ORG_A}`, 10);
       expect(history.map((row) => row.revision)).to.deep.equal([2, 1]);
       expect((await store.read(ORG_A, `org:${ORG_A}`)).layer).to.deep.equal(history[0]!.layer);

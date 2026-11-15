@@ -87,7 +87,7 @@ export const levelsOf = (factor: RoutingFactor): string[] =>
   ROUTING_VECTORS.factors.find((f) => f.id === factor)?.levels ?? [];
 
 const matches = (input: RoutingInput, selector: Selector): boolean =>
-  Object.entries(selector).every(([factor, levels]) => levels?.includes(input[factor as RoutingFactor]) === true);
+  Object.entries(selector).every(([factor, levels]) => levels?.includes(input[factor as RoutingFactor]));
 
 export const inputOf = (partial: Partial<RoutingInput>): RoutingInput => ({ ...ROUTING_VECTORS.defaults, ...partial });
 

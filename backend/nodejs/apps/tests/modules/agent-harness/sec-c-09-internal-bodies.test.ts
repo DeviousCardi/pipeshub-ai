@@ -25,7 +25,9 @@ import { createGlobalRateLimiter } from '../../../src/libs/middlewares/rate-limi
 import { Logger } from '../../../src/libs/services/logger.service';
 
 const serve = async (app: express.Express): Promise<{ base: string; close: () => Promise<void> }> => {
-  const server = http.createServer(app);
+  const server = http.createServer((req, res) => {
+    app(req, res);
+  });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
   return { base: `http://127.0.0.1:${port}`, close: () => new Promise((resolve) => server.close(() => resolve())) };

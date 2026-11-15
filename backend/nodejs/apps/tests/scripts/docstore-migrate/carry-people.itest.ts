@@ -484,7 +484,8 @@ for (const bin of PG_BINS.length ? PG_BINS : ['none']) {
         expect(await new PgMemoryStore().eraseUser(ORG, U2)).to.equal(1);
         await new PgInboxStore().eraseUser(ORG, U2);
         expect(await new PgScheduleStore().delete(ORG, 'sch-1')).to.equal(true);
-        const { _id: _unused, ...m2 } = seed().agentMemories![1]!;
+        const m2: Record<string, unknown> = { ...seed().agentMemories![1]! };
+        delete m2['_id'];
         await new PgMemoryStore().propose({ ...m2, memoryId: 'mem-9', content: 'new on pg', createdAt: 1_800_000_000_000, updatedAt: 1_800_000_000_000 } as never);
         await new PgEngineSignIns().setOrgAllows(ORG, false);
       });

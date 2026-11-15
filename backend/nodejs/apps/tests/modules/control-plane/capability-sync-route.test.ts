@@ -57,7 +57,9 @@ describe('CPD-7 capability sync route', () => {
       }),
     );
     app.use(ErrorMiddleware.handleError());
-    server = http.createServer(app);
+    server = http.createServer((req, res) => {
+      app(req, res);
+    });
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     url = `http://127.0.0.1:${(server.address() as AddressInfo).port}${CAPABILITY_SYNC_PATH}`;
   });

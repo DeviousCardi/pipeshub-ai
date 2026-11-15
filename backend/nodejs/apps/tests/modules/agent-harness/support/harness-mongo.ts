@@ -14,7 +14,7 @@ import {
   AgentBudgetAccountModel,
   AgentBudgetReservationModel,
 } from '../../../../src/libs/repositories/agent-harness/budget-ledger/schema/budget-ledger.schema';
-import mongoose, { ClientSession, Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { MongoExecutionStore } from '../../../../src/libs/repositories/agent-harness/execution/mongo';
 import { MongoRunAdmissionStore } from '../../../../src/libs/repositories/agent-harness/run-admission-store/mongo';
 import {
@@ -133,7 +133,7 @@ const CONNECT_HOOK_TIMEOUT_MS = 300_000;
  * tests keep theirs. Called inside another hook it would run under that hook's timeout, so it refuses.
  */
 export async function connectHarnessMongo(
-  this: Mocha.Context | void,
+  this: Mocha.Context | undefined,
 ): Promise<void> {
   if (!this) {
     throw new Error('pass connectHarnessMongo to before(): it sets its own hook timeout');
@@ -157,7 +157,7 @@ export const resetHarnessMongo = async (): Promise<void> => {
 
 export const disconnectHarnessMongo = async (): Promise<void> => {
   await auditLinksIdle();
-  if (mongoose.connection.readyState === 1) {
+  if (mongoose.connection.readyState === mongoose.ConnectionStates.connected) {
     await mongoose.connection.dropDatabase();
   }
   await mongoose.disconnect();

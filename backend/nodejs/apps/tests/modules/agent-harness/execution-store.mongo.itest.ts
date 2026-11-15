@@ -18,7 +18,7 @@ import type { Tx } from '../../../src/libs/repositories/uow';
 import 'reflect-metadata';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { ClientSession, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { AgentRunModel } from '../../../src/libs/repositories/agent-harness/execution/schema/execution.schema';
 import { MongoDispatchOutbox } from '../../../src/libs/repositories/agent-harness/dispatch-outbox/mongo';
 import { MongoLeaderLease } from '../../../src/libs/repositories/agent-harness/leader-lease/mongo';

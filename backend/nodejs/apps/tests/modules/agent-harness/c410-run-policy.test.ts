@@ -139,7 +139,7 @@ describe('C4.10 ui.reasoning: hidden reasoning never reaches the browser', () =>
   const reasoningFrames = (journal: GoldenJournal): string[] => {
     const projector = new RunProjector(projectorContext(journal, 'owner'));
     return runSteps(projector, liveSteps(journal), { begin: true })
-      .map((f) => String(f.frame.type))
+      .map((f) => f.frame.type)
       .filter((type) => type.startsWith('REASONING'));
   };
 

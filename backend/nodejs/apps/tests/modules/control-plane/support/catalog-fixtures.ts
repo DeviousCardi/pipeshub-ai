@@ -87,7 +87,7 @@ export const releaseItem = (
 /** A transaction that runs each write at once: the catalog contract needs no rollback of its own. */
 export const immediateTx = (
   orgId: string,
-  session: unknown = undefined,
+  session?: unknown,
 ): CatalogWriteTx => ({
   orgId,
   session,

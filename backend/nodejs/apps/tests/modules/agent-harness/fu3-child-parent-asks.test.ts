@@ -17,6 +17,7 @@ import {
 } from '../../../src/modules/agent-harness/domain/child-runs';
 import { PinnedRunSpec } from '../../../src/modules/agent-harness/domain/run-spec';
 import { KNOWN_WORKER_FEATURES } from '../../../src/modules/agent-harness/domain/worker-compat';
+import { without } from './support/without';
 
 const table = JSON.parse(
   readFileSync(join(__dirname, '../../../../../../contracts/harness/vectors/child-grants.json'), 'utf8'),
@@ -65,7 +66,7 @@ describe('a job asks the person only when its parent can (ANSWER-CONTRACT-FU-3)'
     // Not pinned (no live worker reads it): the grandchild carries nothing, whatever its parent was pinned with.
     expect(pipeshub(childOf(asking, 2).spec)).to.not.have.property('parentAsks');
     // A child pinned without it (before FU-3) cannot ask, so neither can its own job.
-    const { parentAsks: _dropped, ...unpinned } = pipeshub(asking)!;
+    const unpinned = without(pipeshub(asking)!, 'parentAsks');
     expect(parentCanAsk({ ...asking, extensions: { ...asking.extensions, 'x.pipeshub': unpinned } })).to.equal(false);
   });
 

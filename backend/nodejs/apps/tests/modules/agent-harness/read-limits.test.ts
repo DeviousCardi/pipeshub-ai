@@ -85,10 +85,17 @@ const internalApp = (): express.Express => {
   return createAgentHarnessInternalApp(container);
 };
 
+/** An Express app as a plain request listener; its own return value is never awaited by the server. */
+const listener =
+  (app: express.Express): http.RequestListener =>
+  (req, res) => {
+    app(req, res);
+  };
+
 describe('SEC-DOS-04 (C6.40): request-read bounds on the harness listeners', () => {
   it('SEC-DOS-04 C6.40 the internal listener closes a head that never completes within its header bound', async function () {
     this.timeout(HANG_MS + 5_000);
-    const server = boundedServer(internalApp(), TIGHT);
+    const server = boundedServer(listener(internalApp()), TIGHT);
     expect(server.headersTimeout).to.equal(TIGHT.headersTimeoutMs);
     const port = await listen(server);
     try {
@@ -101,7 +108,7 @@ describe('SEC-DOS-04 (C6.40): request-read bounds on the harness listeners', () 
 
   it('SEC-DOS-04 C6.40 the internal listener closes a body that stops arriving within its request bound', async function () {
     this.timeout(HANG_MS + 5_000);
-    const server = boundedServer(internalApp(), TIGHT);
+    const server = boundedServer(listener(internalApp()), TIGHT);
     expect(server.requestTimeout).to.equal(TIGHT.requestTimeoutMs);
     const port = await listen(server);
     try {
@@ -130,7 +137,7 @@ describe('SEC-DOS-04 (C6.40): request-read bounds on the harness listeners', () 
         }
       }, 150);
     });
-    const server = boundedServer(app, TIGHT);
+    const server = boundedServer(listener(app), TIGHT);
     const port = await listen(server);
     try {
       const started = Date.now();
@@ -144,7 +151,7 @@ describe('SEC-DOS-04 (C6.40): request-read bounds on the harness listeners', () 
   });
 
   it('SEC-DOS-04 C6.40 connections past the cap are dropped', async () => {
-    const server = boundedServer(internalApp(), { ...TIGHT, headersTimeoutMs: 5_000, requestTimeoutMs: 5_000 });
+    const server = boundedServer(listener(internalApp()), { ...TIGHT, headersTimeoutMs: 5_000, requestTimeoutMs: 5_000 });
     const port = await listen(server);
     let accepted = 0;
     const bothAccepted = new Promise<void>((resolve) => {
@@ -188,7 +195,7 @@ describe('SEC-DOS-04 (C6.40): request-read bounds on the harness listeners', () 
   });
 
   it('SEC-DOS-04 C6.40 the public listener bounds a request read, with room for long uploads', () => {
-    const server = boundedServer(express(), PUBLIC_READ_LIMITS);
+    const server = boundedServer(listener(express()), PUBLIC_READ_LIMITS);
     expect(server.headersTimeout).to.equal(66_000);
     expect(server.requestTimeout).to.equal(300_000);
     expect(server.keepAliveTimeout).to.equal(65_000);

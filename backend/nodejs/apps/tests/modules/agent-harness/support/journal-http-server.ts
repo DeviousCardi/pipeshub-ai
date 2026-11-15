@@ -106,6 +106,9 @@ const MONGO_MODE = MONGO_URI !== undefined && MONGO_URI !== '';
 const ORG = MONGO_MODE ? '66f6a6a6a6a6a6a6a6a6a6a1' : 'org-contract';
 const ACTOR = MONGO_MODE ? '66f6a6a6a6a6a6a6a6a6b001' : 'actor-contract';
 
+/** A query parameter as the routes read it; an absent one reads as `undefined`, as String() spelt it. */
+const queryText = (value: unknown): string => (typeof value === 'string' ? value : (JSON.stringify(value) ?? 'undefined'));
+
 interface World {
   now: number;
   store: InMemoryExecutionStore;
@@ -603,7 +606,7 @@ async function main(): Promise<void> {
         actorId: ACTOR,
         agentKey: null,
       });
-      await world.specs.set(body.runId, body.spec);
+      world.specs.set(body.runId, body.spec);
       if (mongoWorld !== null) {
         await mongoWorld.ensureSession(orgId, ACTOR, sessionId, body.inputText.slice(0, 100));
       }
@@ -813,8 +816,8 @@ async function main(): Promise<void> {
     '/run',
     handle(async (req) => {
       const run = await world.service.get(
-        String(req.query['orgId'] ?? ORG),
-        String(req.query['runId']),
+        queryText(req.query['orgId'] ?? ORG),
+        queryText(req.query['runId']),
       );
       return run === null
         ? { status: null }
@@ -829,8 +832,8 @@ async function main(): Promise<void> {
   control.get(
     '/events',
     handle(async (req) => {
-      const orgId = String(req.query['orgId'] ?? ORG);
-      const runId = String(req.query['runId']);
+      const orgId = queryText(req.query['orgId'] ?? ORG);
+      const runId = queryText(req.query['runId']);
       const events = await world.store.journal.readRun(orgId, runId, 0, 100_000);
       return { events: await world.journals.resolve(events) };
     }),
@@ -941,7 +944,7 @@ async function main(): Promise<void> {
       if (mongoWorld === null) throw new Error('Mongo mode only');
       const rows = await mongoose.connection
         .db!.collection('outbox_events')
-        .find({ orderingKey: String(req.query['runId']) })
+        .find({ orderingKey: queryText(req.query['runId']) })
         .project({ status: 1, attempts: 1 })
         .toArray();
       return { rows: rows.map((row) => ({ status: row['status'], attempts: row['attempts'] ?? 0 })) };
@@ -952,8 +955,8 @@ async function main(): Promise<void> {
     '/session-state',
     handle(async (req) => {
       if (mongoWorld === null) throw new Error('Mongo mode only');
-      const orgId = String(req.query['orgId'] ?? ORG);
-      const sessionId = String(req.query['sessionId']);
+      const orgId = queryText(req.query['orgId'] ?? ORG);
+      const sessionId = queryText(req.query['sessionId']);
       const db = mongoose.connection.db!;
       const key = await db.collection('agentWorkspaceKeys').findOne({ orgId, sessionId });
       return {
@@ -1011,13 +1014,13 @@ async function main(): Promise<void> {
   control.get(
     '/memory/get',
     handle(async (req) => ({
-      memory: await world.memoryStore.get(ORG, String(req.query['memoryId'])),
+      memory: await world.memoryStore.get(ORG, queryText(req.query['memoryId'])),
     })),
   );
   control.get(
     '/memory/list',
     handle(async (req) => ({
-      memories: await world.memoryStore.list(ORG, { runId: String(req.query['runId']), limit: 50 }),
+      memories: await world.memoryStore.list(ORG, { runId: queryText(req.query['runId']), limit: 50 }),
     })),
   );
   app.use('/__control', control);

@@ -83,7 +83,6 @@ describe('WP-23 snapshot TTL (OWD-12)', () => {
     const store = new SnapshotRecordingJournalStore<string>(
       inner,
       {
-        ...index,
         record: (rows, tx) => {
           seen.push(tx);
           return index.record(rows);

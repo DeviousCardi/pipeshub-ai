@@ -4,7 +4,7 @@
  */
 import 'reflect-metadata';
 import { expect } from 'chai';
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Response } from 'express';
 import { AddressInfo } from 'node:net';
 import { Server } from 'node:http';
 import { Container } from 'inversify';
@@ -152,7 +152,7 @@ describe('E2: gateway-token routes over HTTP', function () {
       },
       body: JSON.stringify({
         bindingProof: proofFor(
-          String(named.orgId),
+          named.orgId,
           run.runId,
           String(named.attemptId),
         ),

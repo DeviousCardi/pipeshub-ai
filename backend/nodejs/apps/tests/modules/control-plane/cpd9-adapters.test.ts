@@ -111,7 +111,7 @@ describe('CPD-9 adapters', () => {
         isBound: (key: string) => key in bound,
       };
       const router = createSkillsRouter(container as never);
-      const layer = (router.stack as Array<{ route?: { path: string; methods: Record<string, boolean>; stack: Array<{ handle: Function }> } }>)
+      const layer = (router.stack as Array<{ route?: { path: string; methods: Record<string, boolean>; stack: Array<{ handle: unknown }> } }>)
         .find((l) => l.route?.path === '/candidates/:candidateId/approve' && l.route.methods.post)!;
       return inRequestOrg(layer.route!.stack[layer.route!.stack.length - 1]!.handle as (req: unknown, res: unknown, next: unknown) => unknown);
     };

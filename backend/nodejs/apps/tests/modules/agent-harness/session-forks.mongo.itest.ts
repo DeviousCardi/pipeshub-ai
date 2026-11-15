@@ -201,11 +201,11 @@ function mongoForkBackend(): MongoForkBackend {
         (message): StoredMessage => ({
           messageType: String(message['messageType']),
           content: String(message['content']),
-          senderId: message['senderId'] ? String(message['senderId']) : null,
+          senderId: message['senderId'] ? String(message['senderId'] as Types.ObjectId | string) : null,
           foreignTurn: message['foreignTurn'] === true,
           copied: message['copied'] === true,
           citations: ((message['citations'] as Array<{ citationId: Record<string, unknown> | null }>) ?? []).map((link) => ({
-            citationId: String(link.citationId?.['_id'] ?? ''),
+            citationId: String((link.citationId?.['_id'] as Types.ObjectId | undefined) ?? ''),
             data: link.citationId === null ? null : (link.citationId as unknown as ForkCitationData),
           })),
           fields: Object.entries(message)

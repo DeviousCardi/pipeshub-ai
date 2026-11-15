@@ -52,7 +52,7 @@ import {
 import { MongoJournalStore } from '../../../../src/libs/repositories/agent-harness/journal/mongo';
 import { MongoPayloadStore } from '../../../../src/libs/repositories/agent-harness/payload-store/mongo';
 import { MongoAuditChainStore } from '../../../../src/libs/repositories/agent-harness/audit/mongo';
-import { inMongoDurableTransaction, inMongoTransaction } from '../../../../src/libs/repositories/agent-harness/durable-transaction/mongo';
+import { inMongoDurableTransaction } from '../../../../src/libs/repositories/agent-harness/durable-transaction/mongo';
 import { InMemoryLiveBus } from '../../../../src/modules/agent-harness/adapters/in-memory-live-bus';
 import { RedisLiveBus, liveStreamKey } from '../../../../src/modules/agent-harness/adapters/redis/redis-live-bus';
 import { AuditedJournalStore } from '../../../../src/modules/agent-harness/application/audited-journal-store';

@@ -67,7 +67,7 @@ const base = {
 
 const HEX = '0123456789abcdef';
 /** A distinct, well-formed digest per tool name. */
-const toolDigest = (name: string): string => digest(HEX[[...name].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 16]!);
+const toolDigest = (name: string): string => digest(HEX[Array.from(name).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 16]!);
 const tools = (...names: string[]) => Object.fromEntries(names.map((name) => [name, toolDigest(name)]));
 const approved = (...names: string[]) => ({
   descriptorSetDigest: digest('9'),

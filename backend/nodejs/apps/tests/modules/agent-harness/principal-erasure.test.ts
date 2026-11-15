@@ -154,7 +154,7 @@ describe("CLEANUP-G1 (a): destroying an org's data keys drops them from this rep
 function fullWorld(job: PrincipalErasureJob) {
   let stored: PrincipalErasureJob | null = { ...job };
   const calls: Array<{ name: string; args: unknown[] }> = [];
-  const record = (name: string, value: unknown = undefined) =>
+  const record = (name: string, value?: unknown) =>
     sinon.stub().callsFake(async (...args: unknown[]) => {
       calls.push({ name, args });
       return typeof value === 'function' ? (value as (...a: unknown[]) => unknown)(...args) : value;
@@ -241,7 +241,7 @@ describe('CLEANUP-G2: every step of the user job, over fakes', () => {
 describe('CLEANUP-G1: the built-in org steps erase a deleted org at once', () => {
   function orgWorld() {
     const calls: string[] = [];
-    const log = (name: string, value: unknown) => async (..._args: unknown[]) => {
+    const log = (name: string, value: unknown) => async () => {
       calls.push(name);
       return value;
     };

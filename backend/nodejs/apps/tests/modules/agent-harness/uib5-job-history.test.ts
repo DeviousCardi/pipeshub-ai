@@ -84,7 +84,7 @@ describe("UI-B5: job titles, how a job changed, a request's jobs (ADR-UI-01 D5, 
         'Fix PAY-1423',
       );
       const long = jobTitle('é'.repeat(500)) as string;
-      expect([...long]).to.have.length(MAX_JOB_TITLE);
+      expect(Array.from(long)).to.have.length(MAX_JOB_TITLE);
       expect(long.endsWith('…')).to.equal(true);
       expect(jobTitle('   \n ')).to.equal(undefined);
       expect(jobTitle(null)).to.equal(undefined);

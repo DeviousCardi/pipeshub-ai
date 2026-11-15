@@ -348,7 +348,7 @@ describe('CPD-5 CONTROL_PLANE_PIN=on (PIN-22, CPD5-50, CPD5-51, CPD5-54)', () =>
 
   it('CPD5-54: budgets and engine limits are one dimension: the pinned budgets equal today’s merge', async () => {
     const resolver = new PolicyResolver();
-    await fc.assert(
+    fc.assert(
       fc.property(
         fc.record({
           maxTokens: fc.option(fc.integer({ min: 1, max: 2_000_000 }), { nil: null }),

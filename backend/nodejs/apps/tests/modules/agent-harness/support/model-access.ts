@@ -55,7 +55,7 @@ export class InMemoryConfiguredModels implements ConfiguredModels {
         };
   }
 
-  async list(_orgId: string): Promise<ConfiguredModel[]> {
+  async list(): Promise<ConfiguredModel[]> {
     if (this.down) throw new Error('kv down');
     return this.entries.map((entry) => ({
       provider: entry.provider,

@@ -16,6 +16,7 @@ import {
 } from '../../../src/libs/repositories/agent-harness/transaction-writes/mongo';
 import { connectHarnessMongo, disconnectHarnessMongo, resetHarnessMongo } from './support/harness-mongo';
 import { isDuplicateKeyError } from '../../../src/libs/utils/mongo.utils';
+import { without } from './support/without';
 
 const RAW = 'perfe2RawInserts';
 
@@ -191,7 +192,7 @@ describe('PERFE2: a transaction\'s inserts in one command', function () {
     expect(outbox.map((row) => row.updatedAt! > row.createdAt!), 'the update moved updatedAt').to.deep.equal([true, true]);
     expect(shape({ ...outbox[1], key: 'alone', value: outbox[0]!.value })).to.deep.equal(shape(outbox[0] as never));
     const payloads = await AgentJournalPayloadModel.find({}).sort({ _id: 1 }).lean();
-    expect(payloads.map(({ _id, hash, ...rest }) => (void _id, void hash, rest))).to.deep.equal([
+    expect(payloads.map((payload) => without(payload, '_id', 'hash'))).to.deep.equal([
       { orgId: 'org-1', size: 1, bytes: payloads[0]!.bytes, createdAt: new Date(5), owner: { sessionId: 's' }, referenced: true },
       { orgId: 'org-1', size: 1, bytes: payloads[0]!.bytes, createdAt: new Date(5), owner: { sessionId: 's' }, referenced: true },
     ]);

@@ -37,7 +37,9 @@ const TURN: Array<Record<string, FileWrite>> = [
 async function review(owner: Pick<SessionWorkspaceService, 'diff'>): Promise<string> {
   const handler = expandChatCommand(async () => ({ kind: 'not_found' }), pipeshubCommandsFor(pipeshubPromptCommands(() => owner)));
   const req = { body: { query: '/review' }, params: { conversationId: 's1' }, headers: {}, user: { orgId: ORG, userId: OWNER } } as unknown as Request;
-  const error = await new Promise<unknown>((resolve) => handler(req, { locals: {} } as unknown as Response, resolve));
+  const error = await new Promise<unknown>((resolve) => {
+    void handler(req, { locals: {} } as unknown as Response, resolve);
+  });
   expect(error).to.equal(undefined);
   return (req.body as { query: string }).query;
 }

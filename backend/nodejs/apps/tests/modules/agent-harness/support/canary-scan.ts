@@ -62,9 +62,13 @@ export interface CanaryScanOptions {
 export function stringsIn(value: unknown, seen = new Set<unknown>()): string[] {
   if (typeof value === 'string') return [value];
   if (Buffer.isBuffer(value)) return [value.toString('utf8')];
-  if (value === null || typeof value !== 'object' || seen.has(value)) {
-    return value === null || value === undefined ? [] : [String(value)];
+  if (value === null || value === undefined) return [];
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint' || typeof value === 'symbol') {
+    return [String(value)];
   }
+  if (typeof value === 'function') return [value.toString()];
+  // A value already walked has given its strings once.
+  if (seen.has(value)) return [];
   seen.add(value);
   if (value instanceof Map) return [...value.entries()].flatMap(([k, v]) => [...stringsIn(k, seen), ...stringsIn(v, seen)]);
   if (Array.isArray(value) || value instanceof Set) return [...value].flatMap((v) => stringsIn(v, seen));

@@ -68,20 +68,18 @@ for (const bin of pgBins()) {
         orgId: string,
         userId: string,
       ): Promise<string> =>
-        String(
-          (
-            await inOrg(orgId, () =>
-              getConversationRepository().createSession({
-                orgId,
-                userId,
-                initiator: userId,
-                lastActivityAt: Date.now(),
-                status: 'Complete',
-                sessionType: 'chat',
-              }),
-            )
-          )._id,
-        );
+        (
+          await inOrg(orgId, () =>
+            getConversationRepository().createSession({
+              orgId,
+              userId,
+              initiator: userId,
+              lastActivityAt: Date.now(),
+              status: 'Complete',
+              sessionType: 'chat',
+            }),
+          )
+        )._id;
 
       describeEngineSignInStoreContract('PgEngineSignIns', async () => {
         const orgId = await pgOrg(stack);
@@ -246,7 +244,7 @@ for (const bin of pgBins()) {
               sessionType: 'chat',
             }),
           );
-          const sessionId = String(session._id);
+          const sessionId = session._id;
           await store.writeSession(orgId, sessionId, 'codex');
           await store.writeSessionPin(orgId, sessionId, 'codex@1.2.3');
           await store.writeSessionRepository(orgId, sessionId, {

@@ -144,7 +144,7 @@ async function startRig(): Promise<Rig> {
 
   const logger = Logger.getInstance({ service: 'qa14-node' });
   const authenticate = (req: Request, res: Response, next: NextFunction): void => {
-    const bearer = String(req.headers.authorization ?? '').replace(/^Bearer /, '');
+    const bearer = (req.headers.authorization ?? '').replace(/^Bearer /, '');
     const userId = IDENTITIES[bearer];
     if (userId === undefined) {
       res.status(401).json({ error: { message: 'unauthenticated' } });
@@ -229,7 +229,7 @@ async function call(rig: Rig, method: string, path: string, bearer: string, body
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const text = await response.text();
-  let json: unknown = null;
+  let json: unknown;
   try {
     json = JSON.parse(text);
   } catch {

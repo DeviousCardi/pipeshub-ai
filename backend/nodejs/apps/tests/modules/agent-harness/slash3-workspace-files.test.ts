@@ -102,7 +102,7 @@ describe('SLASH3 SB0: the streaming zip writer', () => {
     const stream = zipStream([lazy('a'), lazy('b')]);
     await stream.next();
     expect(order).to.deep.equal(['a']);
-    for await (const _chunk of stream) { /* drain */ }
+    while (!(await stream.next()).done) { /* drain */ }
     expect(order).to.deep.equal(['a', 'b']);
   });
 });

@@ -54,7 +54,7 @@ export function loadContractSchemas(): ContractSchema[] {
     .map((file) => {
       const doc = JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
       const invalidFile = file.replace(/\.schema\.json$/, '.invalid.json');
-      let invalid: ContractSchema['invalid'] = [];
+      let invalid: ContractSchema['invalid'];
       try {
         invalid = JSON.parse(readFileSync(invalidFile, 'utf8')) as ContractSchema['invalid'];
       } catch {
@@ -86,7 +86,7 @@ export function zodFor(schemaPath: string): ZodTypeAny {
   return mod[names[0]!]!;
 }
 
-const readJson = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
+const readJson = (file: string): unknown => JSON.parse(readFileSync(file, 'utf8'));
 
 function overlayFiles(dir: string, suffix: string): string[] {
   if (!existsSync(dir)) return [];
@@ -102,7 +102,7 @@ function overlayFiles(dir: string, suffix: string): string[] {
 /** The values the overlay adds to the enumeration at JSON pointer `at` of the schema `$id` (none without one). */
 export function overlayEnumValues(id: string, at: string): string[] {
   return overlayFiles(OVERLAY_DIR, '.extends.json').flatMap((file) => {
-    const extension = readJson<{ extends: string; add?: Array<{ at?: string; enum?: string[] }> }>(file);
+    const extension = readJson(file) as { extends: string; add?: Array<{ at?: string; enum?: string[] }> };
     if (extension.extends !== id) return [];
     return (extension.add ?? []).flatMap((add) => ((add.at ?? '') === at ? (add.enum ?? []) : []));
   });
@@ -111,7 +111,7 @@ export function overlayEnumValues(id: string, at: string): string[] {
 /** The event types the overlay adds to the catalog of `group` (`core`, `ext/pipeshub`). */
 export function overlayEventTypes(group: string): string[] {
   return overlayFiles(join(OVERLAY_DIR, group), '.schema.json').flatMap((file) => {
-    const doc = readJson<{ 'x-writer'?: string[]; properties?: { type?: { const?: string } } }>(file);
+    const doc = readJson(file) as { 'x-writer'?: string[]; properties?: { type?: { const?: string } } };
     const type = doc.properties?.type?.const;
     return doc['x-writer'] !== undefined && type !== undefined ? [type] : [];
   });
@@ -120,14 +120,14 @@ export function overlayEventTypes(group: string): string[] {
 /** The error codes the overlay's catalog adds to that of `group`. */
 export function overlayErrorCodes<T extends { code: string }>(group: string): T[] {
   const file = join(OVERLAY_DIR, group, 'errors.json');
-  return existsSync(file) ? readJson<{ codes: T[] }>(file).codes : [];
+  return existsSync(file) ? (readJson(file) as { codes: T[] }).codes : [];
 }
 
 /** A vector's sections with the entries the overlay's vector of the same name adds to them. */
 export function withOverlayVector<T extends Record<string, unknown>>(name: string, base: T): T {
   const file = join(OVERLAY_DIR, 'vectors', name);
   if (!existsSync(file)) return base;
-  const added = readJson<Record<string, unknown>>(file);
+  const added = readJson(file) as Record<string, unknown>;
   const out: Record<string, unknown> = { ...base };
   for (const [key, value] of Object.entries(added)) {
     const own = base[key];

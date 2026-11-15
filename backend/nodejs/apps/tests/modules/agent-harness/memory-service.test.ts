@@ -195,7 +195,7 @@ describe('P7.3 memory service (SV)', () => {
 
   it('SV-8b: a settlement failure is logged once and never reaches the run\'s ending', async () => {
     const broken = new MemoryService({
-      store: { ...store, list: async () => { throw new Error('mongo down'); } } as unknown as InMemoryMemoryStore,
+      store: Object.assign(Object.create(store) as InMemoryMemoryStore, { list: async () => { throw new Error('mongo down'); } }),
       settings: new ConfigMemorySettings(policies, testControlPlane()),
       access: new SharedCitationService(records),
       runs: { readClaimSubject: async () => null },

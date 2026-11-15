@@ -12,6 +12,7 @@ import { load } from 'js-yaml';
 import { createRepositoryCacheStatusStore } from '../../../src/modules/agent-harness/adapters/configuration/encrypted-config-document-store';
 import { sectionDeployment } from '../../../src/modules/agent-harness/application/section-deployment';
 import { MemoryKv, platformCipher } from './support/model-accounts';
+import { without } from './support/without';
 
 const PATH = '/services/agentHarness/repositoryCache';
 
@@ -40,7 +41,7 @@ describe('WP84-GITH: an unwritable repository cache reaches the git hosts screen
 
   it('WP84-GITH-6: an older worker’s report, without the field, reads as writable (never guessed)', async () => {
     const kv = new MemoryKv();
-    const { cacheUnwritable: _dropped, ...older } = WORKER_STATUS;
+    const older = without(WORKER_STATUS, 'cacheUnwritable');
     await kv.raw.createKey(PATH, JSON.stringify(platformCipher.encrypt(JSON.stringify(older))));
     const deployment = await sectionDeployment(createRepositoryCacheStatusStore(kv, platformCipher), {})('repositories');
     expect(deployment?.cache).to.not.have.property('cacheUnwritable');

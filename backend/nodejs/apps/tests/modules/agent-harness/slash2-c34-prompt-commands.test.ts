@@ -83,7 +83,9 @@ async function send(
   );
   const req = { body, params, headers: {}, user: { orgId: ORG, userId: OWNER } } as unknown as Request;
   const res = { locals: {} } as unknown as Response;
-  const error = await new Promise<unknown>((resolve) => handler(req, res, resolve));
+  const error = await new Promise<unknown>((resolve) => {
+    void handler(req, res, resolve);
+  });
   return { body: req.body as Record<string, unknown>, locals: res.locals, error, skills, scopes };
 }
 
@@ -235,7 +237,9 @@ describe('LC2FIX: a /review message keeps only what was typed', () => {
     );
     const req = { body: {}, params: { conversationId: 's1', messageId: 'm1' }, headers: {}, user: { orgId: ORG, userId: OWNER } } as unknown as Request;
     const res = { locals: {} } as unknown as Response;
-    const error = await new Promise<unknown>((resolve) => handler(req, res, resolve));
+    const error = await new Promise<unknown>((resolve) => {
+    void handler(req, res, resolve);
+  });
     return { error, query: regenerateQuery(res) };
   };
   const REVIEW: RunCommand = { name: 'review', version: '1.0.0', contentDigest: sha(REVIEW_BODY), args: { focus: 'the SQL' }, typed: '/review the SQL', owner: 'pipeshub' };

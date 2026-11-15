@@ -26,7 +26,6 @@ import { AGENT_MODELS, DEFAULT_MODEL, InMemoryConfiguredModels } from './support
 import { KEYS, MemoryKv, platformCipher } from './support/model-accounts';
 import { HARNESS_ENABLED } from './support/rollout';
 import { testControlPlane } from '../control-plane/support/in-memory';
-import { knownHole } from '../../helpers/security-known-hole';
 import crypto from 'node:crypto';
 import http from 'node:http';
 import { AddressInfo } from 'node:net';

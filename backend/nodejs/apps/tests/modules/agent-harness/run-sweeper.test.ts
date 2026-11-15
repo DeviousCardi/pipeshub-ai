@@ -13,7 +13,6 @@ import {
   SWEEPER_LEASE_MS,
   SWEEPER_LEASE_NAME,
 } from '../../../src/modules/agent-harness/application/run-sweeper';
-import { MAX_LEASE_DURATION_MS } from '../../../src/modules/agent-harness/domain/authority';
 import { LeaderLease } from '../../../src/modules/agent-harness/ports/leader-lease';
 import {
   contractClock,

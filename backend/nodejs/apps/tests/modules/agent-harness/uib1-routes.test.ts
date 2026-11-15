@@ -186,7 +186,7 @@ describe('UI-B1 routes (ADR-UI-01, ADR-GRANT-01 D8)', () => {
       const middleware = conversationRunStatesMiddleware(() => service as never, () => true);
       let sent: unknown;
       const res = { statusCode: status, json: (value: unknown) => { sent = value; return res; } } as unknown as express.Response;
-      middleware({ user } as unknown as express.Request, res, () => undefined);
+      void middleware({ user } as unknown as express.Request, res, () => undefined);
       res.json(body);
       await new Promise((resolve) => setImmediate(resolve));
       return sent;

@@ -21,7 +21,6 @@ import {
   PinnedEngineProfile,
   RELEASE_ENGINE_PROFILES,
 } from '../../../src/modules/agent-harness/domain/engine-profiles';
-import { HarnessEngineProfileRefusedError } from '../../../src/modules/agent-harness/domain/errors';
 import { HarnessRun, RunInputSnapshot } from '../../../src/modules/agent-harness/domain/execution';
 import {
   profileExecutor,

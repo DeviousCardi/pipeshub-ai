@@ -103,7 +103,7 @@ describe('agent-harness: one admission.legacy record per legacy turn (QA6-F11)',
     const middleware = chatTurnMiddleware(service, { kind: 'chat', surface: webSurface, identify, enabled: () => false });
     const next = sinon.spy();
     const req = { body: { query: 'q', chatMode: 'internal_search' }, params: {}, headers: {}, header: () => undefined, user: { orgId: ORG, userId: USER } };
-    middleware(req as never, {} as never, next);
+    void middleware(req as never, {} as never, next);
     expect(next.calledOnceWithExactly(), 'the legacy handler is reached before any await').to.equal(true);
     expect(identify.called).to.equal(false);
     expect(logged(lines, 'admission.legacy')).to.have.length(1);
