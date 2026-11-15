@@ -2180,11 +2180,13 @@ export class StorageController {
         );
       }
 
+      // A stored document may lack an extension, whatever the schema type says.
+      const stored: { extension?: string } = document;
       const signedUrlResult = await adapter.getSignedUrl(
         document,
         resolvedVersion,
         // An active type (HTML, SVG) through a signed URL is a download, never a page (SEC-FS-04).
-        isActiveContentType(getMimeType(document.extension ?? ''))
+        isActiveContentType(getMimeType(stored.extension ?? ''))
           ? document.documentName
           : undefined,
         Math.min(

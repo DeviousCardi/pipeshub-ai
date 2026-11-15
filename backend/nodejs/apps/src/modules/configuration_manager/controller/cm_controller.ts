@@ -98,6 +98,7 @@ import {
   getPlatformSettingsFromStore,
   LABS_CHANGED,
   PlatformSettingsChanged,
+  type PlatformSettingsSave,
   readStoredAiModelsConfig,
   savePlatformSettings,
 } from '../utils/util';
@@ -1112,7 +1113,13 @@ export const setPlatformSettings =
   ) =>
   async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
     try {
-      const { fileUploadMaxSizeBytes, featureFlags, notices, agentHarness, expected } = req.body;
+      const {
+        fileUploadMaxSizeBytes,
+        featureFlags,
+        notices,
+        agentHarness,
+        expected,
+      } = req.body as PlatformSettingsSave;
       if (
         !agentHarnessSwitchedOn(env) &&
         (agentHarness !== undefined ||
@@ -1176,10 +1183,16 @@ export const setPlatformSettings =
           }),
       );
       const settings = result.value;
-      res.status(200).json({ message: 'Platform settings saved', settings }).end();
+      res
+        .status(200)
+        .json({ message: 'Platform settings saved', settings })
+        .end();
     } catch (error: any) {
       if (error instanceof PlatformSettingsChanged) {
-        logger.info('platform_settings.save_refused', { reason: LABS_CHANGED, stale: error.stale });
+        logger.info('platform_settings.save_refused', {
+          reason: LABS_CHANGED,
+          stale: error.stale,
+        });
         next(
           new ConflictError(
             'Someone else changed these settings since you opened them. Review them and save again.',
@@ -1244,9 +1257,7 @@ export const getAvailablePlatformFeatureFlags =
     const harnessOn = agentHarnessSwitchedOn(env);
     const flags = PLATFORM_FEATURE_FLAGS.filter(
       (f) => !f.hidden && (harnessOn || f.requiresAgentHarness !== true),
-    ).map(
-      ({ previousDefault: _previous, ...flag }) => flag,
-    );
+    ).map(({ previousDefault: _previous, ...flag }) => flag);
     res.status(200).json({ flags }).end();
   };
 
@@ -3026,7 +3037,10 @@ export const createAIModelsConfig =
         });
       }
 
-      await aiModelsRepository(keyValueStoreService, save, req, ['embedding', 'llm']).replace(aiConfig);
+      await aiModelsRepository(keyValueStoreService, save, req, [
+        'embedding',
+        'llm',
+      ]).replace(aiConfig);
 
       // Notify other services about the new AI config. The initial config
       // may include LLM and/or embedding models; fire a separate event per
@@ -3619,7 +3633,9 @@ export const addAIModelProvider =
 
       const modelFriendlyName = configuration.modelFriendlyName;
       let modelKey = '';
-      await aiModelsRepository(keyValueStoreService, save, req, [modelType]).mutate((aiModels) => {
+      await aiModelsRepository(keyValueStoreService, save, req, [
+        modelType,
+      ]).mutate((aiModels) => {
         const existingKeys = new Set(
           AI_MODEL_TYPES.flatMap((type) =>
             (aiModels[type] ?? []).map((config) => config.modelKey),
@@ -3889,7 +3905,9 @@ export const updateAIModelProvider =
       const modelFriendlyName = configuration.modelFriendlyName;
       let saved: AIModelsConfig;
       try {
-        saved = await aiModelsRepository(keyValueStoreService, save, req, [targetModelType]).mutate((latest) => {
+        saved = await aiModelsRepository(keyValueStoreService, save, req, [
+          targetModelType,
+        ]).mutate((latest) => {
           const current = findModelEntry(latest, modelKey);
           if (!current || current.modelType !== targetModelType) {
             throw new AiModelsWriteAborted();
@@ -4120,7 +4138,9 @@ export const deleteAIModelProvider =
       let wasDefault = deletedModel.isDefault || false;
 
       try {
-        await aiModelsRepository(keyValueStoreService, save, req, [targetModelType]).mutate((latest) => {
+        await aiModelsRepository(keyValueStoreService, save, req, [
+          targetModelType,
+        ]).mutate((latest) => {
           const current = findModelEntry(latest, modelKey);
           if (!current || current.modelType !== targetModelType) {
             throw new AiModelsWriteAborted();
@@ -4321,7 +4341,9 @@ export const updateDefaultAIModel =
       }
 
       try {
-        await aiModelsRepository(keyValueStoreService, save, req, [targetModelType]).mutate((latest) => {
+        await aiModelsRepository(keyValueStoreService, save, req, [
+          targetModelType,
+        ]).mutate((latest) => {
           const current = findModelEntry(latest, modelKey);
           if (!current || current.modelType !== targetModelType) {
             throw new AiModelsWriteAborted();
@@ -5393,7 +5415,12 @@ export const updateModelRoles =
       let rejection: string | null = null;
       let savedRoles: AIModelsConfig['modelRoles'] = roles;
       try {
-        const saved = await aiModelsRepository(keyValueStoreService, save, req, ['roles']).mutate((aiModels) => {
+        const saved = await aiModelsRepository(
+          keyValueStoreService,
+          save,
+          req,
+          ['roles'],
+        ).mutate((aiModels) => {
           for (const [roleName, assignment] of Object.entries(roles)) {
             if (!assignment || typeof assignment !== 'object' || Array.isArray(assignment)) {
               rejection = `Role "${roleName}" assignment must be an object`;

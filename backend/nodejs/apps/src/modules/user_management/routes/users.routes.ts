@@ -303,6 +303,8 @@ const withGroupsValidationSchema = z.object({
 export function createUserRouter(container: Container) {
   const router = Router();
   const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- AuthMiddleware binds authenticate in its constructor, and the route tests match the injected function itself
+  const { authenticate } = authMiddleware;
   const logger = container.get<Logger>('Logger');
   const config = container.get<AppConfig>('AppConfig');
   // Todo: Apply Rate Limiter Middleware
@@ -406,7 +408,7 @@ export function createUserRouter(container: Container) {
   // SEC-AZ-08: an admin switches a member off or back on; the org is the caller's, never the request's.
   router.put(
     '/:id/deactivate',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.USER_WRITE),
     ValidationMiddleware.validate(UserIdValidationSchema),
     userAdminCheck,
@@ -423,7 +425,7 @@ export function createUserRouter(container: Container) {
   // SEC-AZ-08: an admin switches a member off or back on; the org is the caller's, never the request's.
   router.put(
     '/:id/reactivate',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.USER_WRITE),
     ValidationMiddleware.validate(UserIdValidationSchema),
     userAdminCheck,

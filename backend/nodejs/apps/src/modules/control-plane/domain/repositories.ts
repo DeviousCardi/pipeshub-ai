@@ -75,7 +75,7 @@ export function repositoriesProblem(
     };
   }
   const seen = new Set<string>();
-  for (const [index, entry] of (hosts as AllowedRepositoryHost[]).entries()) {
+  for (const [index, raw] of (hosts as unknown[]).entries()) {
     const at = `repositories.hosts.${String(index)}`;
     const invalid = (field: string, reason: string): RepositoryProblem => ({
       code: 'invalid',
@@ -83,9 +83,9 @@ export function repositoriesProblem(
       reason,
     });
     if (
-      typeof entry !== 'object' ||
-      entry === null ||
-      typeof entry.host !== 'string'
+      typeof raw !== 'object' ||
+      raw === null ||
+      typeof (raw as { host?: unknown }).host !== 'string'
     ) {
       return {
         code: 'invalid',
@@ -93,6 +93,7 @@ export function repositoriesProblem(
         reason: 'Each entry names a git host',
       };
     }
+    const entry = raw as AllowedRepositoryHost;
     const problem = hostProblem(entry.host, rules);
     if (problem !== null) return invalid('host', problem);
     if (entry.preset !== undefined) {
@@ -157,15 +158,17 @@ function heldBy(
   above: readonly AllowedRepositoryHost[],
 ): AllowedRepositoryHost | null {
   return (
-    above.find(
-      (outer) =>
+    above.find((outer) => {
+      const outerPrefixes = outer.prefixes;
+      return (
         outer.host === entry.host &&
-        (outer.prefixes === undefined ||
+        (outerPrefixes === undefined ||
           (entry.prefixes !== undefined &&
             entry.prefixes.every((p) =>
-              outer.prefixes!.some((o) => prefixWithin(p, o)),
-            ))),
-    ) ?? null
+              outerPrefixes.some((o) => prefixWithin(p, o)),
+            )))
+      );
+    }) ?? null
   );
 }
 

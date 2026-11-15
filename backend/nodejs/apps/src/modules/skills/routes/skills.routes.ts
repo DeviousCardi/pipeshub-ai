@@ -118,6 +118,8 @@ export function createSkillsRouter(container: Container): Router {
   const router = Router();
   guardPathParams(router, 'name', 'version', 'candidateId');
   const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- AuthMiddleware binds authenticate in its constructor, and the route tests match the injected function itself
+  const { authenticate } = authMiddleware;
   const appConfig = container.get<AppConfig>('AppConfig');
   const logger = (container.get('Logger') as Logger | undefined)
     ?? Logger.getInstance({ service: 'SkillsRoutes' });
@@ -140,13 +142,13 @@ export function createSkillsRouter(container: Container): Router {
   const candidates = candidateDecisions(container, appConfig);
   router.post(
     '/candidates/:candidateId/approve',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     candidates.approve,
   );
   router.post(
     '/candidates/:candidateId/reject',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     candidates.reject,
   );
@@ -155,13 +157,13 @@ export function createSkillsRouter(container: Container): Router {
 
   router.get(
     '/reviews/pending',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     getPendingSkillReviews(appConfig),
   );
   router.post(
     '/:name/review',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     ValidationMiddleware.validate(skillReviewSchema),
     reviewSkill(appConfig),
@@ -203,43 +205,43 @@ export function createSkillsRouter(container: Container): Router {
 
   router.get(
     '/commands/provenance',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_READ),
     getCommandProvenance(appConfig),
   );
   router.get(
     '/commands/share-targets',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_READ),
     getCommandShareTargets(appConfig),
   );
   router.post(
     '/',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     createSkill(appConfig),
   );
   router.get(
     '/:name',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_READ),
     getSkill(appConfig),
   );
   router.put(
     '/:name',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     updateSkill(appConfig),
   );
   router.patch(
     '/:name/body',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     patchSkillBody(appConfig),
   );
   router.post(
     '/:name/rename',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     ValidationMiddleware.validate(skillRenameSchema),
     renameSkill(appConfig),
@@ -255,25 +257,25 @@ export function createSkillsRouter(container: Container): Router {
 
   router.get(
     '/:name/versions',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_READ),
     listSkillVersions(appConfig),
   );
   router.get(
     '/:name/versions/:version',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_READ),
     getSkillVersion(appConfig),
   );
   router.post(
     '/:name/rollback',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     rollbackSkill(appConfig),
   );
   router.post(
     '/:name/publish',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.SKILL_WRITE),
     publishCommand(appConfig),
   );

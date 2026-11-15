@@ -621,12 +621,18 @@ export class ConfigService {
     const url =
       (await this.keyValueStoreService.get<string>(configPaths.endpoint)) ||
       '{}';
-    const parsedUrl = JSON.parse(url);
+    const parsedUrl = JSON.parse(url) as Record<
+      string,
+      Record<string, unknown> | undefined
+    >;
     const found: SandboxPlaneEndpoints = {};
     let changed = false;
     for (const [service, key, envName] of SANDBOX_PLANE_ENDPOINTS) {
       const fromEnv = normalizeUrl(process.env[envName] ?? '');
-      const stored = normalizeUrl(parsedUrl[service]?.[key]);
+      const storedRaw = parsedUrl[service]?.[key];
+      const stored = normalizeUrl(
+        typeof storedRaw === 'string' ? storedRaw : '',
+      );
       if (fromEnv && fromEnv !== stored) {
         parsedUrl[service] = { ...parsedUrl[service], [key]: fromEnv };
         changed = true;

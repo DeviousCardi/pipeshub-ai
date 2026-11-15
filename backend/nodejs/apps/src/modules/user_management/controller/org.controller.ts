@@ -568,7 +568,7 @@ export class OrgController {
         res.status(200).json(
           await hook.deleteOrg({
             org,
-            orgId: org._id.toString(),
+            orgId: org._id,
             byUserId: String(req.user?.userId),
             config: {
               frontendUrl: this.config.frontendUrl,

@@ -139,5 +139,6 @@ export const joinRequestNotify = (templateData: Record<string, any>): string =>
 export const joinRequestDecision = (
   templateData: Record<string, any>,
 ): string => compileTemplate(joinRequestDecisionTemplate, templateData);
-export const scheduledRunEnded = (templateData: Record<string, any>): string =>
-  compileTemplate(scheduledRunEndedTemplate, templateData);
+export const scheduledRunEnded = (
+  templateData: Record<string, unknown>,
+): string => compileTemplate(scheduledRunEndedTemplate, templateData);

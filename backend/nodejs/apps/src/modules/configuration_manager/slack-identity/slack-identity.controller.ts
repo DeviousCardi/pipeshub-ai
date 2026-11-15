@@ -149,7 +149,7 @@ export const resolveSlackCaller =
     req: AuthenticatedServiceRequest,
     res: Response,
     next: NextFunction,
-  ) => {
+  ): Promise<void> => {
     try {
       const {
         orgId: askedOrg,
@@ -210,7 +210,11 @@ export const inspectSlackLinkRequest =
     users?: LinkedAccountUsers,
     orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(),
   ) =>
-  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const person = await linkingPerson(
         req,
@@ -247,7 +251,11 @@ export const decideSlackLinkRequest =
     users?: LinkedAccountUsers,
     orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(),
   ) =>
-  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const person = await linkingPerson(
         req,
@@ -283,7 +291,11 @@ export const listSlackIdentityLinks =
     users?: LinkedAccountUsers,
     orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(),
   ) =>
-  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const orgId = await orgs.adminOrg(req);
       const rows = [];
@@ -315,20 +327,24 @@ export const revokeSlackIdentityLink =
     links: SlackIdentityLinks,
     orgs: SlackIdentityOrgs = soleOrgSlackIdentityOrgs(),
   ) =>
-  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { teamId, slackUserId } = req.params as {
         teamId: string;
         slackUserId: string;
       };
-      const adminId = req.user?.userId;
+      const adminId = req.user?.userId as string | undefined;
       if (!adminId)
         throw new ForbiddenError('Sign in as an admin to remove a Slack link.');
       if (
         !(await links.revoke(
           await orgs.adminOrg(req),
           { teamId, slackUserId },
-          { by: 'admin', adminId: String(adminId) },
+          { by: 'admin', adminId },
         ))
       ) {
         throw new NotFoundError('No linked Slack account with that id');

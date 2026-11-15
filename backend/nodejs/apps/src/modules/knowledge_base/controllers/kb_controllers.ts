@@ -2277,12 +2277,13 @@ export const getRecordBuffer =
               error: parseError,
             });
           }
+          const upstreamStatus = error.response.status as number;
           logger.error('Connector service refused the record stream', {
             recordId: req.params.recordId,
-            status: error.response.status,
+            status: upstreamStatus,
             reasonCode:
               typeof errorMessage === 'object'
-                ? errorMessage?.reasonCode
+                ? errorMessage.reasonCode
                 : undefined,
           });
           // A 429 is only actionable with the source's own backoff hint, which
@@ -2291,7 +2292,7 @@ export const getRecordBuffer =
           if (retryAfter) {
             res.set('Retry-After', String(retryAfter));
           }
-          res.status(error.response.status).json({ error: errorMessage });
+          res.status(upstreamStatus).json({ error: errorMessage });
           return;
         } else {
           // Don't throw here to avoid uncaughtException shutdown during streams

@@ -27,8 +27,6 @@ export function laneCount(): number {
 
 /** True when the deployment's broker is Redis Streams, where each lane is its own stream. */
 export function isRedisBroker(): boolean {
-  return (
-    (process.env[ENV_MESSAGE_BROKER] ?? '').trim().toLowerCase() ===
-    MessageBrokerType.REDIS
-  );
+  const redis: string = MessageBrokerType.REDIS;
+  return (process.env[ENV_MESSAGE_BROKER] ?? '').trim().toLowerCase() === redis;
 }

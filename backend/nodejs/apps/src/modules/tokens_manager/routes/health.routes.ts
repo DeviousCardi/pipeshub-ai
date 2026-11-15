@@ -175,9 +175,11 @@ export function healthAudience(
           (await passes(configRead, req, res))
         ) {
           const user = (req as AuthenticatedUserRequest).user;
+          const userId: unknown = user?.userId;
+          const orgId: unknown = user?.orgId;
           res.locals[HEALTH_DETAIL] =
-            Boolean(user?.userId && user?.orgId) &&
-            (await isAdmin(String(user!.userId), String(user!.orgId)));
+            Boolean(userId && orgId) &&
+            (await isAdmin(String(userId), String(orgId)));
         }
       } catch (error) {
         logger.debug('health detail not granted', {
@@ -189,8 +191,11 @@ export function healthAudience(
   };
 }
 
-const wantsDetail = (res: Response): boolean =>
-  res.locals?.[HEALTH_DETAIL] === true;
+const wantsDetail = (res: Response): boolean => {
+  // A hand-built response (an internal caller, a test) may come without locals.
+  const response: { locals?: Record<string, unknown> } = res;
+  return response.locals?.[HEALTH_DETAIL] === true;
+};
 
 export function createHealthRouter(
   container: Container,

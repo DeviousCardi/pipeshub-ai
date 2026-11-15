@@ -211,16 +211,16 @@ interface ConvertOptions {
     }
     
     // A NUL would let the input spell one of the placeholders below.
-    markdown = markdown.replace(/\x00/g, "");
+    markdown = markdown.replaceAll("\u0000", "");
 
     // Protect fenced code blocks (``` ... ```). Code is escaped too: SEC-B-03.
     let text = markdown.replace(
       /```(\w*)\n([\s\S]*?)```/g,
-      (_match, _lang, code) => placeholder("```\n" + escapeSlackText(code.trimEnd()) + "\n```")
+      (_match: string, _lang: string, code: string) => placeholder("```\n" + escapeSlackText(code.trimEnd()) + "\n```")
     );
   
     // Protect inline code (` ... `)
-    text = text.replace(/`([^`\n]+)`/g, (_match, code) =>
+    text = text.replace(/`([^`\n]+)`/g, (_match: string, code: string) =>
       placeholder("`" + escapeSlackText(code) + "`")
     );
   
@@ -234,18 +234,18 @@ interface ConvertOptions {
       // Images: ![alt](url) → <url|alt>
       text = text.replace(
         /!\[([^\]]*)\]\((\S+?)(?:\s+"[^"]*")?\)/g,
-        (_m, alt, url) => placeholder(slackLink(url, alt || undefined))
+        (_m: string, alt: string, url: string) => placeholder(slackLink(url, alt || undefined))
       );
       // Links: [text](url) → <url|text>
       text = text.replace(
         /\[([^\]]+)\]\((\S+?)(?:\s+"[^"]*")?\)/g,
-        (_m, label, url) => placeholder(slackLink(url, label))
+        (_m: string, label: string, url: string) => placeholder(slackLink(url, label))
       );
     }
     // Autolinks <https://…> and Slack-style <https://…|label>: rebuilt, so the label rule applies to them as well.
     text = text.replace(
       /<((?:https?:\/\/|mailto:)[^\s<>|]+)(?:\|([^<>]*))?>/g,
-      (_m, url, label) => placeholder(slackLink(url, label))
+      (_m: string, url: string, label: string | undefined) => placeholder(slackLink(url, label))
     );
 
     // Strip simple HTML tags (e.g. <br>, <p>, <em>, etc.)

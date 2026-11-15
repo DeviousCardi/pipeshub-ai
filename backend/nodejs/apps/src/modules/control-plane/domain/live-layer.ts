@@ -139,9 +139,10 @@ export function liveLayerOf(input: LiveLayerInput): LiveLayer {
   const org = input.layers.get(`org:${input.orgId}`) as
     Record<string, unknown> | undefined;
   const carried = Object.fromEntries(
-    (input.carried ?? [])
-      .filter((section) => org?.[section] !== undefined)
-      .map((section) => [section, org![section]]),
+    (input.carried ?? []).flatMap((section) => {
+      const value = org?.[section];
+      return value !== undefined ? [[section, value] as const] : [];
+    }),
   );
   const websites = websitesOf(input);
   const repositories = repositoriesOf(input);

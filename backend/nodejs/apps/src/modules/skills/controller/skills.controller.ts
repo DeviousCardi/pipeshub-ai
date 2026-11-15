@@ -401,7 +401,7 @@ export function decideSkillCandidateThroughWorkflow(
     ): Promise<void> => {
       const userId: unknown = req.user?.userId;
       const orgId: unknown = getCurrentOrgId();
-      const candidateId = String(req.params.candidateId ?? '');
+      const candidateId = req.params.candidateId ?? '';
       const forward = async (
         step: 'approve' | 'reject',
       ): Promise<AxiosResponse> => {

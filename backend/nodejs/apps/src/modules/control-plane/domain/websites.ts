@@ -209,7 +209,9 @@ function entryProblem(
   });
   const hostProblem = websiteHostProblem(site.host, rules);
   if (hostProblem !== null) return invalid('host', hostProblem);
-  if (site.access !== 'read' && site.access !== 'read-write') {
+  // A saved document is checked as it came: its access may be any value.
+  const access: unknown = site.access;
+  if (access !== 'read' && access !== 'read-write') {
     return invalid('access', 'Choose read or read and write');
   }
   if (site.access === 'read-write' && site.readWriteConfirmed !== true) {
@@ -315,12 +317,12 @@ export function websitesProblem(
     };
   }
   const seen = new Set<string>();
-  for (const [index, site] of (sites as AllowedWebsite[]).entries()) {
+  for (const [index, raw] of (sites as unknown[]).entries()) {
     const at = `websites.sites.${String(index)}`;
     if (
-      typeof site !== 'object' ||
-      site === null ||
-      typeof site.host !== 'string'
+      typeof raw !== 'object' ||
+      raw === null ||
+      typeof (raw as { host?: unknown }).host !== 'string'
     ) {
       return {
         code: 'invalid',
@@ -328,6 +330,7 @@ export function websitesProblem(
         reason: 'Each site has a name and an access',
       };
     }
+    const site = raw as AllowedWebsite;
     const problem = entryProblem(site, at, rules);
     if (problem !== null) return problem;
     if (seen.has(site.host)) {

@@ -459,8 +459,8 @@ export class AuthMiddleware {
 
         this.logger.debug('Scoped service token authenticated', {
           scope,
-          audience: decoded?.aud,
-          workerId: decoded?.workerId,
+          audience: decoded.aud as unknown,
+          workerId: decoded.workerId as unknown,
         });
         // Pre-org flows (login lookups, mail) mint scoped tokens without an orgId; they stay unbound.
         if (orgId) {

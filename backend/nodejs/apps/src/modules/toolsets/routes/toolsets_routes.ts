@@ -622,20 +622,22 @@ export function createToolsetsRouter(container: Container): Router {
     getInstanceStatus(config)
   );
 
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- AuthMiddleware binds authenticate in its constructor, and the route tests match the injected function itself
+  const { authenticate } = authMiddleware;
   /**
    * GIT-FLOW (WP-26): the repository picker's repositories and branches, read with the caller's own sign-in to a
    * GitHub toolset instance.
    */
   router.get(
     '/instances/:instanceId/github/repositories',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.TOOLSET_READ),
     ValidationMiddleware.validate(githubRepositoriesSchema),
     getGithubRepositoryListing(config, 'repositories'),
   );
   router.get(
     '/instances/:instanceId/github/branches',
-    authMiddleware.authenticate,
+    authenticate,
     requireScopes(OAuthScopeNames.TOOLSET_READ),
     ValidationMiddleware.validate(githubBranchesSchema),
     getGithubRepositoryListing(config, 'branches'),

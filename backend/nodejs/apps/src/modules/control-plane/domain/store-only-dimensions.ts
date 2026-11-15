@@ -67,7 +67,7 @@ const pathsOf = (scope: string | undefined): readonly string[] =>
  * holds a section an edition adds, so the store is its only record too.
  */
 export const isStoreOnly = (path: string, scope?: string): boolean =>
-  isEditionSection(path.split('.')[0]!) ||
+  isEditionSection(path.split('.', 1)[0] ?? path) ||
   pathsOf(scope).some((root) => within(path, root));
 
 type Json = Record<string, unknown>;

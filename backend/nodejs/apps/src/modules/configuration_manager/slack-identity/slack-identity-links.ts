@@ -16,7 +16,7 @@ import {
 /** The KV operations the links need; `KeyValueStoreService` has them. */
 export interface SlackLinkKv {
   get<T>(key: string): Promise<T | null>;
-  set<T>(key: string, value: T): Promise<void>;
+  set(key: string, value: unknown): Promise<void>;
   delete(key: string): Promise<void>;
   compareAndSet<T>(
     key: string,
@@ -64,10 +64,10 @@ const SLACK_ID = /^[A-Z0-9]{2,32}$/;
 const LINK_TOKEN = /^[A-Za-z0-9_-]{43}$/;
 
 const ROOT = '/services/slackIdentity';
-const requestKey = (hash: string) => `${ROOT}/requests/${hash}`;
-const latestRequestKey = (orgId: string, id: SlackIdentity) =>
+const requestKey = (hash: string): string => `${ROOT}/requests/${hash}`;
+const latestRequestKey = (orgId: string, id: SlackIdentity): string =>
   `${ROOT}/latestRequest/${orgId}/${id.teamId}/${id.slackUserId}`;
-const tokenHash = (token: string) =>
+const tokenHash = (token: string): string =>
   createHash('sha256').update(token, 'utf8').digest('hex');
 
 export type SlackLinkRequestProblem =
@@ -103,10 +103,10 @@ export function isSlackIdentity(
   return isSlackId(value.teamId) && isSlackId(value.slackUserId);
 }
 
-function parse<T>(raw: unknown): T | null {
+function parseRequest(raw: unknown): StoredLinkRequest | null {
   if (typeof raw !== 'string') return null;
   try {
-    return JSON.parse(raw) as T;
+    return JSON.parse(raw) as StoredLinkRequest;
   } catch {
     return null;
   }
@@ -299,7 +299,7 @@ export class SlackIdentityLinks {
       throw new SlackLinkRequestError('unknown');
     const hash = tokenHash(token);
     const raw = await this.kv.get<string>(requestKey(hash));
-    const record = parse<StoredLinkRequest>(raw);
+    const record = parseRequest(raw);
     // A request from before requests named their organisation is not valid: the person asks for a new one.
     if (
       typeof raw !== 'string' ||

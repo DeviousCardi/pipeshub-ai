@@ -382,9 +382,9 @@ function addDoc(
     });
   else
     sub(
-      sub(v.history, org, () => new Map()),
+      sub(v.history, org, () => new Map<string, Map<number, unknown>>()),
       obj,
-      () => new Map(),
+      () => new Map<number, unknown>(),
     ).set(revision, d.body ?? null);
 }
 

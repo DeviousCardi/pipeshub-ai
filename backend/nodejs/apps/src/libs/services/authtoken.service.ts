@@ -30,6 +30,12 @@ interface TokenPayload extends Record<string, any> {}
  * always truthy, so without this guard an empty secret sails past that check
  * and every token forged with an empty HMAC key verifies successfully.
  */
+/** Callers `.catch` a refused token, so a verification error must reject rather than throw. */
+const settled = <T>(verify: () => T): Promise<T> =>
+  new Promise((resolve) => {
+    resolve(verify());
+  });
+
 export function toVerificationKey(secret: string): KeyObject {
   if (!secret) {
     throw new Error('JWT secret is not configured');
@@ -109,7 +115,7 @@ export class AuthTokenService {
     }
   }
 
-  async verifyScopedToken(
+  verifyScopedToken(
     token: string,
     scope: string,
     audience?: string,
@@ -124,9 +130,11 @@ export class AuthTokenService {
           this.scopedJwtVerificationKey,
         ]
       : [this.scopedJwtVerificationKey];
-    return this.withScope(
-      this.verifyWithKeys(token, keys, this.scopedJwtAlgorithms, audience),
-      scope,
+    return settled(() =>
+      this.withScope(
+        this.verifyWithKeys(token, keys, this.scopedJwtAlgorithms, audience),
+        scope,
+      ),
     );
   }
 
@@ -135,17 +143,16 @@ export class AuthTokenService {
    * user-action key whatever its scope, so a service holding only the scoped
    * secret can never mint one.
    */
-  async verifyUserActionToken(
-    token: string,
-    scope: string,
-  ): Promise<TokenPayload> {
-    return this.withScope(
-      this.verifyWithKeys(
-        token,
-        [this.userActionVerificationKey],
-        this.scopedJwtAlgorithms,
+  verifyUserActionToken(token: string, scope: string): Promise<TokenPayload> {
+    return settled(() =>
+      this.withScope(
+        this.verifyWithKeys(
+          token,
+          [this.userActionVerificationKey],
+          this.scopedJwtAlgorithms,
+        ),
+        scope,
       ),
-      scope,
     );
   }
 

@@ -330,6 +330,7 @@ export class PolicyRunConfigPinner<P> implements RunConfigPinner {
         typeof map[role] === 'string',
     );
     if (mapped.length === 0) return config;
+    const refused = new Set<string>();
     for (const role of mapped) {
       const route = map[role] as string;
       const entry = snapshot.models.find((model) =>
@@ -345,14 +346,17 @@ export class PolicyRunConfigPinner<P> implements RunConfigPinner {
       } catch {
         allowed = false;
       }
-      if (!allowed) delete map[role];
+      if (!allowed) refused.add(role);
     }
-    if (Object.keys(map).length === Object.keys(roles).length) return config;
+    if (refused.size === 0) return config;
+    const kept = Object.fromEntries(
+      Object.entries(map).filter(([role]) => !refused.has(role)),
+    );
     return {
       ...config,
       dimensions: {
         ...config.dimensions,
-        [MODEL_ROLES]: { ...dimension, value: map },
+        [MODEL_ROLES]: { ...dimension, value: kept },
       },
     };
   }

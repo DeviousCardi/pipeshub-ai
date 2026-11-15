@@ -65,8 +65,7 @@ export async function accountStanding(
   orgId: string,
   users: LinkedAccountUsers = getUserRepository(),
 ): Promise<LinkedAccountStanding> {
-  if (String(link.orgId) !== String(orgId))
-    return { reason: 'account_removed' };
+  if (link.orgId !== orgId) return { reason: 'account_removed' };
   const user = await users.getLive(orgId, link.userId);
   if (!user) return { reason: 'account_removed' };
   const state = await users.getAccountState(link.userId);
@@ -75,8 +74,8 @@ export async function accountStanding(
   if (state.kind === 'service') return { reason: 'service_account' };
   return {
     account: {
-      orgId: String(user.orgId),
-      userId: String(user._id),
+      orgId: user.orgId,
+      userId: user._id,
       email: user.email,
       fullName: user.fullName,
     },

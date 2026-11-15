@@ -45,7 +45,7 @@ export async function setSampleAccountsSignIn(
         (user) =>
           isDemoAccountEmail(user.email) &&
           user.isDisabled !== true &&
-          String(user._id) !== callerUserId,
+          user._id !== callerUserId,
       );
   const changed = await users.setDisabledByEmailDomain(
     orgId,
@@ -54,8 +54,7 @@ export async function setSampleAccountsSignIn(
     !enabled,
   );
   const tokens = stops.tokens ?? oauthUserTokenRevoker;
-  for (const { _id } of switchedOff) {
-    const userId = String(_id);
+  for (const { _id: userId } of switchedOff) {
     await tokens.revokeEveryTokenForUser(userId);
     await stops.deactivation?.deactivate(orgId, userId, callerUserId);
   }

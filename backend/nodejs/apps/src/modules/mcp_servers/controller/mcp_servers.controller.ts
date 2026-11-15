@@ -30,6 +30,7 @@ import {
   handleConnectorResponse,
 } from '../../tokens_manager/utils/connector.utils';
 import { z } from 'zod';
+import type { ConnectorServiceResponse } from '../../../libs/commands/connector_service/connector.service.command';
 import {
   actorRefOfUser,
   changedPaths,
@@ -453,7 +454,7 @@ export function approveMcpManifestThroughWorkflow(
     const hubWrite = async (
       request: ApprovalRequest,
       subset: readonly string[] | null,
-    ) => {
+    ): Promise<ConnectorServiceResponse<unknown>> => {
       const tools = Object.entries(request.change.descriptors ?? {})
         .filter(([name]) => subset === null || subset.includes(name))
         .map(([name, digest]) => ({ name, digest }));

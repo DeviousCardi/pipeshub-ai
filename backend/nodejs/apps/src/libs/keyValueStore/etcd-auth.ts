@@ -1,6 +1,11 @@
 import { X509Certificate } from 'crypto';
 import { readFileSync } from 'fs';
-import type { AuthClient } from 'etcd3';
+import type {
+  AuthClient,
+  IAuthStatusResponse,
+  IAuthUserGetResponse,
+  IPermission,
+} from 'etcd3';
 import type { EtcdTlsFiles } from './etcd-tls';
 
 /** A key a role may read or write: an exact key when `rangeEnd` is empty. */
@@ -40,6 +45,14 @@ export function etcdClientUser(tls: EtcdTlsFiles | undefined): string | null {
   return cn ? cn.slice(3) : null;
 }
 
+/** etcd's proto3 answers leave out a field at its default (false, empty), whatever etcd3's types say. */
+type WireAnswer<T> = Partial<T>;
+type WireRole = {
+  perm?: Array<
+    Pick<IPermission, 'permType'> & WireAnswer<Omit<IPermission, 'permType'>>
+  >;
+};
+
 const notFound = (error: unknown): boolean =>
   error instanceof Error && /not found/i.test(error.message);
 
@@ -50,7 +63,9 @@ export class Etcd3AuthAdmin implements EtcdAuthAdmin {
   ) {}
 
   async authEnabled(): Promise<boolean> {
-    return (await this.auth.authStatus()).enabled === true;
+    const status: WireAnswer<IAuthStatusResponse> =
+      await this.auth.authStatus();
+    return status.enabled === true;
   }
 
   async enableAuth(): Promise<void> {
@@ -59,7 +74,10 @@ export class Etcd3AuthAdmin implements EtcdAuthAdmin {
 
   async userRoles(user: string): Promise<string[] | null> {
     try {
-      return (await this.auth.userGet({ name: user })).roles ?? [];
+      const found: WireAnswer<IAuthUserGetResponse> = await this.auth.userGet({
+        name: user,
+      });
+      return found.roles ?? [];
     } catch (error) {
       if (notFound(error)) return null;
       throw error;
@@ -80,8 +98,8 @@ export class Etcd3AuthAdmin implements EtcdAuthAdmin {
 
   async rolePermissions(role: string): Promise<EtcdPermission[] | null> {
     try {
-      const { perm } = await this.auth.roleGet({ role });
-      return (perm ?? []).map((p) => ({
+      const answer: WireRole = await this.auth.roleGet({ role });
+      return (answer.perm ?? []).map((p) => ({
         key: Buffer.from(p.key ?? '').toString('utf8'),
         rangeEnd: Buffer.from(p.range_end ?? '').toString('utf8'),
         permission: p.permType,

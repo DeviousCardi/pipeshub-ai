@@ -238,8 +238,8 @@ export function weakSecretReason(secret: string): WeakSecretReason | null {
   ) {
     return 'placeholder';
   }
-  if ([...secret].length < MIN_SECRET_KEY_LENGTH) return 'short';
-  if (bitsPerChar([...secret]) < MIN_BITS_PER_CHAR) return 'low_entropy';
+  if (Array.from(secret).length < MIN_SECRET_KEY_LENGTH) return 'short';
+  if (bitsPerChar(Array.from(secret)) < MIN_BITS_PER_CHAR) return 'low_entropy';
   if (periodic(secret) || sequential(secret)) return 'pattern';
   const decoded = decodedBytes(secret);
   if (decoded !== null && bitsPerChar([...decoded]) < MIN_BITS_PER_CHAR) {

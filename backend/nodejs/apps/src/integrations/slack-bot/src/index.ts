@@ -325,6 +325,7 @@ async function processSlackMessage(
   if (!typedMessage.user || !typedMessage.channel) {
     return;
   }
+  const handOffChannel = typedMessage.channel;
 
   const threadId = resolveThreadId(typedMessage);
 
@@ -600,7 +601,8 @@ async function processSlackMessage(
     let lastActivityAt = 0;
     let streamErrorMessage: string | null = null;
     let completionConversation: ConversationData["conversation"] | null = null;
-    let handOff: SlackHandOff | null = null;
+    // Set from the stream's onHandOff callback, which control-flow narrowing does not see.
+    let handOff = null as SlackHandOff | null;
     // Answer appends and activity updates use separate queues so chat.update
     // latency cannot stall chat.appendStream mid-answer.
     let queuedStreamAppend: Promise<void> = Promise.resolve();
@@ -1131,7 +1133,7 @@ async function processSlackMessage(
         activityBuilder.setStatus("");
         await updateActivityMessage(activityBuilder.format());
         await typedClient.chat.postMessage({
-          channel: typedMessage.channel!,
+          channel: handOffChannel,
           thread_ts: threadId,
           text: truncateForSlack(words),
           ...NO_UNFURL_OPTIONS,

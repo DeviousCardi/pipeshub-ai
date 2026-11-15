@@ -79,7 +79,7 @@ export function meterRequestBytes(
     };
     // Attached in the same tick as the reader pipes the request, so no chunk is seen by one and not the other.
     req.on('data', count);
-    upload(req, res, settle);
+    void upload(req, res, settle);
   };
 }
 

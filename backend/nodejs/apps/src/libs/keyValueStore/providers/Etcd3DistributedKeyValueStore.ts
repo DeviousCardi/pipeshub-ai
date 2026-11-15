@@ -32,7 +32,9 @@ export class Etcd3DistributedKeyValueStore<T> implements DistributedKeyValueStor
 
   /** Role-based auth administration, as the user this client's certificate names; null without a certificate. */
   authAdmin(): EtcdAuthAdmin | null {
-    return this.clientUser === null ? null : new Etcd3AuthAdmin(this.client.auth, this.clientUser);
+    return this.clientUser === null
+      ? null
+      : new Etcd3AuthAdmin(this.client.auth, this.clientUser);
   }
 
   async createKey(key: string, value: T): Promise<void> {
@@ -94,9 +96,14 @@ export class Etcd3DistributedKeyValueStore<T> implements DistributedKeyValueStor
               .if(key, 'Value', '==', this.serializer(expectedValue))
               .then(this.client.put(key).value(newBuffer).ignoreLease())
               .commit();
-      return result.succeeded === true;
+      // proto3 leaves a false `succeeded` out of the answer, whatever etcd3's types say.
+      const answer: { succeeded?: boolean } = result;
+      return answer.succeeded === true;
     } catch (error) {
-      Logger.getInstance().error(`Error in compareAndSet for key ${key}:`, error);
+      Logger.getInstance().error(
+        `Error in compareAndSet for key ${key}:`,
+        error,
+      );
       return false;
     }
   }

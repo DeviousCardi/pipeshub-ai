@@ -62,7 +62,7 @@ export function getEmailContent(
     case EmailTemplateType.JoinRequestDecision:
       return joinRequestDecision(templateData);
 
-    case EmailTemplateType.ScheduledRunEnded:
+    case EmailTemplateType.ScheduledRunEnded as string:
       return scheduledRunEnded(templateData);
 
     default:

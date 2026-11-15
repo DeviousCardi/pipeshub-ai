@@ -1,4 +1,4 @@
-import type { Db, Document, IndexSpecification } from 'mongodb';
+import type { Db, Document } from 'mongodb';
 
 /**
  * One index a migration owns. Written out literally rather than read from the

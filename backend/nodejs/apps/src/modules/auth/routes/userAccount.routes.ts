@@ -297,7 +297,7 @@ export function createUserAccountRouter(container: Container) {
     next: NextFunction,
   ): void => {
     if (!sessionCameFromCookie(res)) {
-      authenticate(req, res, (error?: unknown) => {
+      void authenticate(req, res, (error?: unknown) => {
         if (error) {
           next(error);
           return;
@@ -306,13 +306,16 @@ export function createUserAccountRouter(container: Container) {
       });
       return;
     }
-    refreshTokenValidator(req, res, (error?: unknown) => {
+    void refreshTokenValidator(req, res, (error?: unknown) => {
       if (error) {
         next(error);
         return;
       }
       const payload = (req as AuthenticatedServiceRequest).tokenPayload;
-      req.user = { userId: payload?.userId, orgId: payload?.orgId };
+      req.user = {
+        userId: payload?.userId as string | undefined,
+        orgId: payload?.orgId as string | undefined,
+      };
       next();
     });
   };

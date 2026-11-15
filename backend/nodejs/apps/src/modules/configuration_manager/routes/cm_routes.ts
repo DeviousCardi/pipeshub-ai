@@ -595,33 +595,39 @@ export function createConfigurationManagerRouter(container: Container): Router {
 
   // Slack identity links (ADR-SLACKID-01): a Slack person acts as the PipesHub account they linked once.
   const links = slackIdentityLinks(keyValueStoreService);
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- AuthMiddleware binds authenticate in its constructor, and the route tests match the injected function itself
+  const { authenticate } = authMiddleware;
   router.post(
     '/internal/slack-bot/identity',
     authMiddleware.scopedTokenValidator(TokenScopes.SLACK_BOT_VERIFY),
     ValidationMiddleware.validate(slackCallerSchema),
-    resolveSlackCaller(keyValueStoreService, links, () => appConfig.frontendUrl),
+    resolveSlackCaller(
+      keyValueStoreService,
+      links,
+      () => appConfig.frontendUrl,
+    ),
   );
   router.post(
     '/slack-bot/identity-links/requests/inspect',
-    authMiddleware.authenticate,
+    authenticate,
     ValidationMiddleware.validate(slackLinkTokenSchema),
     inspectSlackLinkRequest(links),
   );
   router.post(
     '/slack-bot/identity-links/requests/decide',
-    authMiddleware.authenticate,
+    authenticate,
     ValidationMiddleware.validate(slackLinkDecisionSchema),
     decideSlackLinkRequest(links),
   );
   router.get(
     '/slack-bot/identity-links',
-    authMiddleware.authenticate,
+    authenticate,
     userAdminCheck,
     listSlackIdentityLinks(links),
   );
   router.delete(
     '/slack-bot/identity-links/:teamId/:slackUserId',
-    authMiddleware.authenticate,
+    authenticate,
     userAdminCheck,
     ValidationMiddleware.validate(slackLinkRevokeSchema),
     revokeSlackIdentityLink(links),

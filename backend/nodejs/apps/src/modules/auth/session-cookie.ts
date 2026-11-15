@@ -40,6 +40,12 @@ const FROM_COOKIE = 'sessionFromCookie';
 const ADOPT_INTO_COOKIE = 'sessionAdoptIntoCookie';
 const SIGNED_OUT_TOKENS = 'sessionSignedOutTokens';
 
+// Read through these: hand-built requests and responses (internal callers, tests) may come without headers or
+// locals, whatever express's types say.
+const headersOf = (req: Request): Request['headers'] | undefined => req.headers;
+const localsOf = (res: Response): Record<string, unknown> | undefined =>
+  res.locals;
+
 type Env = Readonly<Record<string, string | undefined>>;
 
 function originHeader(req: Request): string | null {
@@ -57,12 +63,13 @@ function originHeader(req: Request): string | null {
 export function pageIsSecure(req: Request): boolean {
   const origin = originHeader(req);
   if (origin) return origin.startsWith('https://');
-  return req.secure === true;
+  const request: { secure?: boolean } = req;
+  return request.secure === true;
 }
 
 /** The organisation the request names with `x-pipeshub-session-org`, or null. */
 export function sessionOrgOfRequest(req: Request): string | null {
-  const value = req.headers?.[SESSION_ORG_HEADER];
+  const value = headersOf(req)?.[SESSION_ORG_HEADER];
   return typeof value === 'string' && SESSION_ORG.test(value) ? value : null;
 }
 
@@ -125,7 +132,7 @@ export function readSessionCookie(req: Request): string | null {
 }
 
 export function wantsCookieDelivery(req: Request): boolean {
-  const value = req.headers?.[SESSION_DELIVERY_HEADER];
+  const value = headersOf(req)?.[SESSION_DELIVERY_HEADER];
   return (
     typeof value === 'string' &&
     value.trim().toLowerCase() === SESSION_DELIVERY_COOKIE
@@ -135,7 +142,7 @@ export function wantsCookieDelivery(req: Request): boolean {
 /** The origins that may use the cookie besides the server's own: the configured UI and CORS origins. */
 export function trustedPageOrigins(env: Env = process.env): Set<string> {
   const origins = new Set<string>();
-  const add = (raw: string | undefined) => {
+  const add = (raw: string | undefined): void => {
     if (!raw) return;
     try {
       origins.add(new URL(raw.trim()).origin);
@@ -216,7 +223,7 @@ export function setSessionCookie(
 /** The organisations whose own session cookie the request carries. */
 export function sessionOrgsOfCookies(req: Request): string[] {
   const orgs = new Set<string>();
-  for (const name of parseCookieHeader(req.headers?.cookie).keys()) {
+  for (const name of parseCookieHeader(headersOf(req)?.cookie).keys()) {
     for (const base of [SECURE_SESSION_COOKIE, PLAIN_SESSION_COOKIE]) {
       const org = name.startsWith(`${base}.`)
         ? name.slice(base.length + 1)
@@ -248,7 +255,7 @@ export function clearSessionCookies(
 }
 
 export function sessionCameFromCookie(res: Response): boolean {
-  return res.locals?.[FROM_COOKIE] === true;
+  return localsOf(res)?.[FROM_COOKIE] === true;
 }
 
 /**
@@ -274,7 +281,7 @@ export function refreshRotationWanted(
 
 /** A bearer refresh token whose caller asked to move it into the cookie (the localStorage migration). */
 export function adoptIntoCookieRequested(res: Response): boolean {
-  return res.locals?.[ADOPT_INTO_COOKIE] === true;
+  return localsOf(res)?.[ADOPT_INTO_COOKIE] === true;
 }
 
 /**
@@ -346,7 +353,7 @@ export function signOutSessionCookie(env: Env = process.env) {
 
 /** Every session cookie value the request carries, of this scheme: the default one and each organisation's. */
 export function sessionCookieTokens(req: Request): string[] {
-  const cookies = parseCookieHeader(req.headers?.cookie);
+  const cookies = parseCookieHeader(headersOf(req)?.cookie);
   const names = [null, ...sessionOrgsOfCookies(req)].map((org) =>
     sessionCookieName(req, org),
   );
@@ -363,6 +370,6 @@ export function sessionCookieTokens(req: Request): string[] {
  * cookie may land after the sign-out cleared it) leaves nothing that still works.
  */
 export function signedOutSessionTokens(res: Response): string[] {
-  const v = res.locals?.[SIGNED_OUT_TOKENS];
+  const v = localsOf(res)?.[SIGNED_OUT_TOKENS];
   return Array.isArray(v) ? (v as string[]) : [];
 }

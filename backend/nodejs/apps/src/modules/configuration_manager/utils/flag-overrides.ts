@@ -156,13 +156,13 @@ export function applyFlagChanges(
   changes: FlagChanges,
   registry: Registry,
 ): StoredFlagState {
-  const overrides = { ...current.overrides };
+  const overrides = new Map(Object.entries(current.overrides));
   let notice = current.notices.durableAgentDefault;
   for (const [key, value] of Object.entries(changes.featureFlags ?? {})) {
     const known = releaseDefault(key, registry);
     if (known === undefined) continue;
-    if (known === value) delete overrides[key];
-    else overrides[key] = value;
+    if (known === value) overrides.delete(key);
+    else overrides.set(key, value);
     // Setting the flag on the Labs page is itself the choice the notice asks for.
     if (key === DURABLE_AGENT_FLAG && notice === 'pending') {
       notice = value ? 'adopted' : 'kept';
@@ -170,12 +170,12 @@ export function applyFlagChanges(
   }
   const choice = changes.notices?.durableAgentDefault;
   if (choice !== undefined && notice === 'pending') {
-    if (choice === 'adopted') delete overrides[DURABLE_AGENT_FLAG];
-    if (choice === 'kept') overrides[DURABLE_AGENT_FLAG] = false;
+    if (choice === 'adopted') overrides.delete(DURABLE_AGENT_FLAG);
+    if (choice === 'kept') overrides.set(DURABLE_AGENT_FLAG, false);
     notice = choice;
   }
   return {
-    overrides,
+    overrides: Object.fromEntries(overrides),
     notices: notice !== undefined ? { durableAgentDefault: notice } : {},
     legacy: false,
   };

@@ -74,5 +74,6 @@ export function withOutcomeClosing<
   if (closing.length === 0) return rest as T;
   const content =
     response.content.length > 0 ? `${response.content}\n\n${closing}` : closing;
-  return { ...rest, content } as T;
+  const closed = { ...rest, content };
+  return closed as T;
 }

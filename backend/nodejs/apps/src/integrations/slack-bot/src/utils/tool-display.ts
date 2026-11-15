@@ -74,7 +74,11 @@ function split(id: string): { prefix?: string; bare: string; server?: string } {
   // shortcut: `mcp_{server}_{tool}` splits at the first `_`; a server id with `_` reads wrong. Python sends the
   // server's display name on every MCP call, so this only names calls saved without one.
   const mcp = /^mcp_([^_]+)_(.+)$/.exec(id);
-  return mcp ? { server: mcp[1], bare: mcp[2]! } : { bare: id };
+  const server = mcp?.[1];
+  const bare = mcp?.[2];
+  return server !== undefined && bare !== undefined
+    ? { server, bare }
+    : { bare: id };
 }
 
 const titleCase = (text: string): string =>

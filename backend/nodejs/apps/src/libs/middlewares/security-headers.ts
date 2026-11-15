@@ -95,7 +95,7 @@ export function securityHeaderPolicy(
   editionUnframeablePaths: readonly string[] = [],
 ): SecurityHeaderPolicy {
   const connector = originOf(connectorPublicUrl);
-  const unique = (xs: (string | undefined)[]) => [
+  const unique = (xs: (string | undefined)[]): string[] => [
     ...new Set(xs.filter((x): x is string => !!x)),
   ];
   const enforced = strictHeaders(env);

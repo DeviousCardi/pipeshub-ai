@@ -601,11 +601,13 @@ export class UserController {
         String(req.params.id),
       );
       if (!user) throw new NotFoundError('User not found');
-      const userId = String(user._id);
+      const userId = user._id;
       if (userId === callerId) {
         throw new BadRequestError('You cannot deactivate your own account');
       }
-      if (isServiceAccountEmail(String(user.email ?? ''))) {
+      // A stored user may lack an email, whatever the DTO type says.
+      const stored: { email?: string } = user;
+      if (isServiceAccountEmail(stored.email ?? '')) {
         throw new BadRequestError(
           'Service accounts are turned off from their own settings',
         );
@@ -616,7 +618,7 @@ export class UserController {
           'User cannot be deactivated. Please demote the user from admin first.',
         );
       }
-      const orgId = String(user.orgId);
+      const orgId = user.orgId;
 
       if (user.isDisabled !== true) {
         // Recorded before the switch: it ends the sessions issued before it,
@@ -708,8 +710,8 @@ export class UserController {
         throw new BadRequestError('User is not deactivated');
       }
       await getActivityRepository().record({
-        orgId: String(user.orgId),
-        userId: String(user._id),
+        orgId: user.orgId,
+        userId: user._id,
         email: user.email,
         activityType: userActivitiesType.ACCOUNT_ENABLED,
         ipAddress: req.ip ?? '',
@@ -1832,35 +1834,25 @@ export class UserController {
 
       // CLEANUP-G2: their private conversations go, the shared ones move to an admin; before the user is
       // marked deleted, so a retry finds what is left.
-      await this.handOverConversations(
-        orgId.toString(),
-        userId.toString(),
-        req.user,
-      );
+      await this.handOverConversations(orgId, userId, req.user);
 
       // Before the user is marked deleted, so a failed erasure leaves the
       // user deletable and a retry reaches the keys again.
-      await this.modelAccounts?.eraseUser(orgId.toString(), userId.toString());
+      await this.modelAccounts?.eraseUser(orgId, userId);
       // Nothing may run as a deleted user again (P8a).
-      await this.schedules?.eraseUser(orgId.toString(), userId.toString());
-      await this.memories?.eraseUser(orgId.toString(), userId.toString());
+      await this.schedules?.eraseUser(orgId, userId);
+      await this.memories?.eraseUser(orgId, userId);
       // What stores this build does not know of keep for them (`DataEraserExtension`).
-      await this.extension?.eraseUser(orgId.toString(), userId.toString());
+      await this.extension?.eraseUser(orgId, userId);
       // Their own Claude sign-in (SIGNIN): the record removed, live sandboxes signed out.
-      await this.engineSignIns?.eraseUser(orgId.toString(), userId.toString());
+      await this.engineSignIns?.eraseUser(orgId, userId);
       // Their Inbox settings, run-notice claims and watch leases (G2).
       await this.inbox?.eraseUser(orgId, userId);
       // Their own toolset and MCP instances (main #4324) with the sign-ins and rules stored for them.
-      await this.personalInstances?.eraseUser(
-        orgId.toString(),
-        userId.toString(),
-      );
+      await this.personalInstances?.eraseUser(orgId, userId);
 
       // The Slack accounts they linked (ADR-SLACKID-01): Slack can no longer reach this account.
-      await getSlackUserLinkRepository().removeForUser(
-        orgId.toString(),
-        userId.toString(),
-      );
+      await getSlackUserLinkRepository().removeForUser(orgId, userId);
 
       await getCredentialRepository().clearPassword(userId, user.email);
       await getUserRepository().markDeleted(orgId, userId, {

@@ -1302,7 +1302,7 @@ export class UserAccountController {
     // The account's own org, never another; one that is not live is named only through the lifecycle hook.
     const org =
       (await getOrgRepository().getLive(orgId)) ??
-      (await orgLifecycle().orgLifecycleHook?.notLiveOrgOf(String(orgId))) ??
+      (await orgLifecycle().orgLifecycleHook?.notLiveOrgOf(orgId)) ??
       null;
 
     if (
@@ -1576,8 +1576,8 @@ export class UserAccountController {
     req: AuthenticatedServiceRequest,
     error: SessionReuseDetected,
   ): Promise<void> {
-    const orgId = req.tokenPayload?.orgId;
-    const userId = req.tokenPayload?.userId;
+    const orgId = req.tokenPayload?.orgId as string | undefined;
+    const userId = req.tokenPayload?.userId as string | undefined;
     this.logger.warn('auth.session_replay_detected', {
       orgId,
       userId,

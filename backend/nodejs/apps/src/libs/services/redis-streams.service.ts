@@ -362,6 +362,11 @@ export abstract class BaseRedisStreamsConsumerConnection
   protected ackRedis: RedisClient;
   protected initialized = false;
   protected running = false;
+
+  /** Read through a call: `stop()` clears `running` while a loop awaits, which narrowing cannot see. */
+  protected stopped(): boolean {
+    return !this.running;
+  }
   protected subscribedTopics: string[] = [];
   protected groupId: string;
   protected consumerId: string;
@@ -858,7 +863,7 @@ export class RedisStreamsBroadcastConsumer extends BaseRedisStreamsConsumerConne
           await this.deliver(await this.read(group, blockMs), handler);
         }
       } catch (error) {
-        if (!this.running) break;
+        if (this.stopped()) break;
         this.logger.error('Error in Redis Streams broadcast loop', {
           error: (error as Error).message,
         });

@@ -185,7 +185,9 @@ const fromColumn = (c: ColumnSpec, v: unknown): unknown => {
       return new Date(String(v));
     case 'datems':
       return new Date(Number(v));
-    default:
+    case 'text':
+    case 'bool':
+    case 'texts':
       return v;
   }
 };

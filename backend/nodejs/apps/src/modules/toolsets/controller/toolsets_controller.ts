@@ -1185,9 +1185,9 @@ export const getGithubRepositoryListing =
         `Listing GitHub ${listing}`,
         `GitHub ${listing} not found`,
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(`Error listing GitHub ${listing}`, {
-        error: error.message,
+        error: (error as { message?: unknown } | null | undefined)?.message,
         instanceId: req.params.instanceId,
       });
       next(handleBackendError(error, `list GitHub ${listing}`));
