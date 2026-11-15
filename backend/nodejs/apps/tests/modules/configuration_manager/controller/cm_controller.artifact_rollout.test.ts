@@ -182,7 +182,7 @@ describe('setPlatformSettings: the artifact rollout rules', () => {
     it('is never taken from the request body', async () => {
       const kv = store({ featureFlags: {} }, { [key('a')]: entry() })
       const next = sinon.stub()
-      await inRequestOrg(setPlatformSettings(kv))(
+      await inRequestOrg(setPlatformSettings(kv, testControlPlane()))(
         { body: { fileUploadMaxSizeBytes: 1, featureFlags: { ENABLE_ARTIFACT_READ: true }, [GENERATION_KEY]: 'chosen-by-caller' }, user: {} } as any,
         res(),
         next,

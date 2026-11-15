@@ -77,7 +77,7 @@ describe('the session cookie per organisation', () => {
     const req = request({ [SESSION_ORG_HEADER]: ORG_A });
     const res = response();
     res.locals.sessionFromCookie = true;
-    clearRefusedSessionCookie()(new UnauthorizedError('gone'), req, res, sinon.stub());
+    clearRefusedSessionCookie()(new UnauthorizedError('gone'), req, res, () => undefined);
     expect(cleared(res)).to.have.members([`${SECURE_SESSION_COOKIE}.${ORG_A}`, `${PLAIN_SESSION_COOKIE}.${ORG_A}`]);
   });
 
@@ -86,7 +86,7 @@ describe('the session cookie per organisation', () => {
     const req = request({ cookie, authorization: 'Bearer access' });
     expect(sessionOrgsOfCookies(req)).to.have.members([ORG_A, ORG_B]);
     const res = response();
-    signOutSessionCookie({})(req, res, sinon.stub());
+    signOutSessionCookie({})(req, res, () => undefined);
     expect(cleared(res)).to.include.members([
       SECURE_SESSION_COOKIE,
       PLAIN_SESSION_COOKIE,

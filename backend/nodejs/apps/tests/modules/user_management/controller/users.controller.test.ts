@@ -2222,7 +2222,6 @@ describe('UserController', () => {
           null,
           null,
           inbox,
-          null,
         );
 
         await erasing.deleteUser(req, res, next);

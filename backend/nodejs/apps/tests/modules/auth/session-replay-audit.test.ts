@@ -68,7 +68,6 @@ describe('a replayed refresh token on the audit chain', () => {
       'org-1',
       [sessionReplayAuditEntry({ orgId: 'org-1', userId: 'u1', familyId: 'fam-1' }, at)],
       new Date(at).toISOString(),
-      undefined,
     );
     const reader = new AuditSearchReader({
       chain,
