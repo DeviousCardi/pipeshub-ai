@@ -172,10 +172,27 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libmariadb-dev
 
+      # The durable lanes start Node's journal server with ts-node from the API workspace.
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
       - name: Install Python dependencies
         working-directory: backend/python
         run: |
           requirements/install.sh dev --project . --editable
+
+      - name: Install Node dependencies
+        working-directory: backend/nodejs/apps
+        run: npm ci --ignore-scripts
+
+      # The tool matrix builds its MCP runner image FROM the sandbox image; the engines stage names it to the tests
+      # as SANDBOX_TEST_IMAGE (scripts/security_gate.py SANDBOX_IMAGE).
+      - name: Build the Compose-selected sandbox
+        env:
+          SANDBOX_DOCKER_IMAGE: pipeshubai/pipeshub-sandbox:local
+        run: docker compose --file deployment/docker-compose/docker-compose.yml --profile sandbox build sandbox-image
 
       # Each image from its pinned release, verified against the allowlist's digests (engine-build.sh).
       - name: Build the engine images

@@ -305,3 +305,30 @@ def test_sg_8_the_engine_stage_fails_on_a_case_skipped_for_want_of_its_built_ima
     hidden = _verdict("engines", 0, _xml(passed=30, skips=(f"needs Docker, {tag}: ImageNotFound",)))
     assert any("FOR WANT OF A BUILT IMAGE" in f for f in hidden.findings)
     assert _verdict("engines", 0, _xml(passed=30, skips=("live lane: set HARNESS_LIVE_ENV_FILE",))).ok
+
+
+def _step_index(steps: list[dict[str, Any]], needle: str) -> int:
+    return next(i for i, step in enumerate(steps) if needle in step.get("run", ""))
+
+
+@pytest.mark.parametrize(("job", "stage"), [("docker-lane", "docker-lane"), ("engine-images", "engines")])
+def test_c6_42_each_docker_job_builds_the_sandbox_image_its_stage_names(job: str, stage: str) -> None:
+    """The tool matrix built its MCP runner FROM a tag no job made (pxh-sandbox:pr1), so every matrix case failed
+    at setup: each job builds the image under the gate's one name, and its stage hands that name to the cases."""
+    steps = _load("harness-security-gate.yml")["jobs"][job]["steps"]
+    build = _step_index(steps, "--profile sandbox build sandbox-image")
+    assert steps[build]["env"]["SANDBOX_DOCKER_IMAGE"] == _gate().SANDBOX_IMAGE
+    assert build < _step_index(steps, f"security_gate.py run {stage}")
+    assert _stage(stage).env["SANDBOX_TEST_IMAGE"] == _gate().SANDBOX_IMAGE
+
+
+def test_c6_42_the_engine_job_installs_the_node_workspace_its_durable_lanes_start() -> None:
+    """The durable lanes run Node's journal server with ts-node from backend/nodejs/apps; without the workspace npx
+    fetched a bare ts-node that could not load TypeScript, and every durable case failed to start."""
+    steps = _load("harness-security-gate.yml")["jobs"]["engine-images"]["steps"]
+    node = next(i for i, s in enumerate(steps) if str(s.get("uses", "")).startswith("actions/setup-node@"))
+    assert steps[node]["with"]["node-version"] == "22"
+    install = next(i for i, s in enumerate(steps) if s.get("working-directory") == "backend/nodejs/apps")
+    assert steps[install]["run"].startswith("npm ci")
+    assert node < install < _step_index(steps, "security_gate.py run engines")
+

@@ -39,6 +39,9 @@ GVISOR_LANE = tuple(
     for name in ("test_sec_iso_escape_docker", "test_sec_iso_exhaustion_docker", "test_egress_security_docker")
 ) + (C13,)
 TIMEOUT = ["--timeout-method=thread"]
+# The run_code sandbox image the gate's jobs build with Compose (SANDBOX_DOCKER_IMAGE); every Docker stage's cases
+# read it as SANDBOX_TEST_IMAGE, so no stage depends on a tag only a developer's machine has.
+SANDBOX_IMAGE = "pipeshubai/pipeshub-sandbox:local"
 
 
 @dataclass(frozen=True)
@@ -118,8 +121,7 @@ def stages(repo: Path = REPO) -> list[Stage]:
                 "--timeout=600",
                 *TIMEOUT,
             ),
-            env={**docker, "SANDBOX_TEST_IMAGE": "pipeshubai/pipeshub-sandbox:local",
-                 "SANDBOX_DOCKER_IMAGE": "pipeshubai/pipeshub-sandbox:local"},
+            env={**docker, "SANDBOX_TEST_IMAGE": SANDBOX_IMAGE, "SANDBOX_DOCKER_IMAGE": SANDBOX_IMAGE},
             docker=True,
             allow_skips=None,
             min_tests=50,
@@ -136,7 +138,7 @@ def stages(repo: Path = REPO) -> list[Stage]:
                 "--timeout=600",
                 *TIMEOUT,
             ),
-            env={**docker, "PXH_REQUIRE_GVISOR": "1", "SANDBOX_TEST_IMAGE": "pipeshubai/pipeshub-sandbox:local"},
+            env={**docker, "PXH_REQUIRE_GVISOR": "1", "SANDBOX_TEST_IMAGE": SANDBOX_IMAGE},
             docker=True,
             # The quota guard's engine-image cases need images this job does not build (the engines stage's).
             allow_skips=("is not built",),
@@ -156,7 +158,8 @@ def stages(repo: Path = REPO) -> list[Stage]:
                 "--timeout=900",
                 *TIMEOUT,
             ),
-            env=docker,
+            # The matrix lane's MCP runner image is built FROM the sandbox image.
+            env={**docker, "SANDBOX_TEST_IMAGE": SANDBOX_IMAGE},
             docker=True,
             allow_skips=None,
             min_tests=20,

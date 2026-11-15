@@ -10,6 +10,7 @@ from __future__ import annotations
 import contextlib
 import io
 import logging
+import os
 import tarfile
 import uuid
 from pathlib import Path
@@ -55,7 +56,7 @@ if TYPE_CHECKING:
 
 SERVER_PATH = "/opt/pxh-echo/server.py"
 ECHO_SOURCE = Path(__file__).resolve().parents[5] / "harness_core/testing/sandbox/mcp_echo_server.py"
-BASE_IMAGE = "pxh-sandbox:pr1"
+BASE_IMAGE = os.environ.get("SANDBOX_TEST_IMAGE", "pxh-sandbox:pr1")
 # The tools the agent's MCP server offers (``mcp_echo_server``); the matrix approves ``echo`` only.
 SERVER_TOOLS = ("echo", "env_digest", "fetch", "where")
 LOG = logging.getLogger("e2e3.mcp")
