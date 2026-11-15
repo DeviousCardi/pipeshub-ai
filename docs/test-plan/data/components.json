@@ -1106,6 +1106,7 @@
         "integration-tests/harness/fault/test_crash_points.py",
         "backend/nodejs/apps/tests/cohesion/c15-index-migrations.test.ts",
         "backend/python/tests/cohesion/test_c15_data_migrations.py",
+        "backend/python/tests/cohesion/test_docstore_migrate_shard_suites.py",
         "backend/nodejs/apps/tests/modules/agent-harness/data-key-store*.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/control-plane-liveness*.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/worker-feature-sightings*.ts",
