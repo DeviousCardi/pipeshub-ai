@@ -14,6 +14,7 @@ import pytest
 from app.config.constants.arangodb import AppStatus
 from app.connectors.core.sync.sync_coordinator import SyncLease
 from app.connectors.core.sync.sync_runner import run_sync_task
+from tests.support.settle import settle
 
 
 def _graph_provider() -> AsyncMock:
@@ -166,7 +167,7 @@ class TestSecondCancel:
         with pytest.raises(asyncio.CancelledError):
             await task
 
-        await asyncio.wait_for(released.wait(), timeout=1)
+        await settle(released.wait())
 
 
 class TestLeaseLost:
@@ -190,7 +191,7 @@ class TestLeaseLost:
         )
         await started.wait()
         lease.lost.set()
-        await asyncio.wait_for(task, timeout=1)
+        await settle(task)
 
     @pytest.mark.asyncio
     async def test_lost_lease_skips_the_idle_write_but_still_releases(self) -> None:
@@ -229,7 +230,7 @@ class TestLeaseLost:
         )
         await started.wait()
         lease.stop_requested.set()
-        await asyncio.wait_for(task, timeout=1)
+        await settle(task)
 
         assert _statuses(gp) == [AppStatus.SYNCING.value, AppStatus.IDLE.value]
         manager.end.assert_awaited_once_with(lease)

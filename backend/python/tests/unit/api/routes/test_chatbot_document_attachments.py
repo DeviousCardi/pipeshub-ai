@@ -562,6 +562,10 @@ async def test_failed_sink_rolls_back_the_records_it_already_wrote():
     keys = {tuple(c.args[0]) for c in gp.delete_nodes_and_edges.await_args_list}
     assert len(keys) == 1 and len(next(iter(keys))) == 1
     gp.delete_nodes.assert_not_awaited()
+    # CLEANUP-G5: the file it stored and its parsed blocks' documents are purged too.
+    bs.purge_document.assert_awaited_once_with("org-1", "ext")
+    [(org, virtual_record_id)] = [c.args for c in bs.purge_virtual_record_documents.await_args_list]
+    assert org == "org-1" and virtual_record_id
 
 
 @pytest.mark.asyncio
@@ -597,6 +601,61 @@ async def test_rollback_never_raises_over_the_original_error():
     assert gp.delete_nodes_and_edges.await_count == 2
 
 
+async def _upload_text_as(user: dict, graph: object) -> list[str]:
+    from app.api.routes.chatbot import upload_chat_attachments
+
+    text = b"meeting notes"
+    req = MagicMock()
+    req.json = AsyncMock(return_value={"attachments": [
+        {"fileName": "notes.txt", "mimeType": "text/plain", "size": len(text),
+         "contentBase64": base64.b64encode(text).decode("ascii")},
+    ] * 2})
+    req.state.user = user
+    req.app.container.logger.return_value = MagicMock()
+    with patch("app.api.routes.chatbot.BlobStorage") as blob_storage, patch(
+        "app.api.routes.chatbot.GraphDBTransformer", return_value=MagicMock()
+    ), patch("app.api.routes.chatbot.SinkOrchestrator", return_value=AsyncMock()):
+        blob_storage.return_value.save_binary_to_storage = AsyncMock(return_value=("doc-1", None))
+        out = await upload_chat_attachments(req, graph, AsyncMock())
+    return [attachment["recordId"] for attachment in out["attachments"]]
+
+
+@pytest.mark.asyncio
+async def test_qa15g_2_a_members_upload_names_them_and_is_granted_to_their_user_node() -> None:
+    from tests.unit.services.artifact_registry.fakes import FakeGraphProvider
+
+    graph = FakeGraphProvider()
+    graph.add_user("user-1", key="ukey-1")
+    record_ids = await _upload_text_as({"orgId": "org-1", "userId": "user-1", "isServiceAccount": False}, graph)
+
+    for record_id in record_ids:
+        record = graph.nodes["records"][record_id]
+        assert (record["uploaderUserId"], record["uploaderKind"]) == ("user-1", "person")
+        assert "uploaderAgentKey" not in record
+    assert [(e["from_id"], e["to_id"], e["role"]) for e in graph.edges["permission"]] == [
+        ("ukey-1", record_id, "OWNER") for record_id in record_ids
+    ]
+
+
+@pytest.mark.asyncio
+async def test_qa15g_2_a_service_accounts_upload_names_the_person_and_agent_and_is_granted_to_the_org() -> None:
+    from tests.unit.services.artifact_registry.fakes import FakeGraphProvider
+
+    graph = FakeGraphProvider()
+    record_ids = await _upload_text_as(
+        {"orgId": "org-1", "userId": "slack-person", "isServiceAccount": True, "agentKey": "agent-7",
+         "token_type": "scoped", "scopes": ["conversation:create"]},
+        graph,
+    )
+
+    for record_id in record_ids:
+        record = graph.nodes["records"][record_id]
+        assert (record["uploaderUserId"], record["uploaderKind"], record["uploaderAgentKey"]) == (
+            "slack-person", "service_account", "agent-7",
+        )
+    assert [(e["from_id"], e["from_collection"], e["to_id"]) for e in graph.edges["permission"]] == [
+        ("org-1", "organizations", record_id) for record_id in record_ids
+    ]
 def _pdf_upload_request(name: str = "deck.pdf") -> MagicMock:
     content = b"%PDF-1.7 fake"
     req = MagicMock()
@@ -636,16 +695,20 @@ class TestPdfAttachmentFailsOnItsOwn:
 
     @pytest.mark.asyncio
     async def test_a_parse_past_the_deadline_is_stopped_and_explained(self) -> None:
+        stopped = asyncio.Event()
+
         async def never_finishes(*_: object) -> None:
-            await asyncio.sleep(30)
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                stopped.set()
+                raise
 
         processor = MagicMock(parse_document=AsyncMock(side_effect=never_finishes))
-        loop = asyncio.get_running_loop()
-        started = loop.time()
 
         error = await self._upload(processor, timeout_s=0.2)
 
-        assert loop.time() - started < 5
+        assert stopped.is_set()
         assert error.status_code == 422
         assert error.detail == (
             "deck.pdf took too long to read, so it wasn't attached. "

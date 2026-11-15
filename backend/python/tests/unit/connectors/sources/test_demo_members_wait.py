@@ -18,6 +18,7 @@ import logging
 import pytest
 
 from app.connectors.sources.demo.connector import _people_to_create, _wait_for_members
+from tests.support.settle import settle
 
 LOGGER = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ async def test_an_empty_list_does_not_wait() -> None:
     async def lookup(_email: str) -> object | None:  # pragma: no cover - never called
         raise AssertionError("no account should be looked up")
 
-    waited = asyncio.wait_for(_wait_for_members([], lookup, LOGGER), timeout=1.0)
+    waited = settle(_wait_for_members([], lookup, LOGGER))
     assert await waited == []
 
 

@@ -6,12 +6,13 @@ import { installBrowserShims, renderInTheme } from '@/app/(main)/agents/agent-bu
 const api = vi.hoisted(() => ({ get: vi.fn(), put: vi.fn(), delete: vi.fn() }));
 const addToast = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/api', () => ({ apiClient: api, streamSSERequest: vi.fn() }));
-vi.mock('@/lib/store/toast-store', () => ({
+vi.mock('@/lib/store/toast-store', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/store/toast-store')>()),
   useToastStore: (select: (s: { addToast: typeof addToast }) => unknown) => select({ addToast }),
 }));
 vi.mock('react-i18next', async (importOriginal) => ({
   ...(await importOriginal<typeof import('react-i18next')>()),
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
 }));
 vi.mock('@/app/components/ui/lottie-loader', () => ({ LottieLoader: () => <div>loading</div> }));
 vi.mock('@/app/components/ui/MaterialIcon', () => ({ MaterialIcon: () => null }));

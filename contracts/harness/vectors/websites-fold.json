@@ -1,0 +1,330 @@
+{
+  "description": "WP-63: a run's allowed websites from the deployment's cap, the org's list and the agent's narrowing. Node (effectiveWebsites) and the worker (app.harness.websites.effective_sites) both replay every case. An entry a layer above does not hold (host, access, paths, host-level only) is dropped, never widened or downgraded. agentRun: the run is an agent's: an agent that sets no section reaches no site (new agents start with every site off); absent or false: a run of no agent, which gets the org's.",
+  "cases": [
+    {
+      "name": "off by default: an org that lists nothing allows nothing",
+      "deployment": null,
+      "org": null,
+      "agent": null,
+      "sites": []
+    },
+    {
+      "name": "no cap: the org's sites",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read"
+          },
+          {
+            "host": "*.docs.example.com",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": null,
+      "sites": [
+        {
+          "host": "github.com",
+          "access": "read"
+        },
+        {
+          "host": "*.docs.example.com",
+          "access": "read"
+        }
+      ]
+    },
+    {
+      "name": "the cap drops what it does not hold",
+      "deployment": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read"
+          }
+        ]
+      },
+      "org": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read"
+          },
+          {
+            "host": "gitlab.com",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": null,
+      "sites": [
+        {
+          "host": "github.com",
+          "access": "read"
+        }
+      ]
+    },
+    {
+      "name": "a read-only cap drops a read-write entry",
+      "deployment": {
+        "sites": [
+          {
+            "host": "*.example.com",
+            "access": "read"
+          }
+        ]
+      },
+      "org": {
+        "sites": [
+          {
+            "host": "mirror.example.com",
+            "access": "read-write",
+            "readWriteConfirmed": true
+          }
+        ]
+      },
+      "agent": null,
+      "sites": []
+    },
+    {
+      "name": "a cap of none allows nothing",
+      "deployment": {
+        "sites": []
+      },
+      "org": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": null,
+      "sites": []
+    },
+    {
+      "name": "an agent narrows to a subdomain the org's wildcard holds, and read for read-write",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "*.example.com",
+            "access": "read-write",
+            "readWriteConfirmed": true
+          }
+        ]
+      },
+      "agent": {
+        "sites": [
+          {
+            "host": "docs.example.com",
+            "access": "read"
+          }
+        ]
+      },
+      "sites": [
+        {
+          "host": "docs.example.com",
+          "access": "read"
+        }
+      ]
+    },
+    {
+      "name": "an agent's entry its org does not hold is dropped",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read"
+          },
+          {
+            "host": "gitlab.com",
+            "access": "read"
+          }
+        ]
+      },
+      "sites": [
+        {
+          "host": "github.com",
+          "access": "read"
+        }
+      ]
+    },
+    {
+      "name": "an agent that lists none reaches none",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": {
+        "sites": []
+      },
+      "sites": []
+    },
+    {
+      "name": "paths: a narrower prefix is held, the whole site is not",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read",
+            "paths": [
+              "/onyx-dot-app/"
+            ]
+          }
+        ]
+      },
+      "agent": {
+        "sites": [
+          {
+            "host": "github.com",
+            "access": "read",
+            "paths": [
+              "/onyx-dot-app/onyx"
+            ]
+          },
+          {
+            "host": "github.com",
+            "access": "read"
+          }
+        ]
+      },
+      "sites": [
+        {
+          "host": "github.com",
+          "access": "read",
+          "paths": [
+            "/onyx-dot-app/onyx"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "host-level only needs host-level only above",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "mirror.example.com",
+            "access": "read-write",
+            "readWriteConfirmed": true
+          }
+        ]
+      },
+      "agent": {
+        "sites": [
+          {
+            "host": "mirror.example.com",
+            "access": "read-write",
+            "readWriteConfirmed": true,
+            "opaque": true
+          }
+        ]
+      },
+      "sites": []
+    },
+    {
+      "name": "a wildcard never covers its apex",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "*.example.com",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": {
+        "sites": [
+          {
+            "host": "example.com",
+            "access": "read"
+          }
+        ]
+      },
+      "sites": []
+    },
+    {
+      "name": "a new agent, with no section of its own, reaches no site",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "docs.example.com",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": null,
+      "agentRun": true,
+      "sites": []
+    },
+    {
+      "name": "an agent turns one of its org's sites on",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "docs.example.com",
+            "access": "read"
+          },
+          {
+            "host": "pypi.org",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": {
+        "sites": [
+          {
+            "host": "pypi.org",
+            "access": "read"
+          }
+        ]
+      },
+      "agentRun": true,
+      "sites": [
+        {
+          "host": "pypi.org",
+          "access": "read"
+        }
+      ]
+    },
+    {
+      "name": "a run of no agent gets the org's sites",
+      "deployment": null,
+      "org": {
+        "sites": [
+          {
+            "host": "docs.example.com",
+            "access": "read"
+          }
+        ]
+      },
+      "agent": null,
+      "agentRun": false,
+      "sites": [
+        {
+          "host": "docs.example.com",
+          "access": "read"
+        }
+      ]
+    }
+  ]
+}

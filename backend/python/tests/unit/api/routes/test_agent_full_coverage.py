@@ -1,10 +1,19 @@
 import json
+from collections.abc import Iterator
 import logging
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
+
+from tests.support.bound_org import bind_test_org
+
+
+@pytest.fixture(autouse=True)
+def _bound_org() -> Iterator[str]:
+    """``authMiddleware`` binds the caller's org; these tests call the route functions directly, as that caller."""
+    yield from bind_test_org("o1")
 
 
 class TestParseKnowledgeSourcesEdgeCases:

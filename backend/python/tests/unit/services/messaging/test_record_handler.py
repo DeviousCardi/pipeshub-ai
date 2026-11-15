@@ -41,6 +41,7 @@ from app.services.messaging.kafka.handlers.record import (
 )
 from app.services.vector_db.rebuild_state import PHASE_FAILED, PHASE_READY
 from app.utils import user_errors
+from tests.support.settle import settle
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -3679,7 +3680,7 @@ class TestProcessEventErrors:
             )
             assert (await anext(event_generator)).event == IndexingEvent.START_DOWNLOAD
             processing = asyncio.create_task(anext(event_generator))
-            await asyncio.wait_for(entered_processor.wait(), timeout=1)
+            await settle(entered_processor.wait())
             processing.cancel()
             with pytest.raises(asyncio.CancelledError):
                 await processing
@@ -3743,7 +3744,7 @@ class TestProcessEventErrors:
             )
             assert (await anext(event_generator)).event == IndexingEvent.START_DOWNLOAD
             processing = asyncio.create_task(anext(event_generator))
-            await asyncio.wait_for(entered_processor.wait(), timeout=1)
+            await settle(entered_processor.wait())
             processing.cancel()
             with pytest.raises(asyncio.CancelledError):
                 await processing

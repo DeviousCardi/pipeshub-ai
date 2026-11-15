@@ -210,6 +210,8 @@ NODE_ADMIN_ROUTES: tuple[AdminRoute, ...] = (
     # user_management/routes/users.routes.ts
     AdminRoute("GET", "/api/v1/users/:id/email"),
     AdminRoute("PUT", "/api/v1/users/:id/unblock"),
+    AdminRoute("PUT", "/api/v1/users/:id/deactivate"),
+    AdminRoute("PUT", "/api/v1/users/:id/reactivate"),
     _no_admin("POST", "/api/v1/users",
               "creates a user; every member in these suites is created through it as the admin",
               member_body={"fullName": "IT Admin Probe", "email": "it-admin-probe@test-pipeshub.com"}),

@@ -1,0 +1,2996 @@
+{
+  "description": "What Node's internal live route serves with CONTROL_PLANE_POLICY_STORE=on for KV policy documents of approvals.json (documents), engine-profiles.json (each case's org layer as the org's ceiling) and four model-access documents, after the policy-layers migration copied them: the deployment's sections of the approvals document and the org's stored layers, re-scoped to live. `migration` is the org's status in the migration's report; `invalid` documents are never copied, so `live` is null and no reader can be served them from the store. Written by backend/nodejs/apps/tests/modules/agent-harness/cpd10-store-on-live-layers.test.ts (UPDATE_GOLDENS=1); read by backend/python/tests/unit/harness/policy/test_cpd10_store_on_readers.py, which holds each reader's answer from `live` equal to its answer from `documents`.",
+  "cases": [
+    {
+      "id": "D-1",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {},
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-2",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {}
+      },
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-3",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "default": {
+            "writes": "ask"
+          }
+        }
+      },
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "ask"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-4",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "default": {},
+          "orgs": {
+            "org-1": {
+              "classes": {
+                "read": "ask"
+              }
+            }
+          },
+          "agents": {
+            "agent-a": {
+              "tools": {
+                "t1": "deny"
+              }
+            }
+          },
+          "orgAgents": {
+            "org-1": {
+              "agent-a": {
+                "writes": "deny"
+              }
+            },
+            "org-2": {
+              "agent-b": {
+                "writes": "deny"
+              }
+            }
+          },
+          "updated": {
+            "org-1": {
+              "updatedAt": 5,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "agentKey": "agent-a",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "deny"
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {}
+            }
+          },
+          {
+            "agentKey": "agent-a",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "tools": {
+                  "t1": "deny"
+                }
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "classes": {
+                  "read": "ask"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-5",
+      "source": "approvals.json",
+      "orgId": "org-2",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "default": {},
+          "orgs": {
+            "org-1": {
+              "classes": {
+                "read": "ask"
+              }
+            }
+          },
+          "agents": {
+            "agent-a": {
+              "tools": {
+                "t1": "deny"
+              }
+            }
+          },
+          "orgAgents": {
+            "org-1": {
+              "agent-a": {
+                "writes": "deny"
+              }
+            },
+            "org-2": {
+              "agent-b": {
+                "writes": "deny"
+              }
+            }
+          },
+          "updated": {
+            "org-1": {
+              "updatedAt": 5,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-2",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "agentKey": "agent-b",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "deny"
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {}
+            }
+          },
+          {
+            "agentKey": "agent-a",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "tools": {
+                  "t1": "deny"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-6",
+      "source": "approvals.json",
+      "orgId": "org-3",
+      "agentKey": "agent-b",
+      "documents": {
+        "approvals": {
+          "default": {},
+          "orgs": {
+            "org-1": {
+              "classes": {
+                "read": "ask"
+              }
+            }
+          },
+          "agents": {
+            "agent-a": {
+              "tools": {
+                "t1": "deny"
+              }
+            }
+          },
+          "orgAgents": {
+            "org-1": {
+              "agent-a": {
+                "writes": "deny"
+              }
+            },
+            "org-2": {
+              "agent-b": {
+                "writes": "deny"
+              }
+            }
+          },
+          "updated": {
+            "org-1": {
+              "updatedAt": 5,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-3",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {}
+            }
+          },
+          {
+            "agentKey": "agent-a",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "tools": {
+                  "t1": "deny"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-7",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "org": {
+            "org-1": {
+              "writes": "allow"
+            }
+          }
+        }
+      },
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "ask"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-8",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "orgs": [
+            "org-1"
+          ]
+        }
+      },
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "ask"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-9",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "orgs": null
+        }
+      },
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "ask"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-10",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "orgs": {
+            "org-1": {
+              "writes": "maybe"
+            },
+            "org-2": {
+              "writes": "deny"
+            }
+          }
+        }
+      },
+      "migration": "invalid",
+      "live": null
+    },
+    {
+      "id": "D-11",
+      "source": "approvals.json",
+      "orgId": "org-2",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "orgs": {
+            "org-1": {
+              "writes": "maybe"
+            },
+            "org-2": {
+              "writes": "deny"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-2",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "deny"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-15",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": []
+      },
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "ask"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-16",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "approvals": {
+          "default": {},
+          "orgs": {
+            "org-1": {
+              "classes": {
+                "read": "ask"
+              }
+            }
+          },
+          "agents": {
+            "agent-a": {
+              "tools": {
+                "t1": "deny"
+              }
+            }
+          },
+          "orgAgents": {
+            "org-1": {
+              "agent-a": {
+                "writes": "deny"
+              }
+            },
+            "org-2": {
+              "agent-b": {
+                "writes": "deny"
+              }
+            }
+          },
+          "updated": {
+            "org-1": {
+              "updatedAt": 5,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "agentKey": "agent-a",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "deny"
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {}
+            }
+          },
+          {
+            "agentKey": "agent-a",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "tools": {
+                  "t1": "deny"
+                }
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "classes": {
+                  "read": "ask"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-17",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "orgAgents": {
+            "org-1": "deny"
+          }
+        }
+      },
+      "migration": "invalid",
+      "live": null
+    },
+    {
+      "id": "D-18",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "approvals": {
+          "default": {
+            "writes": "deny"
+          },
+          "orgs": {
+            "org-1": {
+              "writes": "allow"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "deny"
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "writes": "allow"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-F1",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "orgs": {
+            "org-1": {
+              "flow": {
+                "level": "ask"
+              }
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "flow": {
+                  "level": "ask"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-F2",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "orgs": {
+            "org-2": {
+              "flow": {
+                "level": "deny"
+              }
+            }
+          }
+        }
+      },
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-F3",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "approvals": {
+          "default": {
+            "flow": {
+              "level": "deny",
+              "above": "private"
+            }
+          },
+          "orgs": {
+            "org-1": {
+              "flow": {
+                "level": "off"
+              }
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "flow": {
+                  "level": "deny",
+                  "above": "private"
+                }
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "flow": {
+                  "level": "off"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-F4",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "default": {
+            "flow": {
+              "level": "ask"
+            }
+          },
+          "orgAgents": {
+            "org-1": {
+              "agent-a": {
+                "flow": {
+                  "level": "deny",
+                  "above": "private"
+                }
+              }
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "agentKey": "agent-a",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "flow": {
+                  "level": "deny",
+                  "above": "private"
+                }
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "flow": {
+                  "level": "ask"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-F5",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": "agent-a",
+      "documents": {
+        "approvals": {
+          "orgs": {
+            "org-1": {
+              "flow": {
+                "level": "ask",
+                "above": "private"
+              }
+            }
+          },
+          "agents": {
+            "agent-a": {
+              "flow": {
+                "level": "deny"
+              }
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "agentKey": "agent-a",
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "flow": {
+                  "level": "deny"
+                }
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "approvals": {
+                "flow": {
+                  "level": "ask",
+                  "above": "private"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "D-F6",
+      "source": "approvals.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "approvals": {
+          "orgs": {
+            "org-1": {
+              "flow": {
+                "level": "sometimes"
+              }
+            }
+          }
+        }
+      },
+      "migration": "invalid",
+      "live": null
+    },
+    {
+      "id": "EV-2",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "codex"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "codex"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-3",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "opencode",
+                  "codex"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "opencode",
+                  "codex"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-4",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "opencode"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "opencode"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-6",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "isolationMin": "gvisor"
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "isolationMin": "gvisor"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-7",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "isolationMin": "gvisor"
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "isolationMin": "gvisor"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-8",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "isolationMin": "gvisor"
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "isolationMin": "gvisor"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-11",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "mode": "plan"
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "mode": "plan"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-14",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "tools": {
+                  "maxTools": 50
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "tools": {
+                  "maxTools": 50
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-15",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "tools": {
+                  "maxTools": 50
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "tools": {
+                  "maxTools": 50
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-17",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "tools": {
+                  "effects": [
+                    "read",
+                    "write"
+                  ]
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "tools": {
+                  "effects": [
+                    "read",
+                    "write"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-18",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "limits": {
+                  "maxUsd": 5,
+                  "maxTokens": 1000000
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "limits": {
+                  "maxTokens": 1000000,
+                  "maxUsd": 5
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-19",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "limits": {
+                  "maxSteps": 30
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "limits": {
+                  "maxSteps": 30
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-21",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "limits": {
+                  "maxUsd": 2.5
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "limits": {
+                  "maxUsd": 2.5
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-22",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "limits": {
+                  "maxTokens": 500000
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "limits": {
+                  "maxTokens": 500000
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-25",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "reasoningEffort": "medium"
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "reasoningEffort": "medium"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-27",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "approvals": {
+                  "write": "deny"
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "approvals": {
+                  "write": "deny"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-28",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "approvals": {
+                  "write": "deny"
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "approvals": {
+                  "write": "deny"
+                }
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-30",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "skills": [
+                  "pdf",
+                  "xlsx"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "skills": [
+                  "pdf",
+                  "xlsx"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-32",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "skills": [
+                  "pdf"
+                ],
+                "limits": {
+                  "maxSteps": 10
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "limits": {
+                  "maxSteps": 10
+                },
+                "skills": [
+                  "pdf"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-33",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "limits": {
+                  "maxSteps": null
+                }
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "invalid",
+      "live": null
+    },
+    {
+      "id": "EV-37",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "opencode"
+                ],
+                "mode": "build",
+                "isolationMin": "gvisor",
+                "egress": "none",
+                "tools": {
+                  "maxTools": 64,
+                  "effects": [
+                    "read",
+                    "workspace",
+                    "write"
+                  ]
+                },
+                "limits": {
+                  "maxSteps": 40,
+                  "maxWallS": 1200,
+                  "maxTokens": 2000000,
+                  "maxUsd": 10
+                },
+                "subAgents": {
+                  "enabled": false,
+                  "maxDepth": 1,
+                  "maxConcurrent": 1
+                },
+                "reasoningEffort": "high",
+                "approvals": {
+                  "read": "allow",
+                  "workspace": "allow",
+                  "write": "ask",
+                  "execute": "deny"
+                },
+                "skills": [
+                  "docx",
+                  "pdf",
+                  "pptx",
+                  "xlsx"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "opencode"
+                ],
+                "mode": "build",
+                "isolationMin": "gvisor",
+                "egress": "none",
+                "tools": {
+                  "maxTools": 64,
+                  "effects": [
+                    "read",
+                    "workspace",
+                    "write"
+                  ]
+                },
+                "limits": {
+                  "maxSteps": 40,
+                  "maxWallS": 1200,
+                  "maxTokens": 2000000,
+                  "maxUsd": 10
+                },
+                "subAgents": {
+                  "enabled": false,
+                  "maxDepth": 1,
+                  "maxConcurrent": 1
+                },
+                "reasoningEffort": "high",
+                "approvals": {
+                  "read": "allow",
+                  "workspace": "allow",
+                  "write": "ask",
+                  "execute": "deny"
+                },
+                "skills": [
+                  "docx",
+                  "pdf",
+                  "pptx",
+                  "xlsx"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-40",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "accountKinds": [
+                  "org_api_key"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "accountKinds": [
+                  "org_api_key"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-41",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "accountKinds": [
+                  "org_api_key",
+                  "user_api_key"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "accountKinds": [
+                  "org_api_key",
+                  "user_api_key"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-43",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "accountKinds": [
+                  "org_api_key"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "accountKinds": [
+                  "org_api_key"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-44",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "accountKinds": []
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "invalid",
+      "live": null
+    },
+    {
+      "id": "EV-46",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "opencode",
+                  "acp-fake"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "opencode",
+                  "acp-fake"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-47",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "acp-fake@0.4.2"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "acp-fake@0.4.2"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-48",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "codex"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "codex"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-49",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "mode": "plan"
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "mode": "plan"
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-51",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "opencode@1.17.0",
+                  "codex"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "opencode@1.17.0",
+                  "codex"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "EV-52",
+      "source": "engine-profiles.json",
+      "orgId": "org-1",
+      "agentKey": null,
+      "documents": {
+        "engineProfiles": {
+          "orgs": {
+            "org-1": {
+              "ceiling": {
+                "engines": [
+                  "opencode@1.18.34"
+                ]
+              },
+              "updatedAt": 1,
+              "updatedBy": "p_admin"
+            }
+          }
+        }
+      },
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "engineProfile": {
+                "engines": [
+                  "opencode@1.18.34"
+                ]
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "MA-1",
+      "documents": {},
+      "source": "inline",
+      "orgId": "org-1",
+      "agentKey": null,
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "MA-2",
+      "documents": {
+        "modelAccess": {
+          "orgs": {
+            "org-1": {
+              "disabledRules": [
+                "anthropic.consumer",
+                "openai.batch"
+              ],
+              "consumerPlans": false
+            }
+          }
+        }
+      },
+      "source": "inline",
+      "orgId": "org-1",
+      "agentKey": null,
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "models": {
+                "disabledRules": [
+                  "anthropic.consumer",
+                  "openai.batch"
+                ],
+                "consumerPlans": false
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "MA-3",
+      "documents": {
+        "modelAccess": {
+          "orgs": {
+            "org-1": {
+              "disabledRules": [],
+              "consumerPlans": true
+            }
+          }
+        }
+      },
+      "source": "inline",
+      "orgId": "org-1",
+      "agentKey": null,
+      "migration": "copied",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          },
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "models": {
+                "disabledRules": [],
+                "consumerPlans": true
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    },
+    {
+      "id": "MA-4",
+      "documents": {
+        "modelAccess": {
+          "orgs": {
+            "org-2": {
+              "disabledRules": [
+                "another-orgs-row"
+              ],
+              "consumerPlans": true
+            }
+          }
+        }
+      },
+      "source": "inline",
+      "orgId": "org-1",
+      "agentKey": null,
+      "migration": "nothing-to-copy",
+      "live": {
+        "schemaVersion": 1,
+        "orgId": "org-1",
+        "revision": 1,
+        "layers": [
+          {
+            "layer": {
+              "schemaVersion": 1,
+              "scope": {
+                "kind": "live"
+              },
+              "rollout": {
+                "AGENT_HARNESS_KILL_SWITCH": false
+              }
+            }
+          }
+        ],
+        "revokedBindings": []
+      }
+    }
+  ]
+}

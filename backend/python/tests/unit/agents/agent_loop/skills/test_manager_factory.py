@@ -8,30 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.agent_loop_lib.modules.providers.skills.manager import SkillManagerConfig
-
-
-class TestEnvBool:
-    def test_true_string(self) -> None:
-        from app.agents.agent_loop.skills.manager_factory import _env_bool
-        with patch.dict(os.environ, {"TEST_FLAG": "true"}):
-            assert _env_bool("TEST_FLAG", False) is True
-
-    def test_false_string(self) -> None:
-        from app.agents.agent_loop.skills.manager_factory import _env_bool
-        with patch.dict(os.environ, {"TEST_FLAG": "false"}):
-            assert _env_bool("TEST_FLAG", True) is False
-
-    def test_missing_uses_default_true(self) -> None:
-        from app.agents.agent_loop.skills.manager_factory import _env_bool
-        with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("TEST_MISSING_FLAG", None)
-            assert _env_bool("TEST_MISSING_FLAG", True) is True
-
-    def test_missing_uses_default_false(self) -> None:
-        from app.agents.agent_loop.skills.manager_factory import _env_bool
-        with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("TEST_MISSING_FLAG", None)
-            assert _env_bool("TEST_MISSING_FLAG", False) is False
+from app.agents.agent_loop.skills.graph_store import SkillVisibility
 
 
 class TestSkillsManagerConfig:
@@ -268,6 +245,7 @@ class TestBuildRuntimeSkillManager:
 
         context = SimpleNamespace(
             graph_provider=MagicMock(), org_id="o", user_id="u", retrieval_service=MagicMock(),
+            user_info={}, agent_skills=None,
         )
         registry = MagicMock()
 
@@ -281,6 +259,29 @@ class TestBuildRuntimeSkillManager:
         ):
             result = await build_runtime_skill_manager(context, registry)
         assert result is fake_manager
+
+    @pytest.mark.asyncio
+    async def test_runtime_reads_the_users_own_and_the_agents_shared_skills(self) -> None:
+        """CPS SK-1/SK-2: the running user under both of their ids, plus what the agent assigns (A-7)."""
+        from app.agents.agent_loop.skills.manager_factory import build_runtime_skill_manager
+        from types import SimpleNamespace
+
+        context = SimpleNamespace(
+            graph_provider=MagicMock(), org_id="o", user_id="colleague", retrieval_service=None,
+            user_info={"_key": "colleague-key"}, agent_skills=["authors-skill"],
+        )
+        with patch(
+            "app.agents.agent_loop.skills.manager_factory._build_manager",
+            new_callable=AsyncMock,
+            return_value=MagicMock(),
+        ) as build, patch(
+            "app.agents.agent_loop.skills.manager_factory.sync_builtin_skills",
+            new_callable=AsyncMock,
+        ):
+            await build_runtime_skill_manager(context, MagicMock())
+        assert build.await_args.kwargs["visibility"] == SkillVisibility.of(
+            ["colleague", "colleague-key"], shared=["authors-skill"]
+        )
 
 
 class TestBuildManagerInternal:
@@ -306,6 +307,7 @@ class TestBuildManagerInternal:
                 MagicMock(), "org", "user", config,
                 retrieval_service=MagicMock(),
                 extractor_transport=None,
+                visibility=SkillVisibility.everyone(),
             )
         mock_extractor_cls.assert_not_called()
         assert result is mock_manager
@@ -333,6 +335,7 @@ class TestBuildManagerInternal:
                 MagicMock(), "org", "user", config,
                 retrieval_service=MagicMock(),
                 extractor_transport=mock_transport,
+                visibility=SkillVisibility.everyone(),
             )
         mock_lazy.assert_called_once_with(mock_transport, "langchain")
         mock_extractor_cls.assert_called_once()
@@ -359,6 +362,7 @@ class TestBuildManagerInternal:
                 MagicMock(), "org", "user", config,
                 retrieval_service=MagicMock(),
                 extractor_transport=MagicMock(),
+                visibility=SkillVisibility.everyone(),
             )
         mock_extractor_cls.assert_not_called()
         call_kwargs = mock_sm.call_args[1]
@@ -385,9 +389,11 @@ class TestBuildManagerInternal:
                 gp, "org", "user", config,
                 retrieval_service=MagicMock(),
                 extractor_transport=None,
-                visibility_scope="creator-scope",
+                visibility=SkillVisibility.of(["creator-scope"]),
             )
-        mock_store.assert_called_once_with(gp, "org", "user", visibility_scope="creator-scope")
+        mock_store.assert_called_once_with(
+            gp, "org", "user", visibility=SkillVisibility.of(["creator-scope"]), rights=None, provenance=None,
+        )
 
     @pytest.mark.asyncio
     async def test_manager_start_awaited(self) -> None:
@@ -409,6 +415,7 @@ class TestBuildManagerInternal:
                 MagicMock(), "org", "user", config,
                 retrieval_service=MagicMock(),
                 extractor_transport=None,
+                visibility=SkillVisibility.everyone(),
             )
         mock_manager.start.assert_awaited_once()
 

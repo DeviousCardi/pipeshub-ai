@@ -24,6 +24,7 @@ function makeContainer(overrides: Record<string, any> = {}) {
       if (key === 'AuthMiddleware') return mockAuthMiddleware
       return undefined
     }),
+    isBound: () => false,
   }
   return { container, mockAuthMiddleware, mockAppConfig }
 }
@@ -64,9 +65,12 @@ const WRITE_ROUTES: Array<[string, string]> = [
   ['post', '/import/url/preview'],
   ['post', '/import/upload/preview'],
   ['post', '/import/finalize'],
+  ['get', '/reviews/pending'],
+  ['post', '/:name/review'],
   ['post', '/'],
   ['put', '/:name'],
   ['patch', '/:name/body'],
+  ['post', '/:name/rename'],
   ['post', '/:name/deprecate'],
   ['post', '/:name/disable'],
   ['post', '/:name/enable'],

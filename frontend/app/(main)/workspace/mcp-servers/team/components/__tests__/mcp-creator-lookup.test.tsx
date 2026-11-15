@@ -18,6 +18,7 @@ const readOnly = vi.hoisted(() => ({ value: false }));
 vi.mock('@/config', () => ({
   isMcpInstanceReadOnly: () => readOnly.value,
   McpInheritedBadge: () => null,
+  McpInstanceBadges: () => null,
   McpInheritedCallout: () => null,
 }));
 vi.mock('@radix-ui/themes', async (importOriginal) => ({
@@ -37,7 +38,9 @@ vi.mock('../../../../components/workspace-right-panel', () => ({
   WorkspaceRightPanel: ({ open, headerActions }: { open: boolean; headerActions?: React.ReactNode }) =>
     open ? <div>{headerActions}</div> : null,
 }));
-vi.mock('../../../../components', () => ({
+vi.mock('../../../../components', async () => ({
+  // The real wrapper: the panel's fields read the mocked FormField's ids through it.
+  FormFieldTextField: (await vi.importActual<typeof import('../../../../components/form-field')>('../../../../components/form-field')).FormFieldTextField,
   FormField: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   SelectDropdown: () => null,
   TagInput: () => null,

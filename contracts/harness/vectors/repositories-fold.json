@@ -1,0 +1,130 @@
+{
+  "description": "WP-63 part A: a run's allowed git hosts for repository_fetch from the deployment's cap (HARNESS_ALLOWED_REPOSITORIES_CAP), the org's list (orgDefault, the release's default presets, when the org saved none and the run has web access, ADR-REPO-01; absent: null) and the agent's narrowing. Node (effectiveRepositories) and the worker (app.harness.repositories.effective_repository_hosts) both replay every case. An entry a layer above does not hold (its host, or a prefix outside the layer's own) is dropped, never widened.",
+  "cases": [
+    {
+      "name": "no default (a run without web access): an org that saved nothing allows nothing",
+      "deployment": null,
+      "org": null,
+      "agent": null,
+      "hosts": []
+    },
+    {
+      "name": "no cap: the org's hosts",
+      "deployment": null,
+      "org": {"hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "git.example.com", "prefixes": ["platform/"]}]},
+      "agent": null,
+      "hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "git.example.com", "prefixes": ["platform/"]}]
+    },
+    {
+      "name": "the cap drops a host it does not hold",
+      "deployment": {"hosts": [{"host": "github.com"}]},
+      "org": {"hosts": [{"host": "github.com"}, {"host": "gitlab.com"}]},
+      "agent": null,
+      "hosts": [{"host": "github.com"}]
+    },
+    {
+      "name": "a cap limited to an owner drops the org's whole host",
+      "deployment": {"hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/"]}]},
+      "org": {"hosts": [{"host": "github.com"}]},
+      "agent": null,
+      "hosts": []
+    },
+    {
+      "name": "a cap limited to an owner holds the org's repository of that owner",
+      "deployment": {"hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/"]}]},
+      "org": {"hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/onyx"]}]},
+      "agent": null,
+      "hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/onyx"]}]
+    },
+    {
+      "name": "an empty cap allows no host to any org",
+      "deployment": {"hosts": []},
+      "org": {"hosts": [{"host": "github.com"}]},
+      "agent": null,
+      "hosts": []
+    },
+    {
+      "name": "an agent narrows its org's hosts to one repository",
+      "deployment": null,
+      "org": {"hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/"]}]},
+      "agent": {"hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/onyx"]}]},
+      "hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/onyx"]}]
+    },
+    {
+      "name": "an agent's host or prefix the org does not hold is dropped",
+      "deployment": null,
+      "org": {"hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/"]}]},
+      "agent": {"hosts": [{"host": "github.com"}, {"host": "gitlab.com"}, {"host": "github.com", "prefixes": ["someone/"]}]},
+      "hosts": []
+    },
+    {
+      "name": "an agent is held by the cap too, through its org",
+      "deployment": {"hosts": [{"host": "github.com"}]},
+      "org": {"hosts": [{"host": "github.com"}, {"host": "gitlab.com"}]},
+      "agent": {"hosts": [{"host": "gitlab.com"}, {"host": "github.com", "prefixes": ["onyx-dot-app/"]}]},
+      "hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/"]}]
+    },
+    {
+      "name": "an agent that lists none allows none",
+      "deployment": null,
+      "org": {"hosts": [{"host": "github.com"}]},
+      "agent": {"hosts": []},
+      "hosts": []
+    },
+    {
+      "name": "prefixes compare case-insensitively and an owner without a slash is the owner",
+      "deployment": {"hosts": [{"host": "github.com", "prefixes": ["Onyx-Dot-App"]}]},
+      "org": {"hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/onyx", "onyx-dot-app-evil/x"]}]},
+      "agent": null,
+      "hosts": []
+    },
+    {
+      "name": "ADR-REPO-01: an org that saved nothing gets the default presets",
+      "deployment": null,
+      "org": null,
+      "agent": null,
+      "orgDefault": {"hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "gitlab.com", "preset": "gitlab-public"}, {"host": "bitbucket.org", "preset": "bitbucket-public"}]},
+      "hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "gitlab.com", "preset": "gitlab-public"}, {"host": "bitbucket.org", "preset": "bitbucket-public"}]
+    },
+    {
+      "name": "ADR-REPO-01: an admin's empty list turns the default off",
+      "deployment": null,
+      "org": {"hosts": []},
+      "agent": null,
+      "orgDefault": {"hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "gitlab.com", "preset": "gitlab-public"}, {"host": "bitbucket.org", "preset": "bitbucket-public"}]},
+      "hosts": []
+    },
+    {
+      "name": "ADR-REPO-01: an admin's own list replaces the default",
+      "deployment": null,
+      "org": {"hosts": [{"host": "git.example.com"}]},
+      "agent": null,
+      "orgDefault": {"hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "gitlab.com", "preset": "gitlab-public"}, {"host": "bitbucket.org", "preset": "bitbucket-public"}]},
+      "hosts": [{"host": "git.example.com"}]
+    },
+    {
+      "name": "ADR-REPO-01: the deployment's cap holds the default too",
+      "deployment": {"hosts": [{"host": "github.com"}]},
+      "org": null,
+      "agent": null,
+      "orgDefault": {"hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "gitlab.com", "preset": "gitlab-public"}, {"host": "bitbucket.org", "preset": "bitbucket-public"}]},
+      "hosts": [{"host": "github.com", "preset": "github-public"}]
+    },
+    {
+      "name": "ADR-REPO-01: an agent narrows the default",
+      "deployment": null,
+      "org": null,
+      "agent": {"hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/"]}]},
+      "orgDefault": {"hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "gitlab.com", "preset": "gitlab-public"}, {"host": "bitbucket.org", "preset": "bitbucket-public"}]},
+      "hosts": [{"host": "github.com", "prefixes": ["onyx-dot-app/"]}]
+    },
+    {
+      "name": "ADR-REPO-01: an agent cannot widen past the default",
+      "deployment": null,
+      "org": null,
+      "agent": {"hosts": [{"host": "git.example.com"}]},
+      "orgDefault": {"hosts": [{"host": "github.com", "preset": "github-public"}, {"host": "gitlab.com", "preset": "gitlab-public"}, {"host": "bitbucket.org", "preset": "bitbucket-public"}]},
+      "hosts": []
+    }
+  ]
+}

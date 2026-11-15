@@ -44,6 +44,7 @@ from app.api.routes.mcp_servers import (
     handle_oauth_callback,
     remove_credentials,
 )
+from tests.support.bound_org import bind_test_org
 
 
 def _mock_request(user=None, headers=None, app_state=None) -> MagicMock:
@@ -2045,3 +2046,9 @@ class TestTokenExchangeFailureMessage:
 
         message = _token_exchange_failure_message(code, registered_client=False)
         assert message == "Failed to exchange the authorization code for tokens. Please try connecting again."
+
+
+@pytest.fixture(autouse=True)
+def _bound_org() -> Iterator[str]:
+    """The auth middleware binds the verified token's org; these tests call the route functions directly."""
+    yield from bind_test_org("o1")

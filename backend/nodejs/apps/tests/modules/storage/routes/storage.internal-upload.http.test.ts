@@ -231,4 +231,43 @@ describe('Storage internal upload over HTTP: the local disk path', () => {
     expect(filesOnDisk()).to.have.length(4)
   })
 
+  // J26-N1, J26-N2 (WP-69): the worker stores a run's inputs here as workspace objects, so the route takes the larger
+  // of the platform's upload cap and the deployment's HARNESS_INPUT_MAX_MB (100 MiB by default).
+  const harnessObject = async (bytes: number): Promise<number> => {
+    const form = new FormData()
+    form.append('file', new Blob([Buffer.alloc(bytes, 0x30)], { type: 'application/octet-stream' }), 'object.bin')
+    form.append('documentPath', 'attachments/agent-harness-object-0')
+    form.append('isVersionedFile', 'false')
+    form.append('documentName', 'object')
+    form.append('extension', 'bin')
+    const res = await fetch(`${baseUrl}/internal/upload`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${scopedStorageServiceJwtGenerator(ORG_ID, SCOPED_JWT_SECRET, USER_ID)}` },
+      body: form,
+    })
+    await res.text()
+    return res.status
+  }
+
+  it("J26-N1: a 40 MB run input is stored past the platform's 30 MB upload cap", async () => {
+    const saved = process.env.HARNESS_INPUT_MAX_MB
+    delete process.env.HARNESS_INPUT_MAX_MB
+    try {
+      expect(await harnessObject(40 * 1000 * 1000)).to.equal(200)
+    } finally {
+      if (saved !== undefined) process.env.HARNESS_INPUT_MAX_MB = saved
+    }
+  })
+
+  it('J26-N2: past both caps an upload is still refused, and nothing is stored', async () => {
+    const saved = process.env.HARNESS_INPUT_MAX_MB
+    process.env.HARNESS_INPUT_MAX_MB = '20'
+    try {
+      expect(await harnessObject(40 * 1000 * 1000)).to.not.equal(200)
+      expect(filesOnDisk()).to.have.length(0)
+    } finally {
+      if (saved === undefined) delete process.env.HARNESS_INPUT_MAX_MB
+      else process.env.HARNESS_INPUT_MAX_MB = saved
+    }
+  })
 })

@@ -1,6 +1,7 @@
 """The server listings and the Discover button with the tool cache."""
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -10,6 +11,7 @@ from fastapi import HTTPException
 from app.agents.mcp.client import ToolListing
 from app.api.routes import mcp_servers
 from app.api.routes.mcp_servers import get_instance_tools, get_my_mcp_servers
+from tests.support.bound_org import bind_test_org
 from tests.unit.api.routes.mcp_route_fakes import FakeConfigService, route_request
 
 _CREDENTIALS = "/services/mcp/credentials/inst-1/user-1"
@@ -129,3 +131,9 @@ class TestTheListingsAnswerFromTheCache:
 
         assert discover.await_count == 2
         assert not [k for k in store.data if "tool-catalogs" in k]
+
+
+@pytest.fixture(autouse=True)
+def _bound_org() -> Iterator[str]:
+    """The auth middleware binds the verified token's org; these tests call the route functions directly."""
+    yield from bind_test_org("org-1")

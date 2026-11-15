@@ -34,7 +34,9 @@ vi.mock('../../../../components/workspace-right-panel', () => ({
   useWorkspaceDrawerNestedModalHost: () => null,
 }));
 // Native controls so the test can read the selected transport and the offered options.
-vi.mock('../../../../components', () => ({
+vi.mock('../../../../components', async () => ({
+  // The real wrapper: the panel's fields read the mocked FormField's ids through it.
+  FormFieldTextField: (await vi.importActual<typeof import('../../../../components/form-field')>('../../../../components/form-field')).FormFieldTextField,
   FormField: ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div role="group" aria-label={label}>
       {children}

@@ -237,6 +237,18 @@ describe('SkillsApi', () => {
       expect(mockedPost).toHaveBeenCalledWith(`${BASE_URL}/candidates/c1/approve`);
     });
 
+    it('approveCandidate sends the reviewer\'s edits in the same call', async () => {
+      mockedPost.mockResolvedValueOnce({ data: { name: 'pdf-extractor' } });
+      await SkillsApi.approveCandidate('c1', { description: 'Use for PDFs.', changeNote: 'Clearer' });
+      expect(mockedPost).toHaveBeenCalledWith(`${BASE_URL}/candidates/c1/approve`, { description: 'Use for PDFs.', changeNote: 'Clearer' });
+    });
+
+    it('renameSkill posts the shown name with If-Match', async () => {
+      mockedPost.mockResolvedValueOnce({ data: { name: 'pdf', displayName: 'PDF tools', changeNote: null } });
+      await SkillsApi.renameSkill('pdf', 'PDF tools', 123);
+      expect(mockedPost).toHaveBeenCalledWith(`${BASE_URL}/pdf/rename`, { displayName: 'PDF tools' }, { headers: { 'If-Match': '123' } });
+    });
+
     it('rejectCandidate posts to the reject endpoint', async () => {
       mockedPost.mockResolvedValueOnce({ data: { status: 'success' } });
       await SkillsApi.rejectCandidate('c1');
@@ -280,6 +292,24 @@ describe('SkillsApi', () => {
         category: 'documents',
         subcategory: 'pdf',
         name: 'pdf-anthropic',
+      });
+    });
+  });
+
+  describe('imported skill reviews (WP-85)', () => {
+    it('getPendingReviews GETs /reviews/pending', async () => {
+      mockedGet.mockResolvedValueOnce({ data: { reviews: [{ name: 'x' }] } });
+      expect(await SkillsApi.getPendingReviews()).toEqual([{ name: 'x' }]);
+      expect(mockedGet).toHaveBeenCalledWith(`${BASE_URL}/reviews/pending`);
+    });
+
+    it('reviewSkill POSTs the decision by digest', async () => {
+      mockedPost.mockResolvedValueOnce({ data: { review: { state: 'trusted' } } });
+      expect(await SkillsApi.reviewSkill('a b', 'sha256:x', 'approve', true)).toEqual({ state: 'trusted' });
+      expect(mockedPost).toHaveBeenCalledWith(`${BASE_URL}/a%20b/review`, {
+        digest: 'sha256:x',
+        decision: 'approve',
+        acknowledgeFindings: true,
       });
     });
   });

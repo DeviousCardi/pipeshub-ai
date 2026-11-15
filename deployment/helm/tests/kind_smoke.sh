@@ -130,6 +130,7 @@ echo "${LOG_PREFIX}: installing (helm waits up to ${HELM_TIMEOUT} for every pod 
 if ! helm install "$RELEASE" "$CHART" \
   --namespace "$NAMESPACE" --create-namespace \
   -f "$VALUES_FILE" \
+  --set hardened=true \
   --set image.repository="${APP_IMAGE%:*}" \
   --set image.tag="${APP_IMAGE##*:}" \
   --set secretKey="$(openssl rand -hex 32)" \
@@ -235,9 +236,15 @@ if params.get("replication_factor") != 2:
     || die "redis replica is not connected"
   kubectl exec -n "$NAMESPACE" "$REDIS_POD" -- redis-cli CONFIG GET maxmemory-policy | grep -q noeviction \
     || die "redis maxmemory-policy is not noeviction"
-  kubectl exec -i -n "$NAMESPACE" "deploy/${RELEASE}" -- python - <<'PY' || die "sandbox run_code via DinD and docker-proxy failed"
+  # D1: the daemon is in the sandbox-broker pod; the app pods have none.
+  app_containers="$(kubectl get deploy -n "$NAMESPACE" "$RELEASE" -o jsonpath='{.spec.template.spec.containers[*].name}')"
+  [[ " $app_containers " != *" dind "* ]] || die "the app pod still runs the dind sidecar"
+  [[ " $app_containers " != *" docker-proxy "* ]] || die "the app pod still runs the docker-proxy sidecar"
+  kubectl exec -n "$NAMESPACE" "deploy/${RELEASE}" -- test ! -e /var/run/dind/docker.sock \
+    || die "the app container can see the DinD daemon socket"
+  kubectl exec -i -n "$NAMESPACE" "deploy/${RELEASE}-sandbox-broker" -c sandbox-broker -- python - <<'PY' || die "sandbox run_code via the broker's DinD failed"
 import os
-os.environ.setdefault("DOCKER_HOST", "tcp://127.0.0.1:2375")
+os.environ.setdefault("DOCKER_HOST", "unix:///var/run/dind/docker.sock")
 import docker
 client = docker.from_env()
 image = os.environ["SANDBOX_DOCKER_IMAGE"]
@@ -247,16 +254,6 @@ text = out.decode() if isinstance(out, bytes) else str(out)
 if "2" not in text:
     raise SystemExit(text)
 print(text)
-# The app reaches the daemon only through docker-proxy, which refuses this.
-try:
-    client.containers.create(image, ["true"], privileged=True, network_mode="none")
-except docker.errors.APIError as exc:
-    if exc.status_code != 403:
-        raise
-else:
-    raise SystemExit("docker-proxy admitted a privileged container")
-if os.path.exists("/var/run/dind/docker.sock"):
-    raise SystemExit("the app container can see the DinD daemon socket")
 PY
 fi
 

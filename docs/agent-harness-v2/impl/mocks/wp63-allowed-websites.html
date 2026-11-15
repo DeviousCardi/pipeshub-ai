@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WP-63 mock: Allowed websites, Git hosts for cloning, clone approval, run activity</title>
+<style>
+  :root {
+    --bg: #f7f7f8; --panel: #ffffff; --text: #1d1f23; --muted: #5d6470; --line: #e3e5e8;
+    --accent: #2f6fde; --accent-soft: #e8f0fd; --warn: #a15c00; --warn-soft: #fff4e0;
+    --bad: #b42318; --bad-soft: #fdecea; --ok: #18794e; --ok-soft: #e6f4ec; --rec: #6b3fd4; --rec-soft: #f1ebfd;
+    --chip: #eef0f3;
+  }
+  [data-theme="dark"] {
+    --bg: #111317; --panel: #1a1d23; --text: #e7e9ec; --muted: #9aa1ad; --line: #2c3038;
+    --accent: #6a9cf5; --accent-soft: #1f2b44; --warn: #f0b45a; --warn-soft: #3a2c14;
+    --bad: #f2786b; --bad-soft: #3b1d1a; --ok: #5cc994; --ok-soft: #173326; --rec: #b49cf5; --rec-soft: #2a2140;
+    --chip: #252a32;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+  header.top { display: flex; gap: 12px; align-items: center; padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+  header.top h1 { font-size: 16px; margin: 0; flex: 1; }
+  button, .btn { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.danger { color: var(--bad); }
+  .btn.small { padding: 3px 8px; font-size: 12px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px; display: grid; gap: 28px; }
+  section.screen { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; }
+  section.screen > h2 { margin: 0 0 4px; font-size: 18px; }
+  .where { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+  h3 { font-size: 15px; margin: 18px 0 6px; }
+  p.help { color: var(--muted); margin: 4px 0 12px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 8px 0; background: var(--panel); }
+  .preset { display: flex; gap: 12px; align-items: flex-start; }
+  .preset .body { flex: 1; }
+  .switch { width: 36px; height: 20px; border-radius: 10px; background: var(--chip); border: 1px solid var(--line); position: relative; flex: none; margin-top: 2px; }
+  .switch.on { background: var(--accent); border-color: var(--accent); }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .switch.on::after { left: 18px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; background: var(--chip); font-size: 12px; margin: 1px 2px 1px 0; }
+  .chip.read { background: var(--ok-soft); color: var(--ok); }
+  .chip.rw { background: var(--warn-soft); color: var(--warn); }
+  .chip.host { background: var(--bad-soft); color: var(--bad); }
+  .muted { color: var(--muted); }
+  input[type=text], select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+  input.err { border-color: var(--bad); }
+  .error { color: var(--bad); font-size: 12px; margin-top: 3px; }
+  .banner { border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
+  .banner.warn { background: var(--warn-soft); color: var(--warn); }
+  .banner.bad { background: var(--bad-soft); color: var(--bad); }
+  .rec { border: 1px dashed var(--rec); background: var(--rec-soft); color: var(--rec); border-radius: 8px; padding: 6px 10px; font-size: 12px; margin: 6px 0; }
+  .rec::before { content: "Recommendation: "; font-weight: 600; }
+  .modal { border: 1px solid var(--line); border-radius: 12px; padding: 16px; max-width: 460px; box-shadow: 0 6px 24px rgba(0,0,0,.18); background: var(--panel); }
+  .modal h4 { margin: 0 0 8px; font-size: 15px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 410px; gap: 22px; align-items: start; }
+  .phone { width: 390px; border: 10px solid #20232a; border-radius: 34px; overflow: hidden; background: var(--bg); }
+  .phone .inner { padding: 14px 12px; min-height: 560px; }
+  .approval { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 14px; background: var(--panel); }
+  .approval .title { font-weight: 600; margin-bottom: 4px; }
+  .approval .why { color: var(--muted); font-size: 13px; margin: 6px 0 10px; }
+  .approval .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .phone .approval .actions { flex-direction: column; }
+  .phone .approval .actions .btn { width: 100%; }
+  .activity { border-left: 2px solid var(--line); padding-left: 12px; }
+  .activity details { margin: 4px 0; }
+  .activity summary { cursor: pointer; color: var(--muted); }
+  .line { padding: 3px 0; display: flex; gap: 8px; align-items: baseline; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-1px); }
+  .dot.ok { background: var(--ok); } .dot.bad { background: var(--bad); } .dot.wait { background: var(--warn); }
+  ol.q li { margin: 6px 0; }
+  .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--chip); border-radius: 4px; padding: 0 4px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-theme="light">
+<header class="top">
+  <h1>WP-63 mock for owner review: outside access for agent sandboxes</h1>
+  <span class="muted">Static mock, no live data</span>
+  <button id="theme" class="btn">Switch to dark</button>
+</header>
+<main>
+
+<section class="screen" id="admin-websites">
+  <h2>Admin: Allowed websites</h2>
+  <div class="where">Workspace settings &gt; Security &gt; Allowed websites (org admins). Same section as the API: <span class="kbd">PUT /api/v1/control-plane/policy/org/current/websites</span></div>
+  <p class="help">Agents run code in a sandbox that cannot reach the internet. Turn on the sites they may use. Every request is checked, counted against the run's outside-traffic limit and shown in the run's activity. Off by default.</p>
+  <div class="rec">Keep every site read-only unless an agent must send data there. Read-only allows reading pages and downloading packages, never uploading.</div>
+
+  <h3>Presets</h3>
+  <div class="card preset">
+    <div class="switch" title="Off"></div>
+    <div class="body"><b>Package registries</b> <span class="chip read">Read-only</span><br>
+      <span class="muted">Install packages from npm, PyPI, crates.io, the Go module proxy and Maven Central. Never a publish.</span><br>
+      <span class="chip">registry.npmjs.org</span><span class="chip">pypi.org</span><span class="chip">files.pythonhosted.org</span><span class="chip">crates.io</span><span class="chip">proxy.golang.org</span><span class="chip">repo1.maven.org</span> <span class="muted">+4 more</span></div>
+  </div>
+  <p class="help">Git hosts such as github.com are not websites here. Agents clone repositories with an approved clone (see "Git hosts for cloning" below).</p>
+
+  <h3>Your sites</h3>
+  <table>
+    <thead><tr><th>Site</th><th>Access</th><th>Limited to</th><th>Note</th><th></th></tr></thead>
+    <tbody>
+      <tr><td>docs.example.com</td><td><span class="chip read">Read-only</span></td><td><span class="chip">/api/</span></td><td class="muted">Product API reference</td><td><button class="btn small">Edit</button></td></tr>
+      <tr><td>*.docs.internal-wiki.com</td><td><span class="chip read">Read-only</span></td><td class="muted">Whole site</td><td class="muted">All subdomains, not internal-wiki.com itself</td><td><button class="btn small">Edit</button></td></tr>
+      <tr><td>mirror.acme.net</td><td><span class="chip rw">Read and write</span></td><td class="muted">Whole site</td><td class="muted">Build artifacts upload</td><td><button class="btn small">Edit</button></td></tr>
+      <tr><td>license.vendor.io</td><td><span class="chip host">Host-level only</span></td><td class="muted">Cannot be limited</td><td class="muted">Pinned licence client</td><td><button class="btn small">Edit</button></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Add a site</h3>
+  <div class="row">
+    <div><input type="text" value="https://github.com/example-org" class="err" size="30"><div class="error">Enter only the site name, like github.com; limit paths below.</div></div>
+    <select><option>Read-only</option><option>Read and write</option></select>
+    <button class="btn primary">Add</button>
+  </div>
+  <p class="help">More errors the form shows, one per field:</p>
+  <table>
+    <tbody>
+      <tr><td class="kbd">*</td><td class="error">A wildcard needs a domain, like *.example.com</td></tr>
+      <tr><td class="kbd">*.co.uk</td><td class="error">*.co.uk would allow every site under co.uk; name one site</td></tr>
+      <tr><td class="kbd">10.0.0.8</td><td class="error">IP addresses cannot be allowed; use the site's name (the deployment can list a private name)</td></tr>
+      <tr><td class="kbd">metadata.google.internal</td><td class="error">Private and internal names cannot be allowed unless the deployment lists them</td></tr>
+      <tr><td class="kbd">http://docs.example.com</td><td class="error">Only https sites can be allowed, not http</td></tr>
+      <tr><td class="kbd">github.com</td><td class="error">Git hosts are never websites: agents clone repositories with ph git clone, which asks first</td></tr>
+      <tr><td class="kbd">pastebin.com, read and write</td><td class="error">pastebin.com can only be read: anyone can read back what is sent to it</td></tr>
+      <tr><td class="kbd">gitlab.example.org, read and write (cap)</td><td class="error">This deployment allows gitlab.example.org read-only</td></tr>
+      <tr><td class="kbd">pipeshub.acme.com</td><td class="error">PipesHub's own address cannot be an allowed website</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Choosing "Read and write"</h3>
+  <div class="row" style="align-items:flex-start; gap:22px">
+    <div class="modal">
+      <h4>Let agents send data to mirror.acme.net?</h4>
+      <p>With read and write, an agent can upload files and send any data this run has seen to mirror.acme.net. If a conversation has read private data, PipesHub asks the person before each run uses it.</p>
+      <label class="row"><input type="checkbox" checked> I confirm agents may send data to this site</label>
+      <div class="row" style="justify-content:flex-end; margin-top:12px"><button class="btn">Cancel</button><button class="btn primary">Allow read and write</button></div>
+    </div>
+    <div class="modal">
+      <h4>Host-level only (advanced)</h4>
+      <div class="banner bad">Host-level only: the agent can send data to this host, and PipesHub cannot see or limit what it sends.</div>
+      <p class="muted">Use only for a program that refuses PipesHub's inspection (a pinned client or an internal mirror). Not offered for package registries, git hosts or paste and storage sites. Needs the deployment's tunnel switch.</p>
+      <label class="row"><input type="checkbox"> I understand PipesHub cannot inspect this site</label>
+      <div class="row" style="justify-content:flex-end; margin-top:12px"><button class="btn">Cancel</button><button class="btn primary" disabled>Allow host-level</button></div>
+    </div>
+  </div>
+  <div class="rec">Offer host-level only behind an "Advanced" disclosure and only when the deployment's tunnel switch is on.</div>
+
+  <h3>Changes</h3>
+  <table>
+    <thead><tr><th>When</th><th>Who</th><th>What changed</th><th></th></tr></thead>
+    <tbody>
+      <tr><td>Today 10:42</td><td>Priya (admin)</td><td>Added mirror.acme.net, read and write (confirmed)</td><td><button class="btn small">Restore this version</button></td></tr>
+      <tr><td>Today 10:40</td><td>Priya (admin)</td><td>Turned on Package registries</td><td><button class="btn small">Restore this version</button></td></tr>
+      <tr><td>Yesterday</td><td>Sam (admin)</td><td>Limited docs.example.com to /api/</td><td><button class="btn small">Restore this version</button></td></tr>
+    </tbody>
+  </table>
+  <p class="help">Every save is checked against the version you opened; if someone saved in between you are asked to reload.</p>
+</section>
+
+<section class="screen" id="admin-git">
+  <h2>Admin: Git hosts for cloning</h2>
+  <div class="where">Workspace settings &gt; Security &gt; Git hosts for cloning (org admins)</div>
+  <p class="help">Agents never reach git hosts from their sandbox. When an agent needs a repository, PipesHub clones it outside the sandbox after the person approves, and hands the agent a copy. Pushing is never possible this way.</p>
+  <div class="card preset">
+    <div class="switch" title="Off"></div>
+    <div class="body"><b>github.com public repositories</b> <span class="chip read">Read-only</span><br>
+      <span class="muted">Public repositories on github.com, no sign-in. Private repositories use a connected GitHub account in the chat instead.</span></div>
+  </div>
+  <h3>Other hosts and limits</h3>
+  <table>
+    <thead><tr><th>Host</th><th>Only these owners or repositories</th><th></th></tr></thead>
+    <tbody>
+      <tr><td>github.com</td><td><span class="chip">example-org/</span><span class="chip">acme/</span></td><td><button class="btn small">Edit</button></td></tr>
+      <tr><td>gitlab.com</td><td class="muted">Any public repository</td><td><button class="btn small">Edit</button></td></tr>
+    </tbody>
+  </table>
+  <h3>Storage</h3>
+  <div class="row"><label>Cache size <input type="text" value="2 GB" size="6"></label><label>Largest repository <input type="text" value="500 MB" size="6"></label><label>Clones at once <input type="text" value="2" size="3"></label></div>
+  <div class="rec">Keep the laptop defaults (2 GB cache, 500 MB per repository, 2 clones at once); raise them on servers.</div>
+</section>
+
+<section class="screen" id="agent-builder">
+  <h2>Agent builder: Websites this agent may use</h2>
+  <div class="where">Agent builder &gt; Tools &gt; Outside access (agent owners)</div>
+  <p class="help">Choose from what your organization allows. You can turn a site off or make it read-only; you cannot add a site your organization has not allowed.</p>
+  <table>
+    <thead><tr><th>Site</th><th>Org allows</th><th>This agent</th></tr></thead>
+    <tbody>
+      <tr><td>docs.example.com /api/</td><td><span class="chip read">Read-only</span></td><td><div class="switch on"></div></td></tr>
+      <tr><td>mirror.acme.net</td><td><span class="chip rw">Read and write</span></td><td><select><option>Read-only</option><option>Read and write</option><option>Off</option></select></td></tr>
+      <tr><td>Package registries</td><td><span class="chip read">Read-only</span></td><td><div class="switch"></div></td></tr>
+    </tbody>
+  </table>
+  <div class="rec">New agents start with every site off; the owner turns on what the agent needs.</div>
+</section>
+
+<section class="screen" id="clone-card">
+  <h2>Chat: clone approval card</h2>
+  <div class="where">Shown in the conversation, the approvals inbox and the approval link, every time an agent asks to clone a repository</div>
+  <div class="grid2">
+    <div>
+      <div class="approval">
+        <div class="title">Clone github.com/example-org/repo?</div>
+        <div>Public, read-only, about 42 MB. PipesHub copies it into the agent's workspace; nothing is sent back to github.com.</div>
+        <div class="why">The agent asked: "I need the project source to compare its connector code."</div>
+        <div class="banner warn">This conversation has read private data. The repository address is sent to github.com.</div>
+        <div class="actions"><button class="btn primary">Allow once</button><button class="btn">Allow this repository for this conversation</button><button class="btn danger">Deny</button></div>
+      </div>
+      <p class="help">A later fetch of the same repository in this conversation is covered by "Allow this repository for this conversation". Another repository asks again.</p>
+      <div class="approval" style="border-left-color: var(--bad)">
+        <div class="title">Clone not available</div>
+        <div class="muted">gitlab.internal.acme.net is not on your organization's list of git hosts. An admin can add it in Security settings.</div>
+      </div>
+    </div>
+    <div class="phone"><div class="inner">
+      <div class="muted" style="font-size:12px;margin-bottom:8px">Phone, 390 px</div>
+      <div class="approval">
+        <div class="title">Clone github.com/example-org/repo?</div>
+        <div>Public, read-only, about 42 MB.</div>
+        <div class="banner warn">This conversation has read private data.</div>
+        <div class="actions"><button class="btn primary">Allow once</button><button class="btn">Allow this repository here</button><button class="btn danger">Deny</button></div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<section class="screen" id="activity">
+  <h2>Run activity: outside access</h2>
+  <div class="where">Inline timeline in the chat, collapsed by default; the trace drawer shows the same lines</div>
+  <div class="activity">
+    <details open><summary>Outside access (6)</summary>
+      <div class="line"><span class="dot wait"></span>Asked to clone github.com/example-org/repo</div>
+      <div class="line"><span class="dot ok"></span>Cloned github.com/example-org/repo (42 MB, read-only)</div>
+      <div class="line"><span class="dot ok"></span>Read docs.example.com/api/v2: allowed, read-only</div>
+      <div class="line"><span class="dot bad"></span>Blocked upload to docs.example.com/api/v2 (read-only)</div>
+      <div class="line"><span class="dot bad"></span>Blocked github.com: not an allowed website</div>
+      <div class="line"><span class="dot bad"></span>Blocked internal.acme.net: it points to a private address</div>
+    </details>
+    <details><summary>Other examples</summary>
+      <div class="line"><span class="dot bad"></span>Clone denied by you</div>
+      <div class="line"><span class="dot ok"></span>Sent data to mirror.acme.net/upload: allowed, read and write</div>
+      <div class="line"><span class="dot ok"></span>Connected to license.vendor.io: host-level only, not inspected</div>
+      <div class="line"><span class="dot bad"></span>Blocked git at mirror.acme.net/r.git: clone repositories with ph git clone</div>
+      <div class="line"><span class="dot bad"></span>Blocked docs.example.com/blog: outside the allowed paths</div>
+    </details>
+  </div>
+  <div class="rec">Show at most the first 20 lines with "Show all"; no ids, no query strings, no raw codes.</div>
+</section>
+
+<section class="screen" id="questions">
+  <h2>Owner questions</h2>
+  <ol class="q">
+    <li>Clone card: keep three buttons (Allow once, Allow this repository for this conversation, Deny), or drop "Allow once"? <span class="muted">Recommendation: keep all three, as the other approval cards do.</span></li>
+    <li>Should "github.com public repositories" stay off by default for new organizations? <span class="muted">Recommendation: off, as decided for websites.</span></li>
+    <li>Host-level only sites: offer them at all in this release? <span class="muted">Recommendation: yes, behind Advanced and the deployment's tunnel switch.</span></li>
+    <li>After a conversation reads private data, read-write sites are switched to read-only for that run until a person allows it. Is a per-run "Allow uploads to mirror.acme.net" card wanted now, or later? <span class="muted">Recommendation: later; today the run activity says why uploads are held.</span></li>
+    <li>A first clone's card says "up to 500 MB": nothing is sent to the git host before you approve, because the address itself could carry data out. Later cards show "about N MB". Acceptable?</li>
+    <li>The server-side mirror (a PipesHub service that keeps approved repositories mirrored) is the next option after this per-clone fetch. Build it later?</li>
+    <li>Default limits for laptops (2 GB cache, 500 MB per repository, 2 clones at once): accept?</li>
+    <li>Agent builder: should a new agent start with all org sites off (recommended) or inherit the org's list?</li>
+    <li>Per-run short-lived signing certificates for inspection are recorded as follow-up (no new key material now). Confirm it stays after credential rotation.</li>
+  </ol>
+</section>
+</main>
+<script>
+  const button = document.getElementById('theme');
+  button.addEventListener('click', () => {
+    const dark = document.body.dataset.theme !== 'dark';
+    document.body.dataset.theme = dark ? 'dark' : 'light';
+    button.textContent = dark ? 'Switch to light' : 'Switch to dark';
+  });
+</script>
+</body>
+</html>

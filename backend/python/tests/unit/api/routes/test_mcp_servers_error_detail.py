@@ -1,6 +1,7 @@
 """Who gets to see a STDIO server's stderr in `app.api.routes.mcp_servers` responses."""
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -16,6 +17,7 @@ from app.agents.mcp.errors import (
 from app.api.routes import mcp_servers
 from app.api.routes.mcp_servers import get_instance_tools, get_my_mcp_servers
 from app.utils.user_messages import action_failed
+from tests.support.bound_org import bind_test_org
 from tests.unit.agents.mcp.refresh_failures import (
     BODY_SECRET,
     TOKEN_HOST,
@@ -191,6 +193,12 @@ async def test_a_healthy_listing_has_no_code() -> None:
         result = await get_my_mcp_servers(route_request(_store()), include_tools=True)
 
     assert result["instances"][0]["toolsErrorCode"] is None
+
+
+@pytest.fixture(autouse=True)
+def _bound_org() -> Iterator[str]:
+    """The auth middleware binds the verified token's org; these tests call the route functions directly."""
+    yield from bind_test_org("org-1")
 
 
 # A refresh the sign-in provider or another process stopped: no Reconnect, which wouldn't help.

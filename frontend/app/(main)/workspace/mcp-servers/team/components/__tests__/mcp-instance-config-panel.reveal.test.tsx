@@ -43,7 +43,9 @@ vi.mock('../../../../components/workspace-right-panel', () => ({
       </div>
     ) : null,
 }));
-vi.mock('../../../../components', () => ({
+vi.mock('../../../../components', async () => ({
+  // The real wrapper: the panel's fields read the mocked FormField's ids through it.
+  FormFieldTextField: (await vi.importActual<typeof import('../../../../components/form-field')>('../../../../components/form-field')).FormFieldTextField,
   FormField: ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div role="group" aria-label={label}>
       {children}

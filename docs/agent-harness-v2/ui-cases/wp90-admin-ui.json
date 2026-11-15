@@ -1,0 +1,66 @@
+{
+  "title": "WP-90 Admin UI: who agent messages are from (Workspace settings > AI Access, read only), Check what a chat gets (agent builder), and the WP-63 Allowed websites screens it closes (C11.04)",
+  "spec": null,
+  "unitTests": [
+    "frontend/app/(main)/workspace/ai-access/__tests__/wp23-agent-data.test.tsx",
+    "frontend/app/(main)/agents/agent-builder/components/__tests__/wp90-dry-run.test.tsx",
+    "frontend/app/(main)/workspace/allowed-websites/__tests__/allowed-websites-page.test.tsx",
+    "frontend/app/(main)/workspace/allowed-websites/__tests__/websites-form.test.ts",
+    "frontend/app/(main)/agents/agent-builder/components/__tests__/agent-websites.test.tsx",
+    "frontend/app/(main)/agents/agent-builder/__tests__/agent-websites.test.ts",
+    "backend/nodejs/apps/tests/modules/control-plane/wp90-admin-ui.http.test.ts",
+    "backend/nodejs/apps/tests/modules/control-plane/wp63-websites-section.http.test.ts"
+  ],
+  "mock": "docs/agent-harness-v2/impl/mocks/wp90-admin-ui.html",
+  "mocks": [
+    "docs/agent-harness-v2/impl/mocks/wp90-admin-ui.html",
+    "docs/agent-harness-v2/impl/mocks/wp63-allowed-websites.html"
+  ],
+  "screenshots": {
+    "pattern": "<name>-<desktop|phone>-<light|dark>.png",
+    "viewports": { "desktop": "1280x900", "phone": "390x844" },
+    "where": "WP-63's screens (Allowed websites, Git hosts, agent narrowing, clone and upload cards, activity lines) were taken in light, dark and at 390 px by WP-63 on a lane stack. WP-90's new cards have none yet: no Playwright stack spec ran in this package; the unit tests above cover each case with Node's and Python's routes mocked"
+  },
+  "routed": "Nothing new is routed: the cards use the existing policy section routes (R10, R11, If-Match), explain (R21), GET /api/v1/agents, GET /api/v1/toolsets/my-toolsets?scope=org and GET /api/v1/toolsets/agents/{agentKey}",
+  "cases": [
+    {
+      "id": "UI-DRY-1",
+      "title": "Check what a chat gets",
+      "scenario": ["C4.09"],
+      "steps": ["Open a saved agent in the agent builder", "Under run settings, press Check now"],
+      "expected": [
+        "Runs on, Model, Coding engine, Limits per message (steps, dollars, minutes) and Who messages are from, in plain words",
+        "Tools it can use, each with its name and tool count; Not available, each with one sentence of why (connect it under Your actions, not turned on for this agent, ...)",
+        "Nothing runs and nothing is sent; no id, digest or setting name"
+      ],
+      "screenshots": ["ui-dry-1-check"]
+    },
+    {
+      "id": "UI-DRY-2",
+      "title": "Check not available",
+      "scenario": ["C4.09"],
+      "steps": ["On a server with CONTROL_PLANE_PIN=off, press Check now"],
+      "expected": ["'This check isn't available on this server.' and no button"],
+      "screenshots": ["ui-dry-2-unavailable"]
+    },
+    {
+      "id": "UI-DRY-3",
+      "title": "Unsaved changes or a new agent",
+      "scenario": ["C4.09"],
+      "steps": ["Edit the agent without saving", "Open a new, unsaved agent"],
+      "expected": ["Edited: a note that the check uses the saved agent", "New: 'Save the agent to check what a chat with it gets.'"],
+      "screenshots": ["ui-dry-3-unsaved"]
+    },
+    {
+      "id": "AD-03-UI",
+      "title": "Allowed websites (WP-63, closes C11.04)",
+      "scenario": ["AD-03", "C11.04"],
+      "steps": ["Workspace settings > Security > Allowed websites: add, edit, read-write confirm, host-level (Advanced), Changes and Restore", "Agent builder > Websites this agent may use"],
+      "expected": [
+        "As the WP-63 mock and its screenshots; every save, narrowing and restore is one config.changed entry (WP-90 Node test)",
+        "The session level is the run's cards (clone per conversation, uploads per run), never an editor: a chat cannot widen the org's list"
+      ],
+      "screenshots": ["admin-websites-*", "agent-builder-websites-*", "chat-upload-card-*"]
+    }
+  ]
+}

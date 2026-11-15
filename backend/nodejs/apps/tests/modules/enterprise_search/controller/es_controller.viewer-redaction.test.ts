@@ -34,6 +34,11 @@ const SESSION = 'dddddddddddddddddddddddd'
 const CIT_OK = 'eeeeeeeeeeeeeeeeeeeeeeee'
 const CIT_NO = 'ffffffffffffffffffffffff'
 const SECRET = 'SECRET-quarterly-numbers'
+/** A citation the viewer may not read: the one placeholder the chat renders (it keeps its [N] by its chunk). */
+const withheld = (index: number, chunkIndex: number | null = 1) => ({
+  citationId: `unavailable-${index}`,
+  citationData: { ...(chunkIndex === null ? {} : { chunkIndex }), unavailable: true },
+})
 
 const appConfig: any = {
   aiBackend: 'http://localhost:8000',
@@ -102,7 +107,7 @@ const richAnswer = () => ({
 })
 
 /** Everything except record references is as the owner sees it; references to R_NO are gone. */
-const expectRecordsOnlyRedacted = (message: any, readableToo = true) => {
+const expectRecordsOnlyRedacted = (message: any, readableToo = true, artifactsChecked = true) => {
   const wire = JSON.stringify({ ...message, tools: undefined, parts: undefined })
   expect(wire).to.not.contain(SECRET)
   expect(wire).to.not.contain(R_NO)
@@ -117,7 +122,13 @@ const expectRecordsOnlyRedacted = (message: any, readableToo = true) => {
   expect(message.appliedFilters.records[1]).to.deep.equal(hidden)
   // Tool steps and results are shown as written (per-record redaction of them is a follow-up).
   expect(message.tools).to.deep.equal(richAnswer().tools)
-  expect(message.parts).to.deep.equal(richAnswer().parts)
+  // The harness hides an artifact the viewer cannot read (SS0): its id leaves the tool step; the step stays as written.
+  const parts = richAnswer().parts.map((part) => {
+    if (!artifactsChecked || !('artifactId' in part)) return part
+    const { artifactId: _hidden, ...rest } = part
+    return rest
+  })
+  expect(message.parts).to.deep.equal(parts)
   if (readableToo) {
     expect(message.referenceData[0].name).to.equal(OK_NAME)
     expect(message.appliedFilters.records[0].name).to.equal(OK_NAME)
@@ -196,7 +207,7 @@ describe('shared chats: per-viewer citations', () => {
 
     expect(message.citations).to.have.length(2)
     expect(message.citations[0].citationData.content).to.equal('readable text')
-    expect(message.citations[1]).to.deep.equal({ redacted: true, reason: 'no_access' })
+    expect(message.citations[1]).to.deep.equal(withheld(1))
     expect(message.attachments).to.deep.equal([{ recordId: 'att-ok', recordName: 'ok.pdf' }])
     const wire = JSON.stringify(message)
     for (const leaked of [SECRET, 'rec-no', 'att-no', 'hidden-name', CIT_NO]) expect(wire).to.not.contain(leaked)
@@ -271,7 +282,7 @@ describe('shared chats: per-viewer citations', () => {
     })
     stubPeerConversation([{ ...answer(), referenceData: [{ name: SECRET, id: 'v-1', webUrl: 'https://x/rec-no' }] }])
     const message = await fetchConversation(VIEWER)
-    expect(message.citations).to.deep.equal([{ redacted: true, reason: 'no_access' }, { redacted: true, reason: 'no_access' }])
+    expect(message.citations).to.deep.equal([withheld(0), withheld(1)])
     expect(message.attachments).to.deep.equal([])
     expect(JSON.stringify(message)).to.not.contain(SECRET)
   })
@@ -332,7 +343,7 @@ describe('shared chats: per-viewer citations', () => {
     sinon.assert.notCalled(next)
     const message = r.json.firstCall.args[0].conversation.messages[0]
     expectRecordsOnlyRedacted(message)
-    expect(message.citations[1]).to.deep.equal({ redacted: true, reason: 'no_access' })
+    expect(message.citations[1]).to.deep.equal(withheld(1))
     expect(message.attachments).to.deep.equal([{ recordId: 'att-ok', recordName: 'ok.pdf' }])
   })
 
@@ -351,7 +362,7 @@ describe('shared chats: per-viewer citations', () => {
     stubPeerConversation([answer()])
     const message = await fetchConversation(VIEWER)
 
-    expect(message.citations).to.deep.equal([{ redacted: true, reason: 'no_access' }, { redacted: true, reason: 'no_access' }])
+    expect(message.citations).to.deep.equal([withheld(0), withheld(1)])
     expect(message.attachments).to.deep.equal([])
     expect(JSON.stringify(message)).to.not.contain(SECRET)
   })
@@ -366,7 +377,8 @@ describe('shared chats: per-viewer citations', () => {
     await listAllArchivesConversation(appConfig)(req(VIEWER), r, sinon.stub())
 
     const message = r.json.firstCall.args[0].conversations[0].messages[0]
-    expectRecordsOnlyRedacted(message)
+    // The archive list is redacted by record access only: the harness's artifact check runs on a conversation read.
+    expectRecordsOnlyRedacted(message, true, false)
   })
 
   it('an archive of another user\'s chat resolves stored citation ids and redacts the same way', async () => {
@@ -398,7 +410,8 @@ describe('shared chats: per-viewer citations', () => {
     sinon.assert.notCalled(next)
     const [citations] = [r.json.firstCall.args[0].conversations[0].messages[0].citations]
     expect(citations[0].excerpt).to.equal('readable excerpt')
-    expect(citations[1]).to.deep.equal({ redacted: true, reason: 'no_access' })
+    // A bare stored id: its chunk is not read.
+    expect(citations[1]).to.deep.equal(withheld(1, null))
     expect(JSON.stringify(citations)).to.not.contain(SECRET)
   })
 
@@ -527,7 +540,7 @@ describe('shared chats: per-viewer citations', () => {
     const search = { _id: 's1', userId: VIEWER, citationIds: [citation(CIT_OK, 'rec-ok', 'readable text'), citation(CIT_NO, 'rec-no', SECRET), bare, { content: 'no record here' }], records: { 'rec-ok': 'a', 'rec-no': SECRET } }
     sinon.stub(EnterpriseSemanticSearch, 'find').returns(chain([search]))
     const r = res()
-    await getSearchById(appConfig)(req(VIEWER, { params: { searchId: SESSION } }), r, sinon.stub())
+    await getSearchById(appConfig)(req(VIEWER, { params: { searchId: SESSION } }), r, sinon.stub() as any)
 
     const out = r.json.firstCall.args[0][0]
     expect(out.citationIds[0].content).to.equal('readable text')
@@ -543,7 +556,7 @@ describe('shared chats: per-viewer citations', () => {
     const search = { _id: 's1', userId: VIEWER, citationIds: [citation(CIT_NO, 'rec-no', SECRET)], records: { 'rec-no': SECRET } }
     sinon.stub(EnterpriseSemanticSearch, 'find').returns(chain([search]))
     const r = res()
-    await getSearchById(appConfig)(req(VIEWER, { params: { searchId: SESSION } }), r, sinon.stub())
+    await getSearchById(appConfig)(req(VIEWER, { params: { searchId: SESSION } }), r, sinon.stub() as any)
 
     const out = r.json.firstCall.args[0][0]
     expect(out.citationIds).to.deep.equal([{ redacted: true, reason: 'access_check_unavailable' }])
@@ -637,7 +650,7 @@ describe('lost access hides the whole answer, for the owner too', () => {
     sinon.stub(ChatSession, 'countDocuments').resolves(1)
     sinon.stub(ChatSessionMessage, 'find').returns(chain([{ sessionId: SESSION, ...answer(), citations: [{ citationId: citation(CIT_NO, 'rec-no', SECRET) }], attachments: [] }]))
     const r = res()
-    await listAllArchivesConversation(appConfig)(req(OWNER), r, sinon.stub())
+    await listAllArchivesConversation(appConfig)(req(OWNER), r, sinon.stub() as any)
     const m = r.json.firstCall.args[0].conversations[0].messages[0]
     expect(m.answerHidden).to.deep.equal(lost)
     expect(JSON.stringify(m)).to.not.contain(SECRET)
@@ -665,8 +678,8 @@ describe('lost access hides the whole answer, for the owner too', () => {
     const sent = formatPreviousConversations(history as any)
 
     expect(sent.map((m) => m.role)).to.deep.equal(['user_query', 'bot_response', 'user_query'])
-    expect(sent[0].content).to.equal(QUESTION)
-    expect(sent[1].content).to.equal('')
+    expect(sent[0]!.content).to.equal(QUESTION)
+    expect(sent[1]!.content).to.equal('')
     const wire = JSON.stringify(sent)
     for (const leaked of [SECRET, 'The answer', TOOL_TEXT, R_NO, 'rec-no', 'att-no']) expect(wire).to.not.contain(leaked)
   })
@@ -674,13 +687,13 @@ describe('lost access hides the whole answer, for the owner too', () => {
   it('the history keeps an answer whose records are all readable, as stored', async () => {
     stubAccess(['rec-ok', 'rec-no', 'att-ok', 'att-no'])
     const history = await historyForModel(appConfig, viewerOf(OWNER, ORG), [asked(), answer()] as any)
-    expect(formatPreviousConversations(history as any)[1].content).to.equal('The answer [1][2]')
+    expect(formatPreviousConversations(history as any)[1]!.content).to.equal('The answer [1][2]')
   })
 
   it('the history of a follow-up hides the answer when the access check fails', async () => {
     stubAccess(null)
     const history = await historyForModel(appConfig, viewerOf(OWNER, ORG), [asked(), answer()] as any)
-    expect(formatPreviousConversations(history as any)[1].content).to.equal('')
+    expect(formatPreviousConversations(history as any)[1]!.content).to.equal('')
   })
 })
 
@@ -691,7 +704,7 @@ describe('a hidden answer takes its turn with it; web links are not records', ()
   const card = (i: number) => ({ messageType: 'tool_call', content: SECRET, tools: [{ toolName: 'ask_user_question', toolResult: { questions: [{ question: SECRET }] } }], ...at(i) })
   const fetchRows = async (userId: string) => {
     const r = res()
-    await getConversationById(appConfig)(req(userId, { params: { conversationId: SESSION } }), r, sinon.stub())
+    await getConversationById(appConfig)(req(userId, { params: { conversationId: SESSION } }), r, sinon.stub() as any)
     return r.json.firstCall.args[0].conversation.messages as any[]
   }
 
@@ -732,7 +745,7 @@ describe('a hidden answer takes its turn with it; web links are not records', ()
       return rows.slice(skip, skip + (q.limit ?? rows.length)).map((dto) => ({ dto: { ...dto } })) as any
     })
     const r = res()
-    await getConversationById(appConfig)(req(OWNER, { params: { conversationId: SESSION }, query: { page: '1', limit: '2' } }), r, sinon.stub())
+    await getConversationById(appConfig)(req(OWNER, { params: { conversationId: SESSION }, query: { page: '1', limit: '2' } }), r, sinon.stub() as any)
     const page = r.json.firstCall.args[0].conversation.messages as any[]
 
     expect(page.map((m) => m.messageType)).to.deep.equal(['tool_call', 'tool_call'])
@@ -747,7 +760,7 @@ describe('a hidden answer takes its turn with it; web links are not records', ()
       return rows.slice(skip, skip + (q.limit ?? rows.length)).map((dto) => ({ dto: { ...dto } })) as any
     })
     const r = res()
-    await getConversationById(appConfig)(req(userId, { params: { conversationId: SESSION }, query }), r, sinon.stub())
+    await getConversationById(appConfig)(req(userId, { params: { conversationId: SESSION }, query }), r, sinon.stub() as any)
     return r.json.firstCall.args[0].conversation.messages as any[]
   }
 
@@ -896,7 +909,7 @@ describe('a hidden answer takes its turn with it; web links are not records', ()
       { messageType: 'tool_call', content: 'kept card', tools: [{ toolName: 'ask_user_question', toolResult: 'kept' }], ...at(5) },
     ])
     const r = res()
-    await getConversationById(appConfig)(req(OWNER, { params: { conversationId: SESSION }, query: { sortBy: 'messageType' } }), r, sinon.stub())
+    await getConversationById(appConfig)(req(OWNER, { params: { conversationId: SESSION }, query: { sortBy: 'messageType' } }), r, sinon.stub() as any)
     const rows = r.json.firstCall.args[0].conversation.messages as any[]
 
     // Sorted by type the plain answer comes between the lost answer and its card.

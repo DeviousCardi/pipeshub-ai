@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture(autouse=True)
 def _env() -> Iterator[None]:
-    with embedding_models({}), patch.object(module, "get_default_embedding_model", return_value=FakeEmbeddingModel(1.0, 4)), recreate_lock_redis():
+    with embedding_models({}), patch("app.utils.llm.get_default_embedding_model", return_value=FakeEmbeddingModel(1.0, 4)), recreate_lock_redis():
         yield
 
 

@@ -174,7 +174,7 @@ for (const bin of PG_BINS.length ? PG_BINS : ['none']) {
       if (written.status === 'rejected') throw written.reason
       const frozenAt = frozen.value
       const [row] = await commitTimes('slow')
-      expect(row.ts.getTime()).to.be.at.most(frozenAt.getTime())
+      expect(row!.ts.getTime()).to.be.at.most(frozenAt.getTime())
       expect(await insert(rt, 'late').catch((x) => x)).to.be.instanceOf(DbReadOnly)
     })
 

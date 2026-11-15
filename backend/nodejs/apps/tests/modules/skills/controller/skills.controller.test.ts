@@ -6,6 +6,8 @@ import axios from 'axios'
 import { Logger } from '../../../../src/libs/services/logger.service'
 
 import {
+  getPendingSkillReviews,
+  reviewSkill,
   listSkills,
   getSkill,
   createSkill,
@@ -64,7 +66,7 @@ describe('SkillsController', () => {
       const res = makeRes()
       const req = makeReq({ query: { page: '1' } })
 
-      await listSkills(appConfig)(req, res, sinon.stub())
+      await listSkills(appConfig)(req, res, sinon.stub<unknown[]>())
 
       expect(stub.calledOnce).to.be.true
       const cfg = stub.firstCall.args[0]
@@ -80,7 +82,7 @@ describe('SkillsController', () => {
       sinon.stub(axios, 'request').resolves({ status: 503, data: { detail: 'down' } })
       const res = makeRes()
 
-      await listSkills(appConfig)(makeReq(), res, sinon.stub())
+      await listSkills(appConfig)(makeReq(), res, sinon.stub<unknown[]>())
 
       expect(res.status.calledWith(503)).to.be.true
       expect(res.json.calledWith({ detail: 'down' })).to.be.true
@@ -114,7 +116,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: { name: 'my skill' } })
       const req = makeReq({ params: { name: 'my skill' } })
 
-      await getSkill(appConfig)(req, makeRes(), sinon.stub())
+      await getSkill(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.equal('http://ai:8000/api/v1/skills/my%20skill')
     })
@@ -123,7 +125,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { name: 'test/slash&amp' } })
 
-      await getSkill(appConfig)(req, makeRes(), sinon.stub())
+      await getSkill(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('test%2Fslash%26amp')
     })
@@ -135,7 +137,7 @@ describe('SkillsController', () => {
       const body = { name: 'new-skill', body: '# My skill' }
       const res = makeRes()
 
-      await createSkill(appConfig)(makeReq({ body }), res, sinon.stub())
+      await createSkill(appConfig)(makeReq({ body }), res, sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].data).to.deep.equal(body)
       expect(stub.firstCall.args[0].method).to.equal('POST')
@@ -148,7 +150,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { name: 'sk1' }, body: { body: 'updated' } })
 
-      await updateSkill(appConfig)(req, makeRes(), sinon.stub())
+      await updateSkill(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.equal('http://ai:8000/api/v1/skills/sk1')
       expect(stub.firstCall.args[0].method).to.equal('PUT')
@@ -162,7 +164,7 @@ describe('SkillsController', () => {
       const req = makeReq({ params: { name: 'old-skill' }, query: { detach: 'true' } })
       const res = makeRes()
 
-      await deleteSkill(appConfig)(req, res, sinon.stub())
+      await deleteSkill(appConfig)(req, res, sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].method).to.equal('DELETE')
       expect(stub.firstCall.args[0].data).to.be.undefined
@@ -177,7 +179,7 @@ describe('SkillsController', () => {
       })
       const res = makeRes()
 
-      await deleteSkill(appConfig)(makeReq({ params: { name: 'busy' } }), res, sinon.stub())
+      await deleteSkill(appConfig)(makeReq({ params: { name: 'busy' } }), res, sinon.stub<unknown[]>())
 
       expect(res.status.calledWith(409)).to.be.true
       expect(res.json.firstCall.args[0].usedByAgents).to.deep.equal(['a1'])
@@ -189,7 +191,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { name: 'sk1' }, body: { body: 'patched' } })
 
-      await patchSkillBody(appConfig)(req, makeRes(), sinon.stub())
+      await patchSkillBody(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/sk1/body')
       expect(stub.firstCall.args[0].method).to.equal('PATCH')
@@ -201,7 +203,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: [] })
       const req = makeReq({ query: { q: 'hello', category: 'email' } })
 
-      await searchSkills(appConfig)(req, makeRes(), sinon.stub())
+      await searchSkills(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.equal('http://ai:8000/api/v1/skills/search')
       expect(stub.firstCall.args[0].params).to.deep.equal({ q: 'hello', category: 'email' })
@@ -213,7 +215,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: ['email', 'slack'] })
       const res = makeRes()
 
-      await getSkillCategories(appConfig)(makeReq(), res, sinon.stub())
+      await getSkillCategories(appConfig)(makeReq(), res, sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/categories')
       expect(res.json.calledWith(['email', 'slack'])).to.be.true
@@ -225,7 +227,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: [{ v: 1 }] })
       const req = makeReq({ params: { name: 'sk1' } })
 
-      await listSkillVersions(appConfig)(req, makeRes(), sinon.stub())
+      await listSkillVersions(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/sk1/versions')
     })
@@ -234,7 +236,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { name: 'sk1', version: '3' } })
 
-      await getSkillVersion(appConfig)(req, makeRes(), sinon.stub())
+      await getSkillVersion(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/sk1/versions/3')
     })
@@ -243,7 +245,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { name: 'sk1' }, body: { version: 2 } })
 
-      await rollbackSkill(appConfig)(req, makeRes(), sinon.stub())
+      await rollbackSkill(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/sk1/rollback')
       expect(stub.firstCall.args[0].method).to.equal('POST')
@@ -255,7 +257,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: { content: 'abc' } })
       const req = makeReq({ params: { name: 'sk1' } })
 
-      await getSkillResource(appConfig)(req, makeRes(), sinon.stub())
+      await getSkillResource(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/sk1/resource')
       expect(stub.firstCall.args[0].method).to.equal('GET')
@@ -265,7 +267,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { name: 'sk1' }, body: { content: 'new' } })
 
-      await writeSkillResource(appConfig)(req, makeRes(), sinon.stub())
+      await writeSkillResource(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].method).to.equal('PUT')
       expect(stub.firstCall.args[0].data).to.deep.equal({ content: 'new' })
@@ -275,7 +277,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { name: 'sk1' } })
 
-      await removeSkillResource(appConfig)(req, makeRes(), sinon.stub())
+      await removeSkillResource(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].method).to.equal('DELETE')
       expect(stub.firstCall.args[0].data).to.be.undefined
@@ -286,7 +288,7 @@ describe('SkillsController', () => {
     it('getPendingSkillCandidates should GET /candidates/pending', async () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: [] })
 
-      await getPendingSkillCandidates(appConfig)(makeReq(), makeRes(), sinon.stub())
+      await getPendingSkillCandidates(appConfig)(makeReq(), makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/candidates/pending')
     })
@@ -295,7 +297,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { candidateId: 'c42' } })
 
-      await approveSkillCandidate(appConfig)(req, makeRes(), sinon.stub())
+      await approveSkillCandidate(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/candidates/c42/approve')
       expect(stub.firstCall.args[0].method).to.equal('POST')
@@ -305,7 +307,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { candidateId: 'c42' } })
 
-      await rejectSkillCandidate(appConfig)(req, makeRes(), sinon.stub())
+      await rejectSkillCandidate(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/candidates/c42/reject')
     })
@@ -316,7 +318,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: { preview: true } })
       const req = makeReq({ body: { package: '@scope/skill' } })
 
-      await previewNpmSkillImport(appConfig)(req, makeRes(), sinon.stub())
+      await previewNpmSkillImport(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/import/npm/preview')
       expect(stub.firstCall.args[0].method).to.equal('POST')
@@ -326,7 +328,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ body: { url: 'https://example.com/skill.zip' } })
 
-      await previewUrlSkillImport(appConfig)(req, makeRes(), sinon.stub())
+      await previewUrlSkillImport(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/import/url/preview')
     })
@@ -335,10 +337,29 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 201, data: { name: 'imported' } })
       const res = makeRes()
 
-      await finalizeSkillImport(appConfig)(makeReq({ body: { importId: 'i1' } }), res, sinon.stub())
+      await finalizeSkillImport(appConfig)(makeReq({ body: { importId: 'i1' } }), res, sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/import/finalize')
       expect(res.status.calledWith(201)).to.be.true
+    })
+  })
+
+  describe('imported skill reviews (ADR-SEC-01)', () => {
+    it('getPendingSkillReviews should GET /reviews/pending', async () => {
+      const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: { reviews: [] } })
+      await getPendingSkillReviews(appConfig)(makeReq(), makeRes(), sinon.stub<unknown[]>())
+      expect(stub.firstCall.args[0].url).to.include('/skills/reviews/pending')
+      expect(stub.firstCall.args[0].method).to.equal('GET')
+    })
+
+    it('reviewSkill should POST /:name/review with the decision, name encoded, and pass a 403 through', async () => {
+      const stub = sinon.stub(axios, 'request').resolves({ status: 403, data: { detail: 'admin only' } })
+      const res = makeRes()
+      const body = { digest: 'sha256:' + 'a'.repeat(64), decision: 'approve' }
+      await reviewSkill(appConfig)(makeReq({ params: { name: 'pdf helper' }, body }), res, sinon.stub<unknown[]>())
+      expect(stub.firstCall.args[0].url).to.include('/skills/pdf%20helper/review')
+      expect(stub.firstCall.args[0].data).to.deep.equal(body)
+      expect(res.status.calledWith(403)).to.be.true
     })
   })
 
@@ -347,7 +368,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'request').resolves({ status: 200, data: {} })
       const req = makeReq({ params: { name: 'old-skill' } })
 
-      await deprecateSkill(appConfig)(req, makeRes(), sinon.stub())
+      await deprecateSkill(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/old-skill/deprecate')
       expect(stub.firstCall.args[0].method).to.equal('POST')
@@ -360,7 +381,7 @@ describe('SkillsController', () => {
       const res = makeRes()
       const req = makeReq({ params: { name: 'sk1' } })
 
-      await getSkillUsage(appConfig)(req, res, sinon.stub())
+      await getSkillUsage(appConfig)(req, res, sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].url).to.include('/sk1/usage')
       expect(res.json.calledWith({ agents: 3 })).to.be.true
@@ -373,7 +394,7 @@ describe('SkillsController', () => {
     it('should return 400 when no file is uploaded', async () => {
       const res = makeRes()
 
-      await previewUploadSkillImport(appConfig)(makeReq(), res, sinon.stub())
+      await previewUploadSkillImport(appConfig)(makeReq(), res, sinon.stub<unknown[]>())
 
       expect(res.status.calledWith(400)).to.be.true
       expect(res.json.firstCall.args[0].detail).to.include('required')
@@ -394,7 +415,7 @@ describe('SkillsController', () => {
       })
       const res = makeRes()
 
-      await previewUploadSkillImport(appConfig)(req, res, sinon.stub())
+      await previewUploadSkillImport(appConfig)(req, res, sinon.stub<unknown[]>())
 
       expect(stub.calledOnce).to.be.true
       expect(stub.firstCall.args[0]).to.include('/import/upload/preview')
@@ -413,7 +434,7 @@ describe('SkillsController', () => {
       })
       const res = makeRes()
 
-      await previewUploadSkillImport(appConfig)(req, res, sinon.stub())
+      await previewUploadSkillImport(appConfig)(req, res, sinon.stub<unknown[]>())
 
       expect(res.status.calledWith(422)).to.be.true
     })
@@ -439,7 +460,7 @@ describe('SkillsController', () => {
         body: {},
       })
 
-      await previewUploadSkillImport(appConfig)(req, makeRes(), sinon.stub())
+      await previewUploadSkillImport(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
     })
 
     it('should strip original content-type headers', async () => {
@@ -453,7 +474,7 @@ describe('SkillsController', () => {
         body: {},
       })
 
-      await previewUploadSkillImport(appConfig)(req, makeRes(), sinon.stub())
+      await previewUploadSkillImport(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       const passedHeaders = stub.firstCall.args[2]?.headers as Record<string, string>
       expect(passedHeaders['content-type']).to.include('multipart/form-data')
@@ -476,7 +497,7 @@ describe('SkillsController', () => {
       const req = makeReq({ params: { name: 'my-skill' } })
       const res = makeRes()
 
-      await exportSkill(appConfig)(req, res, sinon.stub())
+      await exportSkill(appConfig)(req, res, sinon.stub<unknown[]>())
 
       expect(res.status.calledWith(200)).to.be.true
       expect(res.setHeader.calledWith('Content-Type', 'text/markdown')).to.be.true
@@ -492,7 +513,7 @@ describe('SkillsController', () => {
       })
       const res = makeRes()
 
-      await exportSkill(appConfig)(makeReq({ params: { name: 's' } }), res, sinon.stub())
+      await exportSkill(appConfig)(makeReq({ params: { name: 's' } }), res, sinon.stub<unknown[]>())
 
       expect(res.setHeader.calledWith('Content-Type', 'text/markdown')).to.be.true
     })
@@ -505,7 +526,7 @@ describe('SkillsController', () => {
       })
       const res = makeRes()
 
-      await exportSkill(appConfig)(makeReq({ params: { name: 's' } }), res, sinon.stub())
+      await exportSkill(appConfig)(makeReq({ params: { name: 's' } }), res, sinon.stub<unknown[]>())
 
       const setHeaderCalls = res.setHeader.getCalls().map((c: any) => c.args[0])
       expect(setHeaderCalls).to.not.include('Content-Disposition')
@@ -515,7 +536,7 @@ describe('SkillsController', () => {
       sinon.stub(axios, 'get').resolves({ status: 404, data: 'Not found', headers: {} })
       const res = makeRes()
 
-      await exportSkill(appConfig)(makeReq({ params: { name: 'ghost' } }), res, sinon.stub())
+      await exportSkill(appConfig)(makeReq({ params: { name: 'ghost' } }), res, sinon.stub<unknown[]>())
 
       expect(res.status.calledWith(404)).to.be.true
     })
@@ -534,7 +555,7 @@ describe('SkillsController', () => {
       const stub = sinon.stub(axios, 'get').resolves({ status: 200, data: '', headers: {} })
       const req = makeReq({ params: { name: 'my skill/v2' } })
 
-      await exportSkill(appConfig)(req, makeRes(), sinon.stub())
+      await exportSkill(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0]).to.include('my%20skill%2Fv2/export')
     })
@@ -566,7 +587,7 @@ describe('SkillsController', () => {
         },
       })
 
-      await listSkills(appConfig)(req, makeRes(), sinon.stub())
+      await listSkills(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       const headers = stub.firstCall.args[0].headers
       expect(headers).to.not.have.property('host')
@@ -581,9 +602,9 @@ describe('SkillsController', () => {
         headers: { 'x-multi': ['a', 'b'], authorization: 'Bearer tok' },
       })
 
-      await listSkills(appConfig)(req, makeRes(), sinon.stub())
+      await listSkills(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
-      expect(stub.firstCall.args[0].headers['x-multi']).to.equal('a, b')
+      expect(stub.firstCall.args[0].headers!['x-multi']).to.equal('a, b')
     })
 
     it('should skip null/undefined header values', async () => {
@@ -592,7 +613,7 @@ describe('SkillsController', () => {
         headers: { 'x-null': null, authorization: 'Bearer tok' },
       })
 
-      await listSkills(appConfig)(req, makeRes(), sinon.stub())
+      await listSkills(appConfig)(req, makeRes(), sinon.stub<unknown[]>())
 
       expect(stub.firstCall.args[0].headers).to.not.have.property('x-null')
     })

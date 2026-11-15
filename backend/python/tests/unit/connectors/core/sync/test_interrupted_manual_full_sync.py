@@ -31,6 +31,7 @@ from app.connectors.core.sync.sync_dispatcher import (
     SyncSpec,
 )
 from app.connectors.core.sync.sync_runner import run_sync_task
+from tests.support.settle import settle
 
 _LOG = logging.getLogger("test")
 _FULL = ConnectorStateKeys.PENDING_FULL_SYNC
@@ -234,7 +235,7 @@ async def _cut_short(
         with pytest.raises(asyncio.CancelledError):
             await task
     else:
-        await asyncio.wait_for(task, timeout=1)
+        await settle(task)
     await asyncio.sleep(0)
     return gp
 

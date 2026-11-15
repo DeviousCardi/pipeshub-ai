@@ -231,6 +231,21 @@ export interface IdentityOrgs {
   updated_at: Date;
 }
 
+export interface IdentitySessionFamilies {
+  org_id: string;
+  family_id: string;
+  user_id: string;
+  current_token_id: string;
+  previous_token_id: string | null;
+  rotated_at: Date | null;
+  expires_at: Date;
+  revoked_at: Date | null;
+  revoked_reason: string | null;
+  version: Generated<number>;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface IdentitySlugCounters {
   org_id: string;
   kind: string;
@@ -597,6 +612,7 @@ export interface DB {
   'identity.org_auth_config': IdentityOrgAuthConfig;
   'identity.org_logos': IdentityOrgLogos;
   'identity.orgs': IdentityOrgs;
+  'identity.session_families': IdentitySessionFamilies;
   'identity.slug_counters': IdentitySlugCounters;
   'identity.used_reset_links': IdentityUsedResetLinks;
   'identity.user_activities': IdentityUserActivities;
