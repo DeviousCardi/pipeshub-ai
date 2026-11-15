@@ -221,8 +221,8 @@ describe('QA-26 cross-org and cross-owner replay over every harness route (EM-32
         return [
           {
             route,
-            as: 'worker credential naming org B',
-            authorization: rig.credential,
+            as: `${row.role ?? 'worker'} credential naming org B`,
+            authorization: row.role === 'egress-proxy' ? rig.egressCredential : rig.credential,
             path: `${all(A)}${query(B.ids)}`,
             ...(body !== undefined ? { body: { ...body, orgId: B.orgId } } : {}),
             refused: REFUSED,

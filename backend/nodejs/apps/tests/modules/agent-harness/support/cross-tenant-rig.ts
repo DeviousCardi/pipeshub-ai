@@ -83,6 +83,7 @@ import { CONTROL_PLANE_MEMBERSHIP } from '../../../../src/modules/control-plane'
 import { InMemoryMembership } from '../../control-plane/support/in-memory-services';
 import { continueAs } from '../../../helpers/request-org-context';
 import { bindingProof, ringBindingKey } from '../../../../src/modules/agent-harness/domain/sandbox-binding';
+import { ensureRigSecretKey } from './rig-secret-key';
 
 export type Role = 'owner' | 'peer' | 'admin' | 'member' | 'orgAdmin';
 
@@ -117,6 +118,8 @@ export interface Reply {
 export interface CrossTenantRig {
   base: string;
   credential: string;
+  /** The egress proxy's role credential: only it may ask for a gateway token (SEC-C-10). */
+  egressCredential: string;
   kv: MemoryKv;
   /** Authorizations the publication authority (the query service) was handed, in order. */
   publicationCalls: string[];
@@ -190,6 +193,7 @@ async function seedPeople(t: Tenant): Promise<void> {
 }
 
 export async function startCrossTenantRig(tenants: readonly Tenant[]): Promise<CrossTenantRig> {
+  const restoreSecretKey = ensureRigSecretKey();
   const restore = sinon.createSandbox();
   for (const level of ['error', 'warn', 'info', 'debug'] as const) restore.stub(Logger.prototype, level);
   const logger = Logger.getInstance({ service: 'qa26-node' });
@@ -291,7 +295,9 @@ export async function startCrossTenantRig(tenants: readonly Tenant[]): Promise<C
   } as never);
   await prepareAgentHarnessStore(logger, process.env, container.get(AGENT_HARNESS_CAPABILITIES));
   await prepareAgentHarnessAuthority(container, logger);
-  const credential = String(await container.get<HarnessAuthority>(AGENT_HARNESS_AUTHORITY).workerCredential());
+  const authority = container.get<HarnessAuthority>(AGENT_HARNESS_AUTHORITY);
+  const credential = String(await authority.workerCredential());
+  const egressCredential = String(await authority.credentialFor('egress-proxy'));
 
   const app = express();
   app.use(requestContextMiddleware);
@@ -320,6 +326,7 @@ export async function startCrossTenantRig(tenants: readonly Tenant[]): Promise<C
   return {
     base,
     credential,
+    egressCredential,
     kv,
     publicationCalls,
     bearer: (userId) => `qa26.${userId}`,
@@ -340,6 +347,7 @@ export async function startCrossTenantRig(tenants: readonly Tenant[]): Promise<C
       server.closeAllConnections();
       await new Promise((resolve) => server.close(resolve));
       restore.restore();
+      restoreSecretKey();
     },
   };
 }
@@ -428,7 +436,7 @@ export async function seedTenant(rig: CrossTenantRig, t: Tenant): Promise<Seeded
   const agentRunId = String(json(agentAdmission).admission.run.runId);
   const agentSessionId = String(json(agentAdmission).admission.sessionId);
   const agentRun = await claim(rig, t, agentRunId);
-  const gateway = await rig.call('POST', `${AGENT_HARNESS_INTERNAL_PREFIX}/runs/${agentRunId}/gateway-token`, rig.credential, {
+  const gateway = await rig.call('POST', `${AGENT_HARNESS_INTERNAL_PREFIX}/runs/${agentRunId}/gateway-token`, rig.egressCredential, {
     orgId: t.orgId,
     attemptId: agentRun.attemptId,
     // As the broker signs a binding when it holds SECRET_KEY (R38IDENT-FU-7).

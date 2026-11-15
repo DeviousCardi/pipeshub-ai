@@ -6,6 +6,7 @@
  * row as the others.
  */
 import { Router } from 'express';
+import { bindingProof, ringBindingKey } from '../../../../src/modules/agent-harness/domain/sandbox-binding';
 import { Types } from 'mongoose';
 import { Container } from 'inversify';
 import {
@@ -221,6 +222,8 @@ export interface CrossTenantRow {
    * `in-band-sse` (a stream that opens and only errors: nothing regenerated).
    */
   refusal?: 'idempotent-200' | 'in-band-sse';
+  /** A `worker` row whose route takes another machine role's credential, not the worker's (SEC-C-10). */
+  role?: 'egress-proxy';
 }
 
 const key = (suffix: string) => ({ idempotencyKey: `qa26-${suffix}` });
@@ -366,7 +369,19 @@ export const CROSS_TENANT_ROUTES: Readonly<Record<string, CrossTenantRow>> = {
   [`POST ${INTERNAL}/runs/:runId/workspace-key`]: attempt(fenced),
   [`GET ${INTERNAL}/runs/:runId/memories`]: attempt(),
   [`POST ${INTERNAL}/runs/:runId/memories`]: attempt(fenced),
-  [`POST ${INTERNAL}/runs/:runId/gateway-token`]: { guard: 'worker', body: () => ({ attemptId: 'qa26-attempt' }) },
+  [`POST ${INTERNAL}/runs/:runId/gateway-token`]: {
+    guard: 'worker',
+    role: 'egress-proxy',
+    // A binding the broker signed for the caller's org and this run, so the refusal is the run's, not the proof's.
+    body: (target, caller) => ({
+      attemptId: 'qa26-attempt',
+      bindingProof: bindingProof(ringBindingKey(process.env.SECRET_KEY ?? ''), {
+        orgId: caller.orgId,
+        runId: target.agentRunId,
+        attemptId: 'qa26-attempt',
+      }),
+    }),
+  },
   [`GET ${INTERNAL}/runs/:runId/model-grant`]: attempt(),
   [`POST ${INTERNAL}/runs/:runId/refusals`]: attempt(() => ({ gateway: 'model', reason: 'qa26', status: 403 })),
   [`POST ${INTERNAL}/runs/:runId/egress`]: attempt(() => ({ host: 'qa26.example', via: 'http' })),

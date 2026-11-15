@@ -66,6 +66,7 @@ import { assertNoCanary, canary, findCanaries, VECTOR_EXAMPLES, VECTOR_MASK } fr
 import { canonicalJsonBytes } from '../../../src/modules/agent-harness/contracts/canonical-json';
 import { inlineContentRef } from '../../../src/modules/agent-harness/domain/run-content';
 import { bindingProof, ringBindingKey } from '../../../src/modules/agent-harness/domain/sandbox-binding';
+import { ensureRigSecretKey } from './support/rig-secret-key';
 
 const ORG = new Types.ObjectId().toHexString();
 const OWNER = new Types.ObjectId().toHexString();
@@ -111,6 +112,8 @@ interface Rig {
   liveBus: InMemoryLiveBus;
   activityBus: InMemoryLiveBus<ActivityFrame>;
   credential: string;
+  /** The egress proxy's role credential: only it may ask for a gateway token (SEC-C-10). */
+  egressCredential: string;
   collected: Collected;
   close(): Promise<void>;
 }
@@ -134,6 +137,7 @@ async function startCollector(collected: Collected): Promise<{ url: string; serv
 }
 
 async function startRig(): Promise<Rig> {
+  const restoreSecretKey = ensureRigSecretKey();
   const collected: Collected = { logs: [], spans: [], spanArrived: Promise.resolve() };
   const restore = sinon.createSandbox();
   for (const level of ['error', 'warn', 'info', 'debug'] as const) {
@@ -171,6 +175,12 @@ async function startRig(): Promise<Rig> {
     },
     authority: {
       workerCredential: new InMemoryConfigDocumentStore<WorkerCredentialSet>(),
+      // The egress proxy's own role: the gateway-token route takes only its credential (SEC-C-10).
+      roleCredentials: {
+        scrape: new InMemoryConfigDocumentStore<WorkerCredentialSet>(),
+        'egress-proxy': new InMemoryConfigDocumentStore<WorkerCredentialSet>(),
+        'sandbox-broker': new InMemoryConfigDocumentStore<WorkerCredentialSet>(),
+      },
       attemptSigningKeys: new InMemoryConfigDocumentStore<AttemptKeyring>(),
       attemptPublicKeys: new InMemoryConfigDocumentStore<PublishedAttemptKeys>(),
     },
@@ -190,7 +200,9 @@ async function startRig(): Promise<Rig> {
   } as never);
   await prepareAgentHarnessStore(logger, process.env, container.get(AGENT_HARNESS_CAPABILITIES));
   await prepareAgentHarnessAuthority(container, logger);
-  const credential = await container.get<HarnessAuthority>(AGENT_HARNESS_AUTHORITY).workerCredential();
+  const authority = container.get<HarnessAuthority>(AGENT_HARNESS_AUTHORITY);
+  const credential = await authority.workerCredential();
+  const egressCredential = await authority.credentialFor('egress-proxy');
 
   const app = express();
   app.use(express.json({ limit: '10mb' }));
@@ -206,12 +218,14 @@ async function startRig(): Promise<Rig> {
     liveBus,
     activityBus,
     credential: String(credential),
+    egressCredential: String(egressCredential),
     collected,
     close: async () => {
       server.closeAllConnections();
       await new Promise((resolve) => server.close(resolve));
       await new Promise((resolve) => collector.server.close(resolve));
       restore.restore();
+      restoreSecretKey();
     },
   };
 }
@@ -307,7 +321,7 @@ describe('QA-14 canary scan of the Node surfaces (QA14-N2..N4)', function () {
     expect(claimed.status, claimed.text).to.equal(200);
     const run = claimed.json.run as { attemptId: string; fence: number };
     const attemptToken = String(claimed.json.attemptToken.token);
-    const gateway = await call(rig, 'POST', `${AGENT_HARNESS_INTERNAL_PREFIX}/runs/${runId}/gateway-token`, rig.credential, {
+    const gateway = await call(rig, 'POST', `${AGENT_HARNESS_INTERNAL_PREFIX}/runs/${runId}/gateway-token`, rig.egressCredential, {
       orgId: ORG,
       attemptId: run.attemptId,
       // As the broker signs a binding when it holds SECRET_KEY (R38IDENT-FU-7).
@@ -315,7 +329,7 @@ describe('QA-14 canary scan of the Node surfaces (QA14-N2..N4)', function () {
     });
     expect(gateway.status, gateway.text).to.equal(200);
     const gatewayToken = String(gateway.json.token);
-    const SECRETS = [...Object.values(BEARERS), rig.credential, attemptToken, gatewayToken];
+    const SECRETS = [...Object.values(BEARERS), rig.credential, rig.egressCredential, attemptToken, gatewayToken];
 
     const commit = async (commandId: string, events: unknown[], transition?: Record<string, unknown>) => {
       const reply = await call(rig, 'POST', `${AGENT_HARNESS_INTERNAL_PREFIX}/runs/${runId}/commit`, attemptToken, {
