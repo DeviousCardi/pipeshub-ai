@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pipeshub.com/harness/v2/ext/pipeshub/approvals-document.schema.json",
+  "title": "PipeshubApprovalsDocument",
+  "description": "The configuration document /services/agentHarness/approvals (P2.6c, P2.11e). The Python worker reads the rule layers (default, orgs[orgId], agents[agentKey], orgAgents[orgId][agentKey]; each only narrows); Node writes an org's sections through the admin route. An edition's overlay may add top-level sections (x-extensible), each a map of orgId to that org's entry, which Node stores and saves beside the org's rules as an approval-policy section and the worker does not read. An unknown top-level key or a section that is not an object makes the document invalid: the worker fails closed (writes ask). An entry the rules schema refuses fails closed for that entry only.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-extensible": true,
+  "properties": {
+    "default": {
+      "description": "Every org of the deployment (operator only).",
+      "$ref": "../../core/approval-rules.schema.json"
+    },
+    "orgs": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 128,
+        "not": {
+          "const": "__proto__"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "../../core/approval-rules.schema.json"
+      }
+    },
+    "agents": {
+      "description": "Deployment-wide per-agent rules (P2.6c, operator only); org admins write orgAgents.",
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 128,
+        "not": {
+          "const": "__proto__"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "../../core/approval-rules.schema.json"
+      }
+    },
+    "orgAgents": {
+      "description": "orgId -> agentKey -> rule, written by the org's admins.",
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 128,
+        "not": {
+          "const": "__proto__"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/AgentRules"
+      }
+    },
+    "updated": {
+      "description": "orgId -> the last admin save of that org's sections (the editor's compare-and-set).",
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 128,
+        "not": {
+          "const": "__proto__"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Updated"
+      }
+    }
+  },
+  "$defs": {
+    "AgentRules": {
+      "type": "object",
+      "maxProperties": 500,
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 128,
+        "not": {
+          "const": "__proto__"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "../../core/approval-rules.schema.json"
+      }
+    },
+    "Updated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "updatedAt",
+        "updatedBy"
+      ],
+      "properties": {
+        "updatedAt": {
+          "$ref": "../../core/common.schema.json#/$defs/UInt"
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "examples": [
+    {},
+    {
+      "default": {
+        "writes": "ask"
+      }
+    },
+    {
+      "orgs": {
+        "org-1": {
+          "writes": "ask"
+        }
+      },
+      "agents": {
+        "agent-a": {
+          "tools": {
+            "jira.create_issue": "deny"
+          }
+        }
+      },
+      "orgAgents": {
+        "org-1": {
+          "agent-b": {
+            "classes": {
+              "execute": "deny"
+            }
+          }
+        }
+      },
+      "updated": {
+        "org-1": {
+          "updatedAt": 1767225600000,
+          "updatedBy": "p_admin"
+        }
+      }
+    }
+  ]
+}

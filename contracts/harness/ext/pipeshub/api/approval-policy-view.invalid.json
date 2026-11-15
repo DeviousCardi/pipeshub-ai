@@ -1,0 +1,18 @@
+[
+  {
+    "description": "an org rule that is not an approval rule",
+    "instance": {"policy": {"org": {"writes": "maybe"}, "agents": {}}, "refused": {"org": false, "agents": []}, "deployment": {"default": null}, "updatedAt": null, "updatedBy": null, "invalid": false}
+  },
+  {
+    "description": "the deployment default missing",
+    "instance": {"policy": {"org": null, "agents": {}}, "refused": {"org": false, "agents": []}, "deployment": {}, "updatedAt": null, "updatedBy": null, "invalid": false}
+  },
+  {
+    "description": "another org's section leaked into the view",
+    "instance": {"policy": {"org": null, "agents": {}}, "refused": {"org": false, "agents": []}, "deployment": {"default": null}, "updatedAt": null, "updatedBy": null, "invalid": false, "orgs": {"o2": {}}}
+  },
+  {
+    "description": "a held name that is not a string (ADR-UI-03)",
+    "instance": {"policy": {"org": null, "agents": {"a1": {}}}, "refused": {"org": false, "agents": []}, "deployment": {"default": null}, "updatedAt": null, "updatedBy": null, "invalid": false, "names": {"agents": {"a1": 7}}}
+  }
+]

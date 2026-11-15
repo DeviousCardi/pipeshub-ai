@@ -1,0 +1,4 @@
+[
+  {"description": "a ceiling that is not a narrowing", "instance": {"ceiling": {"accountKinds": ["someone_elses_key"]}, "defaults": []}},
+  {"description": "no release defaults", "instance": {"ceiling": null}}
+]

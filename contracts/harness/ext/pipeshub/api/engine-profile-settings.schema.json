@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pipeshub.com/harness/v2/ext/pipeshub/api/engine-profile-settings.schema.json",
+  "title": "EngineProfileSettings",
+  "description": "`GET`/`PUT /api/v1/agent-harness/admin/engine-profile` (E4a): the org's ceiling over this release's engine defaults, and those defaults in the order they are chosen.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ceiling",
+    "defaults"
+  ],
+  "properties": {
+    "ceiling": {
+      "description": "Null: no org ceiling (a stored one this build cannot read is shown as none; admission refuses it).",
+      "anyOf": [
+        {
+          "$ref": "../../../core/engine-profile-narrowing.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "defaults": {
+      "type": "array",
+      "items": {
+        "$ref": "../../../core/engine-profile.schema.json"
+      }
+    }
+  },
+  "examples": [
+    {
+      "ceiling": null,
+      "defaults": []
+    },
+    {
+      "ceiling": {
+        "accountKinds": [
+          "org_api_key"
+        ]
+      },
+      "defaults": [
+        {
+          "engine": {
+            "kind": "engine-a",
+            "version": "1.2.3",
+            "binaryDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "mode": "build",
+          "isolationMin": "docker",
+          "egress": "none",
+          "tools": {
+            "maxTools": null,
+            "effects": [
+              "execute",
+              "read",
+              "workspace",
+              "write"
+            ]
+          },
+          "limits": {
+            "maxSteps": 50,
+            "maxWallS": 1800,
+            "maxTokens": null,
+            "maxUsd": null
+          },
+          "subAgents": {
+            "enabled": false,
+            "maxDepth": 1,
+            "maxConcurrent": 1
+          },
+          "reasoningEffort": null,
+          "approvals": {
+            "read": "allow",
+            "workspace": "allow",
+            "write": "ask",
+            "execute": "ask"
+          },
+          "skills": null,
+          "accountKinds": [
+            "org_api_key",
+            "org_cloud",
+            "user_api_key"
+          ]
+        }
+      ]
+    }
+  ]
+}

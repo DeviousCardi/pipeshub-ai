@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pipeshub.com/harness/v2/ext/pipeshub/api/approval-policy-view.schema.json",
+  "title": "ApprovalPolicyView",
+  "description": "`GET`/`PUT /api/v1/agent-harness/admin/approvals` (P2.11e): the caller's org's part of the approvals document, for its admins. Another org's entries are never in it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policy", "refused", "deployment", "updatedAt", "updatedBy", "invalid"],
+  "properties": {
+    "policy": {
+      "$ref": "#/$defs/OrgApprovalPolicy"
+    },
+    "refused": {
+      "description": "Stored entries of this org the schema refuses; they fail closed until replaced. `*` in `agents`: the org's agent map itself is not a map. An edition's approval-policy section adds whether its own entry is refused (x-extensible).",
+      "type": "object",
+      "additionalProperties": false,
+      "x-extensible": true,
+      "required": ["org", "agents"],
+      "properties": {
+        "org": {
+          "type": "boolean"
+        },
+        "agents": {
+          "type": "array",
+          "maxItems": 501,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default"],
+      "properties": {
+        "default": {
+          "description": "The deployment's default rule, read-only here; null when none or refused.",
+          "anyOf": [
+            {
+              "$ref": "../../../core/approval-rules.schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "updatedAt": {
+      "description": "Epoch milliseconds of the org's last save; the next save sends it back as `baseUpdatedAt`.",
+      "anyOf": [
+        {
+          "$ref": "../../../core/common.schema.json#/$defs/UInt"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "updatedBy": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "invalid": {
+      "description": "The stored document's top level is not the schema's; an operator fixes it.",
+      "type": "boolean"
+    },
+    "names": {
+      "description": "ADR-UI-03: display names of the agents (`policy.agents` keys) the view holds, from one batched lookup, so the page names nothing per id; an edition's approval-policy section adds the names of what it holds (x-extensible). An id nobody could name now (or a failed lookup) is absent; the page shows it as it shows an unnamed id. Absent from a server older than ADR-UI-03.",
+      "type": "object",
+      "additionalProperties": false,
+      "x-extensible": true,
+      "required": ["agents"],
+      "properties": {
+        "agents": {
+          "type": "object",
+          "maxProperties": 500,
+          "additionalProperties": {"type": "string", "minLength": 1, "maxLength": 512}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "OrgApprovalPolicy": {
+      "description": "What an org admin edits: the org's rule and its agents' rules. An edition's approval-policy section adds its own value (x-extensible), saved with them under the same compare-and-set.",
+      "type": "object",
+      "additionalProperties": false,
+      "x-extensible": true,
+      "required": ["org", "agents"],
+      "properties": {
+        "org": {
+          "anyOf": [
+            {
+              "$ref": "../../../core/approval-rules.schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "agents": {
+          "$ref": "../approvals-document.schema.json#/$defs/AgentRules"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "policy": {
+        "org": {"writes": "ask", "flow": {"level": "ask", "above": "public"}},
+        "agents": {"a7": {"classes": {"execute": "deny"}}}
+      },
+      "refused": {"org": false, "agents": []},
+      "deployment": {"default": {"writes": "ask"}},
+      "updatedAt": 1760000000000,
+      "updatedBy": "p_u1",
+      "invalid": false,
+      "names": {"agents": {"a7": "Sales research"}}
+    },
+    {
+      "policy": {"org": null, "agents": {}},
+      "refused": {"org": true, "agents": ["a9", "*"]},
+      "deployment": {"default": null},
+      "updatedAt": null,
+      "updatedBy": null,
+      "invalid": false
+    }
+  ]
+}
