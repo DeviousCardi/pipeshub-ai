@@ -10,13 +10,20 @@ reported data segment, so they do not depend on the host's allocator.
 
 from __future__ import annotations
 
+import os
 import signal
 import time
+from types import SimpleNamespace
 
 import pytest
 
+from app.modules.parsers import parse_pool
+from app.modules.parsers.excel import excel_parser
 from app.modules.parsers.excel import workbook_model as wm
-from tests.support.excel_workbooks import workbook_zip
+from app.services.parsing.interface import ParseError
+from app.utils import user_errors
+from tests.support.excel_workbooks import load, workbook_zip
+from tests.support.excel_worker_jobs import wedged_at_the_cap
 
 LIMIT = 64 * 1024 * 1024
 
@@ -97,3 +104,67 @@ def test_a_disarmed_watcher_never_interrupts() -> None:
     for t in (0.0, 1.0, 2.0):
         watcher._watch_cap(100_000, t)
     assert calls.count == 0
+
+
+def test_a_load_still_at_the_cap_is_interrupted_again() -> None:
+    # openpyxl's bare ``except:`` clauses swallow an interrupt; a one-shot watcher then left the load
+    # crawling at the cap until the CPU limit (R60-FLAKE: past the 30 s test timeout under load).
+    watcher, calls = _watcher()
+    for t in (0.0, 0.31, 0.5, 0.62, 0.93):
+        watcher._watch_cap(100_000, t)
+    assert calls.count == 3
+    watcher._watch_cap(100_000 - 4096, 1.0)
+    watcher._watch_cap(100_000, 1.1)
+    assert calls.count == 3
+
+
+def _swallowing_extract(_data: bytes) -> wm.WorkbookModel:
+    """Swallows the first two interrupts, as openpyxl's descriptors do (a bare ``except:`` turned into TypeError)."""
+    deadline = time.monotonic() + 20
+    for _ in range(2):
+        try:
+            while time.monotonic() < deadline:
+                sum(range(1000))
+        except BaseException:  # the swallowing under test
+            pass
+    while time.monotonic() < deadline:
+        sum(range(1000))
+    raise AssertionError("the load was never interrupted")
+
+
+@pytest.mark.skipif(not hasattr(signal, "SIGXCPU") or wm.resource is None, reason="POSIX only")
+def test_a_load_that_swallows_the_interrupt_is_still_refused_at_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(wm._GrowthWatcher, "_vm_data_kb", staticmethod(lambda: 1 << 40))
+    monkeypatch.setattr(wm, "_extract", _swallowing_extract)
+    before = signal.getsignal(signal.SIGXCPU)
+    started = time.monotonic()
+    with pytest.raises(wm.WorkbookRefused, match="stayed at its"):
+        wm.load_workbook_model(workbook_zip(""), LIMIT, LIMIT, None, None)
+    # Three interrupts 0.3 s apart; a one-shot watcher ran until the 20 s deadline.
+    assert time.monotonic() - started < 10
+    assert signal.getsignal(signal.SIGXCPU) == before
+
+
+@pytest.mark.skipif(not hasattr(signal, "SIGXCPU") or wm.resource is None, reason="POSIX only")
+def test_a_load_wedged_in_c_at_the_cap_is_stopped_by_the_pool() -> None:
+    # No signal handler runs inside the C call, so only the pool, outside the worker, can end it.
+    started = time.monotonic()
+    with pytest.raises(parse_pool.ParseWorkerError) as stopped:
+        parse_pool.run_blocking(wedged_at_the_cap, workbook_zip(""), LIMIT, LIMIT, label="wedged", timeout=60)
+    assert stopped.value.cause == "at_memory_limit"
+    assert time.monotonic() - started < parse_pool._AT_DATA_LIMIT_SECONDS + 10
+
+
+def test_the_excel_loader_reports_a_worker_stopped_at_its_limit_as_too_large(monkeypatch: pytest.MonkeyPatch) -> None:
+    def stopped(*_args: object, **_kwargs: object) -> object:
+        raise parse_pool.ParseWorkerError(user_errors.PARSE_WORKER_OUT_OF_MEMORY, "at_memory_limit")
+
+    monkeypatch.setattr(excel_parser.parse_pool, "run_blocking", stopped)
+    with pytest.raises(ParseError) as refused:
+        load(workbook_zip(""))
+    assert refused.value.message == user_errors.EXCEL_TOO_LARGE
+
+
+def test_a_process_far_below_any_data_limit_is_not_at_it() -> None:
+    assert parse_pool._at_data_limit(SimpleNamespace(process=SimpleNamespace(pid=os.getpid()))) is False
+    assert parse_pool._at_data_limit(SimpleNamespace(process=None)) is False

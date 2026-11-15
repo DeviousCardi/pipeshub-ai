@@ -479,6 +479,12 @@ class _GrowthWatcher:
     allocations succeed, so openpyxl goes on at a crawl: 40,000 ``<mergeCell>`` at 38 MB spent
     15 s and more in system time with memory flat at the cap. A load that stays within
     ``_AT_CAP_MARGIN_KB`` of the cap for ``_AT_CAP_SECONDS`` is interrupted and refused.
+
+    The interrupt is a signal, handled only when the main thread runs Python. openpyxl's bare
+    ``except:`` clauses can swallow it, so it is sent again every ``_AT_CAP_SECONDS`` while the
+    load stays at the cap. At the cap the main thread can also stay inside one C call for
+    minutes, where no handler runs and this thread cannot allocate either; the parse pool stops
+    that worker from outside (``parse_pool._AT_DATA_LIMIT_SECONDS``).
     """
 
     _INTERVAL_SECONDS = 0.02
@@ -518,7 +524,8 @@ class _GrowthWatcher:
 
     def arm(self, cap_bytes: int, interrupt: Callable[[], None]) -> None:
         """Interrupt the load (``interrupt``, run on this watcher's thread) once it has sat at
-        ``cap_bytes`` of data segment for ``_AT_CAP_SECONDS``."""
+        ``cap_bytes`` of data segment for ``_AT_CAP_SECONDS``, and again every ``_AT_CAP_SECONDS``
+        while it stays there."""
         with self._arm_lock:
             self._cap_kb = cap_bytes // 1024
             self._interrupt = interrupt
@@ -533,11 +540,13 @@ class _GrowthWatcher:
         self._ready.wait()
         while not self._stop.wait(self._INTERVAL_SECONDS):
             try:
-                vm_data_kb = self._vm_data_kb()
+                vm_data_kb: int | None = self._vm_data_kb()
                 self.peak_kb = max(self.peak_kb, vm_data_kb - self._start_kb)
             except MemoryError:  # reading /proc allocates: failing to is being at the cap
                 vm_data_kb = None
-            self._watch_cap(vm_data_kb, time.monotonic())
+            # A MemoryError escaping here would end this thread, and with it every stop.
+            with contextlib.suppress(MemoryError):
+                self._watch_cap(vm_data_kb, time.monotonic())
 
     def _watch_cap(self, vm_data_kb: int | None, now: float) -> None:
         with self._arm_lock:
@@ -551,9 +560,9 @@ class _GrowthWatcher:
             if now - self._at_cap_since < self._AT_CAP_SECONDS:
                 return
             self.stalled = True
-            interrupt, self._interrupt = self._interrupt, None
+            self._at_cap_since = now
             # Sent under the lock: disarm() waits for it, so the handler is still the load's.
-            interrupt()
+            self._interrupt()
 
     @staticmethod
     def _vm_data_kb() -> int:
@@ -848,6 +857,9 @@ def _cpu_limited(max_seconds: float | None) -> Iterator[_Stop]:
         return
 
     def on_cpu_limit(_signum: int, _frame: object) -> None:
+        # A signal already in flight when the load ended must not raise into the cleanup below.
+        if not stop.armed:
+            return
         stop.fired.set()
         raise _CpuLimit
 
@@ -870,13 +882,14 @@ def _cpu_limited(max_seconds: float | None) -> Iterator[_Stop]:
     try:
         yield stop
     finally:
-        # Both must be undone for the worker's next job, even if one of them fails.
+        # Disarmed first, so an interrupt arriving now cannot skip the restores. Both must be
+        # undone for the worker's next job, even if one of them fails.
+        stop.armed = False
         try:
             if limited is not None:
                 with contextlib.suppress(ValueError, OSError, MemoryError):
                     resource.setrlimit(resource.RLIMIT_CPU, limited)
         finally:
-            stop.armed = False
             signal.signal(signal.SIGXCPU, previous)
 
 
