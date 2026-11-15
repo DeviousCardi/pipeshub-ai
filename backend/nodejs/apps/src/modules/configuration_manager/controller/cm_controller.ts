@@ -3840,7 +3840,7 @@ export const updateAIModelProvider =
       }
 
       const aiCommandOptions: AICommandOptions = {
-        uri: `${appConfig.aiBackend}/api/v1/health-check/${modelType}`,
+        uri: `${appConfig.aiBackend}/api/v1/health-check/${encodeURIComponent(targetModelType)}`,
         method: HttpMethod.POST,
         headers: req.headers as Record<string, string>,
         body: healthCheckPayload,
