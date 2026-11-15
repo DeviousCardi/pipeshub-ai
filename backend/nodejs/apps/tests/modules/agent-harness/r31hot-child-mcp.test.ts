@@ -54,6 +54,7 @@ const pinnedOf = (spec: RunSpec): PinnedRunSpec => ({
   spec: structuredClone(spec),
   specDigest: `sha256:${'0'.repeat(64)}`,
   capabilities: {} as PinnedRunSpec['capabilities'],
+  capabilitiesDigest: `sha256:${'0'.repeat(64)}`,
 });
 
 /** The table's parent, its own MCP entries pinned as `parentSpecPins` says (a child that inherited a pin). */

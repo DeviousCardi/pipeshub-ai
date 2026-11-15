@@ -432,7 +432,7 @@ describe("DOS-MONGO-1: a person's burst against both ledgers, in any interleavin
 
   it('refuses on the actor alone when the org was not asked: no place is the rate, a full quota ahead is the active runs', () => {
     const quotas: AdmissionQuotas = { ...ADMISSION_QUOTAS, activeRunsPerUser: 2, admissionsPerUser: 3, windowMs: WINDOW_MS };
-    const user = (count: number, ahead: string[]): QuotaReservation => ({ window: { windowStart: 0, count }, ahead });
+    const user = (count: number, ahead: string[]): QuotaReservation => ({ window: { windowStart: 0, count }, ahead, twin: false });
     expect(asksOrg(user(3, ['a']), quotas)).to.equal(true);
     expect(asksOrg(user(3, ['a', 'b']), quotas)).to.equal(false);
     expect(asksOrg(user(4, []), quotas)).to.equal(false);
@@ -444,6 +444,6 @@ describe("DOS-MONGO-1: a person's burst against both ledgers, in any interleavin
     expect(refused(4, [])).to.equal('user:admission_rate:30');
     expect(refused(3, ['a', 'b'])).to.equal(`user:active_runs:${String(quotas.activeRetryAfterS)}`);
     expect(() => assertHeldQuotas({ user: user(4, []), org: null }, null, 30_000, quotas)).to.throw(HarnessQuotaExceededError);
-    expect(runsAhead({ user: user(1, ['a', 'b']), org: { window: { windowStart: 0, count: 1 }, ahead: ['b', 'c'] } })).to.deep.equal(['a', 'b', 'c']);
+    expect(runsAhead({ user: user(1, ['a', 'b']), org: { window: { windowStart: 0, count: 1 }, ahead: ['b', 'c'], twin: false } })).to.deep.equal(['a', 'b', 'c']);
   });
 });

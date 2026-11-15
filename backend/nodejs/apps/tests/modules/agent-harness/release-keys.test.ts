@@ -143,8 +143,7 @@ describe('R41SUPPLY-FU-6 release keys in force', () => {
   });
 
   it('RK-3: past its not-after the shipped key verifies no vendor rules', () => {
-    const [keyId] = Object.keys(RELEASE_KEY_NOT_AFTER);
-    const notAfter = instant(RELEASE_KEY_NOT_AFTER[keyId]);
+    const notAfter = instant(Object.values(RELEASE_KEY_NOT_AFTER)[0] ?? expect.fail('a shipped key'));
     clock = sinon.useFakeTimers({ now: notAfter - 1000, toFake: ['Date'] });
     expect(releaseVendorRules().rules.length).to.be.greaterThan(0);
     clock.setSystemTime(notAfter);
@@ -176,7 +175,7 @@ describe('R41SUPPLY-FU-6 release keys in force', () => {
       warn: (message: string) => void warned.push(message),
       error: () => undefined,
     };
-    const forged = VECTORS.revocations[0];
+    const forged = VECTORS.revocations[0] ?? expect.fail('a revocation vector');
     for (const store of [
       { get: () => Promise.resolve(null) },
       { get: () => Promise.reject(new Error('store down')) },

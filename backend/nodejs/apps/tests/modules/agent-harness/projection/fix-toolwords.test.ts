@@ -43,7 +43,7 @@ describe('FIX-TOOLWORDS engine gateway steps', () => {
     expect(frames[1]).to.deep.include({ kind: 'tool', text: TOOL, data: STEP });
     expect(frames[2]).to.deep.include({ kind: 'approval', text: TOOL, data: ASKED });
     expect(timeline.approvals.map((a) => [a.interactionId, a.toolName])).to.deep.equal([[ASK, TOOL]]);
-    const { tools } = foldActivity(journal.events, { runId: journal.runId, runStatus: 'suspended' });
+    const { tools } = foldActivity(journal.events, { runId: journal.runId, runStatus: 'waiting_approval' });
     expect(tools.map((t) => [t.toolCallId, t.status])).to.deep.equal([[ASK, 'awaiting_approval']]);
   });
 });

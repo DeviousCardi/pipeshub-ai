@@ -212,7 +212,7 @@ export async function startCrossTenantRig(tenants: readonly Tenant[]): Promise<C
   const kv = new MemoryKv();
   const store = kv as never;
   const approvals = createApprovalsStore(store, platformCipher);
-  const approverDirectory = new HarnessApproverDirectory(logger);
+  const approverDirectory = new HarnessApproverDirectory();
   const publicationCalls: string[] = [];
   const publication = (authorization: string) => {
     publicationCalls.push(authorization);

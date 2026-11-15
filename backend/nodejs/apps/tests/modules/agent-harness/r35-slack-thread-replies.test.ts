@@ -100,7 +100,7 @@ describe('R35-SLACK D-SLACK-ASK: a Slack run that ends after its stream gets its
     ]);
     expect(await service.runEnded(run({ runId: 'w', status: 'running' }))).to.equal('not_ended');
     expect(
-      await service.runEnded(run({ runId: 'c', parent: { runId: 'r1', spawnSeq: 1 } } as Partial<HarnessRun>)),
+      await service.runEnded(run({ runId: 'c', parent: { runId: 'r1', invocationId: 'inv-1', depth: 1 } } as Partial<HarnessRun>)),
     ).to.equal('no_thread');
     expect(await service.runEnded(run({ runId: 'web', input: { query: 'q' } } as Partial<HarnessRun>))).to.equal(
       'no_thread',
@@ -108,7 +108,7 @@ describe('R35-SLACK D-SLACK-ASK: a Slack run that ends after its stream gets its
   });
 
   it('SLACKREPLY-4: the thread is Node\'s alone: a worker never reads it', () => {
-    const input = workerInput({ input: run().input, requires: { features: [] } } as Pick<HarnessRun, 'input' | 'requires'>);
+    const input = workerInput({ input: run().input, requires: { foldVersion: 0, features: [] } } as Pick<HarnessRun, 'input' | 'requires'>);
     expect(input).to.not.have.property('reply');
     expect(input).to.have.property('query', 'make a ticket');
   });

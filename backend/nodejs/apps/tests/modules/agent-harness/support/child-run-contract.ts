@@ -427,7 +427,7 @@ export function describeChildRunContract(
           runs: f.h.backend.executionStore,
           children: f.children,
           journals: new JournalService(f.h.backend.payloads, testCipher()),
-          workerFeatures: { live: async () => false, metrics: { withheld: (feature) => withheld.push(feature) } },
+          workerFeatures: { live: async () => false, metrics: { live: () => undefined, withheld: (feature) => { withheld.push(feature); }, stranded: () => undefined } },
         });
         const spawned = await service.spawn(
           {

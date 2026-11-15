@@ -165,7 +165,7 @@ describe('OB-04, OB-05: operational metrics for dashboards and alerts (C9.04, C9
       });
       recordRunCacheRead(prometheusChatPathMetrics, closed);
       const after = await metricsBackend.serialize();
-      const below = RATIO_BOUNDS[RATIO_BOUNDS.indexOf(run.bucket) - 1];
+      const below = RATIO_BOUNDS[RATIO_BOUNDS.indexOf(run.bucket) - 1] ?? expect.fail('a bound below');
       expect(bucket(after, run.bucket) - bucket(before, run.bucket), 'counted at its own bound').to.equal(1);
       expect(bucket(after, below) - bucket(before, below), 'and not at the bound below it').to.equal(0);
     });

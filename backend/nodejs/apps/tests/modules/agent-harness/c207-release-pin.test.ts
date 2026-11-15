@@ -178,7 +178,7 @@ describe('C2.07 / C2.20: the release pin (SL-14)', () => {
       const pinned = parent();
       const decision = childGrants(pinned.spec, { maxTurns: 5 }, 1);
       if (decision.grants === null) return expect.fail('expected a grant');
-      const args = [undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined] as const;
+      const args = [undefined, undefined, undefined, undefined, undefined, undefined] as const;
       const loop = childRunSpec(pinned, decision.grants, undefined, undefined, undefined, ...args, IMAGE);
       expect(loop.spec).to.not.have.property('pins');
       const bare = PIN(subject([]), DURABLE);

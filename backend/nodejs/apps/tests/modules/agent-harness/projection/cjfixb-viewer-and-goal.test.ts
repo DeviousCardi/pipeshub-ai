@@ -121,7 +121,7 @@ describe('CJFIX-B: a shared viewer sees its jobs live (F3, D14)', () => {
     const child = { type: AGUI.RUN_FINISHED, runId: CHILD, parentRunId: PARENT };
     expect(frameFor('shared', child, context as never)).to.deep.equal(child);
     const answer = { type: AGUI.RUN_FINISHED, runId: PARENT, result: { conversation: { messages: [{ id: 'm', parts: [{ type: 'tool_call' }] }] } } };
-    const checked = frameFor('shared', answer, context as never) as { result: { conversation: { messages: Array<{ parts: unknown[] }> } } };
-    expect(checked.result.conversation.messages[0]?.parts).to.deep.equal([]);
+    const checked = frameFor('shared', answer, context as never);
+    expect(checked).to.have.nested.property('result.conversation.messages[0].parts').that.deep.equals([]);
   });
 });

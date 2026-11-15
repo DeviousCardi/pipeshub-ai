@@ -211,7 +211,7 @@ describe('E2: gateway-token routes over HTTP', function () {
   });
 
   describe('R38IDENT-FU-7: only a run attempt the broker put behind the proxy', () => {
-    const refusedWith = async (response: Response): Promise<number> => {
+    const refusedWith = async (response: globalThis.Response): Promise<number> => {
       expect(response.headers.get('cache-control') ?? '').to.not.include('public');
       const text = await response.text();
       expect(text).to.not.include('"token"');

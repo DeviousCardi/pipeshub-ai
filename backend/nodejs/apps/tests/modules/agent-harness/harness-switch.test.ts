@@ -36,12 +36,14 @@ describe('R50-OFF the harness switch on the routes', () => {
     const served = express();
     served.use(AGENT_HARNESS_API_PREFIX, harnessNamespaceWhileOff(env));
     const harness = express.Router();
-    harness.get('/runs', (_req, res) => res.json({ harness: true }));
+    harness.get('/runs', (_req, res) => {
+      res.json({ harness: true });
+    });
     served.use('/api/v1/conversations', whenHarnessSwitchedOn(harness, env));
     served.use(AGENT_HARNESS_API_PREFIX, whenHarnessSwitchedOn(harness, env));
-    served.get('/api/v1/conversations/:id', (req, res) =>
-      res.json({ classic: req.params.id }),
-    );
+    served.get('/api/v1/conversations/:id', (req, res) => {
+      res.json({ classic: req.params.id });
+    });
     served.use(
       (
         error: unknown,

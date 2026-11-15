@@ -61,7 +61,7 @@ describe('R30-LAT ADR-RUN-05: deleting a chat stops its run', () => {
   });
 
   it('STOP-3: a run that moved between the read and the cancel is read again and cancelled at its new revision', async () => {
-    const w = world([aRun(), aRun({ status: 'running', revision: 4 })], [new HarnessConflictError('moved')]);
+    const w = world([aRun(), aRun({ status: 'running', revision: 4 })], [new HarnessConflictError('REVISION_CONFLICT', 'moved')]);
     expect(await w.stopper.stop(ORG, SESSION, 'user-1')).to.equal(1);
     expect(w.controls.map((c) => c.expectedRevision)).to.deep.equal([3, 4]);
   });

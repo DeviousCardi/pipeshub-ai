@@ -48,6 +48,7 @@ const pinnedOf = (spec: RunSpec): PinnedRunSpec => ({
   spec: structuredClone(spec),
   specDigest: `sha256:${'0'.repeat(64)}`,
   capabilities: {} as PinnedRunSpec['capabilities'],
+  capabilitiesDigest: `sha256:${'0'.repeat(64)}`,
 });
 const childOf = (parent: RunSpec, tools: string[] | undefined, pins?: McpFirstUsePins, maxChildren = 0) => {
   const decision = childGrants(parent, tools === undefined ? {} : { tools }, 1, pins);
@@ -118,7 +119,7 @@ describe('R31HOT2: a child inherits its parent\'s first-use MCP pins (ADR-OWD-07
     const pins = { 'mcp-9': { list_prs: LIST_PRS, merge_pr: CREATE } };
     const pinned = await children.spawn(attempt, { invocationId: 't1.0', goal: 'Review the PRs', grants: {}, mcpPins: pins });
     const plain = await children.spawn(attempt, { invocationId: 't1.1', goal: 'Review the PRs', grants: {} });
-    const specOf = async (runId: string) => (await backend.executionStore.readClaimSubject(parent.orgId, runId))!.pinned.spec;
+    const specOf = async (runId: string) => (await backend.executionStore.readClaimSubject(parent.orgId, runId))!.pinned!.spec;
     const github = async (runId: string) => pipeshub(await specOf(runId))?.mcp.find((s) => s.instanceId === 'mcp-9');
     // mcp-9 grants list_prs alone: the pin keeps that tool, never merge_pr.
     expect((await github(pinned.childRunId))?.pins).to.deep.equal({ list_prs: LIST_PRS });

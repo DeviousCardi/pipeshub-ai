@@ -15,6 +15,7 @@ import { ErrorMiddleware } from '../../../src/libs/middlewares/error.middleware'
 import { AuthMiddleware } from '../../../src/libs/middlewares/auth.middleware';
 import * as userAdminService from '../../../src/modules/user_management/services/user-admin.service';
 import {
+  ParkedUnknownEffect,
   RESOLUTION_DECISIONS,
   ResolveUnknownEffect,
   resolutionCommandId,
@@ -35,7 +36,7 @@ const UNKNOWN = 'ix.unknown.t1.0';
 
 class FakeConsole {
   resolved: ResolveUnknownEffect[] = [];
-  readonly items = [
+  readonly items: ParkedUnknownEffect[] = [
     {
       runId: 'r-1',
       sessionId: 's-1',

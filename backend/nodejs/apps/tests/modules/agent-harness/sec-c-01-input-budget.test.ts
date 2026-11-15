@@ -249,7 +249,9 @@ describe('SEC-C-01: the guard bounds what it scans', () => {
         next();
       },
     );
-    app.post('/t', auth.authenticate as express.RequestHandler, (_req, res) => res.json({}));
+    app.post('/t', auth.authenticate as express.RequestHandler, (_req, res) => {
+      res.json({});
+    });
     app.use((_err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       res.status(401).end();
     });

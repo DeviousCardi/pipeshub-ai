@@ -48,7 +48,8 @@ describe('SKILLSHOW-FU-1 saved answers name their skill reads', () => {
 
   it('keeps what a line already names, and reads parts with no skill read as they were saved', () => {
     const named = savedBefore();
-    named.parts[1].frames[0].data = { callId: 'c1', skills: ['docx'] } as never;
+    const first = named.parts[1]?.frames?.[0] ?? expect.fail('the engine part\'s first line');
+    first.data = { callId: 'c1', skills: ['docx'] } as never;
     expect(withSavedSkills(named.parts)[1]).to.have.nested.property('frames[0].data.skills[0]', 'docx');
     const plain = [{ type: 'engine_task', frames: [{ kind: 'command', text: 'ls', data: {} }] }, { type: 'text' }];
     expect(withSavedSkills(plain)).to.deep.equal(plain);
@@ -58,7 +59,7 @@ describe('SKILLSHOW-FU-1 saved answers name their skill reads', () => {
   it('does not rewrite the stored message', () => {
     const stored = savedBefore();
     attachMessages({ _id: 's1' }, [stored]);
-    expect(stored.parts[1].frames?.[0]?.data).to.deep.equal({ callId: 'c1' });
+    expect(stored.parts[1]?.frames?.[0]?.data).to.deep.equal({ callId: 'c1' });
   });
 
   it('leaves a message without parts untouched', () => {

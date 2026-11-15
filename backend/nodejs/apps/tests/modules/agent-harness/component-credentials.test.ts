@@ -204,7 +204,7 @@ describe('ADR-KEY-02 / SEC-C-10: the document Node seals for each component', ()
     const stored = await kv.get<string>(configPaths.agentHarness.componentEgressProxy);
     const opener = (key: string) =>
       new EncryptedConfigDocumentStore(
-        { get: async () => stored, compareAndSet: async () => false },
+        { get: async <T>() => stored as T | null, compareAndSet: async () => false },
         EncryptionService.withKey('aes-256-gcm', key),
         configPaths.agentHarness.componentEgressProxy,
         componentDocumentSchema,

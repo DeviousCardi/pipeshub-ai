@@ -129,7 +129,9 @@ describe('SEC-D-13: security signals Node counts where it decides', () => {
 
     it("a run-token route's anonymous call counts as a gateway token refusal", async () => {
       const app = express();
-      app.post('/runs/:runId/egress', ...runTokenRoute((_req, res) => res.status(204).end()));
+      app.post('/runs/:runId/egress', ...runTokenRoute((_req, res) => {
+        res.status(204).end();
+      }));
       app.use(countTokenRefusals(recordTokenRejection));
       app.use(ErrorMiddleware.handleError());
       const before = await rejected('gateway_token', 'malformed');
@@ -161,12 +163,16 @@ describe('SEC-D-13: security signals Node counts where it decides', () => {
       app.post(
         '/claim',
         requireWorkerCredential(authority as never, throwingLogger as never),
-        (_req, res) => res.status(200).end(),
+        (_req, res) => {
+          res.status(200).end();
+        },
       );
       app.post(
         '/claim-again',
         requireWorkerCredential(authority as never),
-        (_req, res) => res.status(200).end(),
+        (_req, res) => {
+          res.status(200).end();
+        },
       );
       let calls = 0;
       app.use(
