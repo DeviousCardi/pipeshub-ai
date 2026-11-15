@@ -95,8 +95,11 @@ class HelmStoreAuth(unittest.TestCase):
                 ca.write_text(server["ca.crt"]); cert.write_text(secret["tls.crt"])
                 verify = subprocess.run(["openssl", "verify", "-CAfile", str(ca), str(cert)], capture_output=True, text=True)
                 self.assertEqual(verify.returncode, 0, verify.stderr)
-                subject = subprocess.run(["openssl", "x509", "-noout", "-subject", "-in", str(cert)], capture_output=True, text=True).stdout
-                self.assertIn(f"CN = {client}", subject)
+                # The default name format differs between OpenSSL releases ("CN = x" on 3.0, "CN=x" later); RFC 2253 is fixed.
+                subject = subprocess.run(
+                    ["openssl", "x509", "-noout", "-subject", "-nameopt", "RFC2253", "-in", str(cert)], capture_output=True, text=True,
+                ).stdout
+                self.assertEqual(subject.strip(), f"subject=CN={client}")
 
     def test_sa3_kafka_takes_only_the_scram_login(self) -> None:
         kafka = self._workload("-kafka")
