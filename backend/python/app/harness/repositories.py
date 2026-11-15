@@ -215,21 +215,23 @@ def repository_instructions(hosts: Sequence[Host]) -> str:
     names = sorted({str(h.get("host")) for h in hosts if isinstance(h.get("host"), str) and h.get("host")})
     if not names:
         return ""
-    example = "github.com" if "github.com" in names else names[0]
+    github = _GITHUB in names
+    example = _GITHUB if github else names[0]
     return (
         f"\n\nPublic code: this task may clone public repositories from {', '.join(names)}. To read a repository, "
         f"run `ph git clone https://{example}/<owner>/<repo>`; PipesHub fetches it after the person allows it and "
         "hands you a read-only copy. When the task asks you to check out, read or compare a code repository, clone it "
         "and read its files locally, rather than reading its web pages one by one or calling its API, which refuses "
         "anonymous requests after a few. For one file, fetch its raw URL"
-        + (" (https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>)" if "github.com" in names else "")
+        + (" (https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>)" if github else "")
         + " with the web fetch tool. If the person declines a clone or it is refused, say in your answer that you "
         "could not read that repository's code and why; never answer as if you had read it."
     )
 
 
 # R41-CLONE: the forges a person names a repository on without saying "git host"; any host the run allows counts too.
-KNOWN_FORGES: Final = ("github.com", "gitlab.com", "bitbucket.org", "codeberg.org")
+_GITHUB: Final = "github.com"
+KNOWN_FORGES: Final = (_GITHUB, "gitlab.com", "bitbucket.org", "codeberg.org")
 # A forge's own pages under its first path segment, never an owner (github.com/features/copilot is no repository).
 _FORGE_PAGES: Final = frozenset({
     "about", "apps", "collections", "customer-stories", "enterprise", "explore", "features", "login", "marketplace",
