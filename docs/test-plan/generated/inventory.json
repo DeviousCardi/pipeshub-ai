@@ -2,8 +2,8 @@
  "generatedBy": "scripts/harness_test_inventory.py",
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2063,
- "claimedTestFiles": 3896,
- "claimedTests": 41134,
+ "claimedTestFiles": 3897,
+ "claimedTests": 41154,
  "claimedFilesByLevel": {
   "cohesion": 64,
   "component": 48,
@@ -18,7 +18,7 @@
   "live": 6,
   "perf": 3,
   "replay": 16,
-  "unit": 3159
+  "unit": 3160
  },
  "components": [
   {
@@ -17104,15 +17104,15 @@
    "id": "LEG",
    "name": "Legacy query path (today's loop)",
    "status": "built (reference and kill-switch target)",
-   "files": 693,
-   "tests": 16237,
+   "files": 694,
+   "tests": 16257,
    "filesByLevel": {
     "contract": 5,
     "integration": 2,
     "integration-docker": 1,
     "live": 6,
     "replay": 1,
-    "unit": 678
+    "unit": 679
    },
    "testsByLevel": {
     "contract": 86,
@@ -17120,7 +17120,7 @@
     "integration-docker": 12,
     "live": 39,
     "replay": 7,
-    "unit": 16078
+    "unit": 16098
    },
    "markers": {
     "ai_agents": 6,
@@ -18454,7 +18454,7 @@
      "path": "backend/python/tests/unit/agents/actions/knowledge_graph/test_knowledge_graph_navigate.py",
      "level": "unit",
      "markers": [],
-     "tests": 83
+     "tests": 84
     },
     {
      "path": "backend/python/tests/unit/agents/actions/knowledge_graph/test_knowledge_graph_summaries.py",
@@ -18515,6 +18515,12 @@
      "level": "unit",
      "markers": [],
      "tests": 15
+    },
+    {
+     "path": "backend/python/tests/unit/agents/actions/knowledge_graph/test_navigate_cursor.py",
+     "level": "unit",
+     "markers": [],
+     "tests": 19
     },
     {
      "path": "backend/python/tests/unit/agents/actions/knowledge_graph/test_navigator_helpers.py",
