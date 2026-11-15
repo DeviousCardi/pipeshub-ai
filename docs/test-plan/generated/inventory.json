@@ -3,7 +3,7 @@
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2058,
  "claimedTestFiles": 3889,
- "claimedTests": 41105,
+ "claimedTests": 41108,
  "claimedFilesByLevel": {
   "cohesion": 61,
   "component": 48,
@@ -6161,7 +6161,7 @@
    "name": "Child runs and deep mode",
    "status": "built",
    "files": 38,
-   "tests": 270,
+   "tests": 272,
    "filesByLevel": {
     "component": 1,
     "contract": 5,
@@ -6171,7 +6171,7 @@
    },
    "testsByLevel": {
     "component": 4,
-    "contract": 56,
+    "contract": 58,
     "integration": 1,
     "integration-docker": 6,
     "unit": 203
@@ -6179,7 +6179,9 @@
    "markers": {
     "docker": 3
    },
-   "unmatchedTestGlobs": [],
+   "unmatchedTestGlobs": [
+    "backend/nodejs/apps/tests/modules/agent-harness/support/engine-child.ts"
+   ],
    "unmatchedSourceGlobs": [],
    "testFiles": [
     {
@@ -6264,7 +6266,7 @@
      "path": "backend/nodejs/apps/tests/modules/agent-harness/support/child-run-contract.ts",
      "level": "contract",
      "markers": [],
-     "tests": 42
+     "tests": 44
     },
     {
      "path": "backend/nodejs/apps/tests/modules/agent-harness/ux2-child-label.test.ts",
@@ -21708,7 +21710,7 @@
    "name": "Observability and logging",
    "status": "built (OTel off by default)",
    "files": 32,
-   "tests": 170,
+   "tests": 171,
    "filesByLevel": {
     "cohesion": 1,
     "component": 1,
@@ -21719,7 +21721,7 @@
    },
    "testsByLevel": {
     "cohesion": 14,
-    "component": 1,
+    "component": 2,
     "contract": 8,
     "fault": 3,
     "integration": 4,
@@ -21745,7 +21747,7 @@
      "path": "backend/nodejs/apps/tests/modules/agent-harness/claim-refusal-logging.http.test.ts",
      "level": "component",
      "markers": [],
-     "tests": 1
+     "tests": 2
     },
     {
      "path": "backend/nodejs/apps/tests/modules/agent-harness/dur3-chat-metrics.test.ts",

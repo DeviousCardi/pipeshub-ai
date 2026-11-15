@@ -62,6 +62,72 @@ export function describeClaimCases(
     ).to.equal('STALE_ATTEMPT');
   });
 
+  describe('a store-side failure never cuts a live attempt short', () => {
+    const commitAs = (claimed: HarnessRun, workerId: string) =>
+      h.service.commit({
+        commandId: `${workerId}:done`,
+        orgId: claimed.orgId,
+        runId: claimed.runId,
+        workerId,
+        attemptId: claimed.attemptId as string,
+        fence: claimed.fence,
+        expectedRevision: claimed.revision,
+        status: 'completed',
+        outcome: 'answer',
+        events: [],
+        outbox: [],
+      });
+
+    it('FR-1: failRun leaves a run another attempt holds on an unexpired lease, and its holder still commits', async () => {
+      const { run } = await h.admit({ deadlineMs: 600_000 });
+      const held = await h.claim(run, 'worker-a', 60_000);
+      h.setNow(START + 59_999);
+      expect(
+        await h.backend.executionStore.failRun(run.orgId, run.runId, 'engine_off', []),
+      ).to.equal(false);
+      const after = await h.service.get(run.orgId, run.runId);
+      expect(after).to.include({
+        status: 'running',
+        workerId: 'worker-a',
+        attemptId: held.attemptId,
+        leaseExpiresAt: held.leaseExpiresAt,
+        revision: held.revision,
+      });
+      expect((await commitAs(held, 'worker-a')).run.status).to.equal('completed');
+    });
+
+    it("FR-2: failRun ends a run whose lease lapsed; the lost holder's commit lands on an ended run", async () => {
+      const { run } = await h.admit({ deadlineMs: 600_000 });
+      const held = await h.claim(run, 'worker-a', 60_000);
+      h.setNow(START + 60_000);
+      expect(
+        await h.backend.executionStore.failRun(run.orgId, run.runId, 'engine_off', []),
+      ).to.equal(true);
+      expect(await conflictCode(commitAs(held, 'worker-a'))).to.equal('INVALID_TRANSITION');
+      expect((await h.service.get(run.orgId, run.runId))?.status).to.equal('failed');
+    });
+
+    it('FR-3: the attempt that holds the run may fail it under its own lease', async () => {
+      const { run } = await h.admit({ deadlineMs: 600_000 });
+      const held = await h.claim(run, 'worker-a', 60_000);
+      expect(
+        await h.backend.executionStore.failRun(run.orgId, run.runId, 'journal_payload_missing', [], 'attempt-worker-b'),
+      ).to.equal(false);
+      expect(
+        await h.backend.executionStore.failRun(run.orgId, run.runId, 'journal_payload_missing', [], held.attemptId as string),
+      ).to.equal(true);
+      expect((await h.service.get(run.orgId, run.runId))?.status).to.equal('failed');
+    });
+
+    it('FR-4: a queued run fails as before', async () => {
+      const { run } = await h.admit();
+      expect(
+        await h.backend.executionStore.failRun(run.orgId, run.runId, 'not_started', []),
+      ).to.equal(true);
+      expect((await h.service.get(run.orgId, run.runId))?.status).to.equal('failed');
+    });
+  });
+
   it('bounds lease renewal by the absolute deadline', async () => {
     const { run } = await h.admit({ deadlineMs: 60_000 });
     const deadline = START + 60_000;

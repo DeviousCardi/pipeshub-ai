@@ -173,7 +173,8 @@ async function world() {
    */
   let turn = alice;
   const nextTurn = async (actorId: string, workerId: string): Promise<Claimed> => {
-    await backend.executionStore.failRun(turn.run.orgId, turn.run.runId, 'ended', []);
+    // As the turn's own worker: the store fails no run another attempt still holds.
+    await backend.executionStore.failRun(turn.run.orgId, turn.run.runId, 'ended', [], turn.attemptId);
     const admitted = (await h.admit({ agentKey: 'agent-1', authorization: 'Bearer user', sessionId })).run;
     const runs = (backend.executionStore as unknown as { runs: Map<string, HarnessRun> }).runs;
     for (const stored of runs.values()) {

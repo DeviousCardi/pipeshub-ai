@@ -51,6 +51,8 @@ import { HARNESS_ENABLED } from './rollout';
 import { ChildPinning } from '../../../../src/modules/agent-harness/application/admission/child-pinning';
 import { PolicyPinning } from '../../../../src/modules/agent-harness/application/admission/policy-pinning';
 import { aPin, pinnerOf } from './a-pin';
+import { ENGINE_HOLDER, engineOffService, heldEngineChild } from './engine-child';
+import { ExecutionService } from '../../../../src/modules/agent-harness/application/execution-service';
 
 const V2 = { ...HARNESS_ENABLED, harnessMajor: 2 as const };
 const LEASE_MS = 5_000;
@@ -1046,6 +1048,74 @@ export function describeChildRunContract(
           workspaceId: childForkId(f.parent.sessionId, grand.childRunId),
           forkOf: { workspaceId: own, revision: 2 },
         });
+      });
+    });
+
+    describe('an engine switched off while a worker holds its child (WP-111)', () => {
+      const LEASE = 60_000;
+
+      const commitHolder = (held: HarnessRun, h: ContractHarness) =>
+        h.service.commit({
+          commandId: `end-${held.runId}`,
+          orgId: held.orgId,
+          runId: held.runId,
+          workerId: ENGINE_HOLDER,
+          attemptId: held.attemptId as string,
+          fence: held.fence,
+          events: [],
+          legacyEvents: [],
+          transition: {
+            status: 'completed',
+            outcome: 'answer',
+            childResult: CHILD_RESULT,
+          } as never,
+          outbox: [],
+        });
+
+      const claimAs = (service: ExecutionService, held: HarnessRun, workerId: string) =>
+        service.claim({
+          orgId: held.orgId,
+          runId: held.runId,
+          workerId,
+          attemptId: `attempt-${workerId}`,
+          leaseDurationMs: LEASE,
+        });
+
+      it('EO-15: a claim by another worker is refused and the live attempt runs on: still running, its commit applies', async () => {
+        const clock = contractClock();
+        const backend = createBackend(clock);
+        await backend.reset?.();
+        const h = createContractHarness(backend, clock);
+        const held = await heldEngineChild(h, LEASE);
+        h.setNow(held.leaseExpiresAt! - 1);
+        expect(
+          await conflictCode(claimAs(engineOffService(backend), held, 'engine-b')),
+        ).to.equal('RUN_NOT_CLAIMABLE');
+        expect(await h.service.get(held.orgId, held.runId)).to.include({
+          status: 'running',
+          workerId: ENGINE_HOLDER,
+          attemptId: held.attemptId,
+          leaseExpiresAt: held.leaseExpiresAt,
+          revision: held.revision,
+        });
+        expect((await commitHolder(held, h)).run.status).to.equal('completed');
+      });
+
+      it('EO-16: once the attempt is lost (its lease lapsed), the next claim fails the run engine_off', async () => {
+        const clock = contractClock();
+        const backend = createBackend(clock);
+        await backend.reset?.();
+        const h = createContractHarness(backend, clock);
+        const held = await heldEngineChild(h, LEASE);
+        h.setNow(held.leaseExpiresAt!);
+        expect(
+          await conflictCode(claimAs(engineOffService(backend), held, 'engine-b')),
+        ).to.equal('RUN_NOT_CLAIMABLE');
+        expect((await h.service.get(held.orgId, held.runId))?.status).to.equal('failed');
+        const failed = (
+          await h.backend.journal.readStream(held.orgId, held.runId, 0, 100)
+        ).find((event) => event.type === 'run.failed');
+        expect(failed?.data).to.include({ errorType: 'engine_off' });
       });
     });
 

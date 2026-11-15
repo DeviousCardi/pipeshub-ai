@@ -1411,6 +1411,7 @@
         "backend/nodejs/apps/tests/modules/agent-harness/lcfix-engine-carry.test.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/lcfix-completed-children.mongo.itest.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/support/child-run-contract.ts",
+        "backend/nodejs/apps/tests/modules/agent-harness/support/engine-child.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/projection/child-projection.test.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/projection/cjfixb-viewer-and-goal.test.ts",
         "backend/python/tests/unit/harness/assembly/test_cjfixb_sub_agent_pool.py",
