@@ -26,7 +26,6 @@ from app.config.constants.arangodb import AppStatus
 from app.connectors.core.constants import ConnectorStateKeys
 from app.connectors.core.sync.sync_coordinator import SyncLease
 from app.connectors.core.sync.sync_runner import run_sync_task
-from tests.support.settle import settle
 
 _LOG = logging.getLogger("test")
 _OWED = ConnectorStateKeys.PENDING_FULL_SYNC
@@ -120,7 +119,7 @@ class TestTheRunItself:
         )
         await started.wait()
         lease.stop_requested.set()
-        await settle(task)
+        await task
 
         assert _idle_write(gp).get(_OWED) is True
 
@@ -141,7 +140,7 @@ class TestTheRunItself:
         )
         await started.wait()
         lease.lost.set()
-        await settle(task)
+        await task
 
         writes = _final_writes(gp)
         assert not any("status" in w for w in writes)

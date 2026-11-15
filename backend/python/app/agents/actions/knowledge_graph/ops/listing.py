@@ -17,6 +17,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 from app.agents.actions.knowledge_graph.listing_citations import cite_listed_records
+from app.agents.actions.knowledge_graph.navigator import cursor_keeps_to
 from app.agents.actions.knowledge_graph.views import CITE_NOTE
 from app.config.constants.arangodb import FOLDER_MIME_TYPES
 from app.connectors.sources.localKB.api.knowledge_hub_models import (
@@ -103,6 +104,12 @@ def _normalize_list(value: Any) -> list[str] | None:
     return None
 
 
+_NOT_THIS_LISTING_CURSOR = (
+    "That cursor is not a page of this listing. Call knowledgegraph__list_files again "
+    "without a cursor, with the same query and source_ids."
+)
+
+
 def _next_page_hint(page: int) -> str:
     return f"(More items follow: call again with page={page + 1}.)"
 
@@ -167,7 +174,9 @@ def _render_flat_text(
         lines.append(f"({remaining} more items — increase page or limit to see them)")
         lines.append("")
     elif getattr(getattr(response, "pagination", None), "hasNext", False):
-        lines.append(_next_page_hint(page))
+        next_cursor = getattr(response.pagination, "nextCursor", None)
+        # The cursor resumes where this page ended; page numbers stop at 50.
+        lines.append(f'(More items follow: call again with cursor="{next_cursor}".)' if next_cursor else _next_page_hint(page))
         lines.append("")
 
     lines.append(
@@ -251,13 +260,15 @@ class ScopedListing:
     """How a listing reads the knowledge service as the run's person, inside the run's scope: ``fetch`` reads a
     page of the service; ``inside``, when set, keeps only the rows a bound below app level (or the turn's
     selection) admits (the service knows nothing of it). ``note`` leads the listing's text; ``in_selection``:
-    the rows are a search inside the turn's selection, not under one node of it."""
+    the rows are a search inside the turn's selection, not under one node of it. ``fetch`` takes the service's
+    cursor third; ``connector_ids`` are the sources it lists, which a cursor issued for wider ones must not leave."""
 
-    fetch: Callable[[int, int], Awaitable[KnowledgeHubNodesResponse]]
+    fetch: Callable[..., Awaitable[KnowledgeHubNodesResponse]]
     inside: Callable[[list[str]], Awaitable[set[str]]] | None
     query: str | None
     note: str | None = None
     in_selection: bool = False
+    connector_ids: tuple[str, ...] = ()
 
 
 async def plan_listing(
@@ -443,9 +454,10 @@ async def plan_listing(
         logger=logger_instance,
         graph_provider=graph_provider,
         excluded_app_ids=excluded_app_ids(state),
+        config_service=state.get("config_service"),
     )
 
-    async def fetch(service_page: int, service_limit: int) -> KnowledgeHubNodesResponse:
+    async def fetch(service_page: int, service_limit: int, service_cursor: str | None = None) -> KnowledgeHubNodesResponse:
         return await service.get_nodes(
             user_id=user_id,
             org_id=org_id,
@@ -461,6 +473,7 @@ async def plan_listing(
             record_types=record_types,
             connector_ids=use_connector_ids or None,
             flattened=flattened,
+            cursor=service_cursor,
         )
 
     inside = None
@@ -473,6 +486,7 @@ async def plan_listing(
     return ScopedListing(
         fetch=fetch, inside=inside, query=query, note=note,
         in_selection=selection_search and parent_id is None,
+        connector_ids=tuple(use_connector_ids),
     )
 
 
@@ -519,15 +533,22 @@ async def execute_list_files(
 
         hint: str | None = None
         if planned.inside is not None:
-            fetch_page = planned.fetch
-            # This service hands out no cursors, so a batch is read by page number.
+            if cursor:
+                return False, _NOT_THIS_LISTING_CURSOR
+            # Batches are read by page number; the rows a bound drops leave no keyset to resume from.
             response, hint = await _page_inside_bounds(
-                lambda position, **_: fetch_page(position.page, BOUNDED_BATCH),
+                lambda position, **_: planned.fetch(position.page, BOUNDED_BATCH),
                 planned.inside,
                 page=page, limit=limit, in_selection=planned.in_selection,
             )
         else:
-            response = await planned.fetch(page, limit)
+            response = await planned.fetch(page, limit, cursor)
+            if (
+                cursor and planned.connector_ids and response.success
+                and not cursor_keeps_to(response, list(planned.connector_ids))
+            ):
+                # The cursor's own filters decide the page, so one issued for wider sources must not resume here.
+                return False, _NOT_THIS_LISTING_CURSOR
 
         from app.modules.agents.qna.chat_state import remember_record_ids
         fetchable = _record_ids_in_items(response.items)

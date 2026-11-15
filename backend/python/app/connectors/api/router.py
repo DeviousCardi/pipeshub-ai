@@ -2176,6 +2176,12 @@ async def knowledge_graph_navigate(
     created_before: str | None = Query(None, description="ISO 8601 date or datetime with a timezone offset."),
     modified_after: str | None = Query(None, description="ISO 8601 date or datetime with a timezone offset."),
     modified_before: str | None = Query(None, description="ISO 8601 date or datetime with a timezone offset."),
+    cursor: str | None = Query(
+        None,
+        min_length=1,
+        max_length=4096,
+        description="A previous page's `pagination.next_cursor`; it chooses the page and its filters, and `page` is ignored.",
+    ),
     graph_provider: IGraphDBProvider = Depends(get_graph_provider),
 ) -> dict:
     """
@@ -2228,6 +2234,9 @@ async def knowledge_graph_navigate(
     root_apps = None
     limit_sources = connection_limit(request.state.user)
     if node_id is None and root_lists_what_the_limit_names(limit_sources):
+        if cursor:
+            # This root is listed whole and paged by number: it hands out no cursor, so none is from it.
+            raise HTTPException(status_code=HttpStatusCode.BAD_REQUEST.value, detail="Invalid cursor: issued for a different listing")
         view = await _named_root_view(
             request, graph_provider, org_id, user_id, page=page, limit=limit, node_types=node_types,
             created_at=created_at, updated_at=updated_at,
@@ -2251,6 +2260,7 @@ async def knowledge_graph_navigate(
         user_id=user_id,
         user_key=user_key,
         org_id=org_id,
+        config_service=resolve_config_service(request.app.container, org_id),
     )
 
     try:
@@ -2266,6 +2276,7 @@ async def knowledge_graph_navigate(
             updated_at=updated_at,
             node_types=node_types,
             app_names={c.id: c.name for c in catalog.connectors},
+            cursor=cursor,
         )
     except ListingFailedError as e:
         logger.warning("Knowledge graph listing failed for node_id=%s: %s", node_id, e)
@@ -2295,7 +2306,7 @@ async def knowledge_graph_navigate(
         [*view.rows, *view.related], graph_provider, user_id, org_id, limit_sources,
     )
 
-    return {**view.model_dump(), "text": render_navigation_view(view, page)}
+    return {**view.model_dump(), "text": render_navigation_view(view, 2 if cursor else page)}
 
 
 def _in_range(value: int | None, bounds: dict[str, int | None] | None) -> bool:

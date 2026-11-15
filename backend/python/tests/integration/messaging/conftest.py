@@ -29,7 +29,7 @@ from tests.support import it_backends
 
 if TYPE_CHECKING:
     import threading
-    from collections.abc import AsyncIterator, Callable
+    from collections.abc import AsyncIterator, Callable, Iterator
 
 REDIS_PORT = int(os.environ.get("REDIS_IT_PORT", "6389"))
 
@@ -270,3 +270,19 @@ async def run_stranded_sweep(graph, producer, consumer, topic: str, *, hours_lat
             org_id=org_id,
             read_backlog=lambda: consumer.lane_backlog(topic),
         )
+
+
+@pytest.fixture
+def signing(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """Producers sign their messages and consumers verify them, so a delivery carries the envelope event id."""
+    from app.core import envelope
+
+    key = envelope.derive_key("messaging-it-envelope-secret")
+    monkeypatch.setenv("ENVELOPE_SIGN", "true")
+
+    async def keys() -> tuple[bytes]:
+        return (key,)
+
+    envelope.configure(keys, None, key)
+    yield
+    envelope.configure(None, None, None)
