@@ -50,6 +50,10 @@ RECORD_PROPERTIES = frozenset({
     "summaryDocumentId", "trashedExternalRecordId", "updatedAtTimestamp", "uploadSourceCreatedAtTimestamp",
     "uploadSourceLastModifiedTimestamp", "uploadSourceTimestampOrigin", "uploadedBy", "version",
     "virtualRecordId", "webUrl",
+    # Record processing diagnostics: facts about how a record's processing went, not pipeline state. This release
+    # only accepts them and writes none; the schema carries them first so a process on the older schema never
+    # meets a key it rejects once a later release writes them.
+    "failedAt", "firstQueuedAt", "indexingAttempts", "pageCount",
 }) | frozenset({
     # Accepted from this release, so the next can write them; written only by features that are off by default (a
     # chat upload's uploader and send state with the agent harness on, an edition's source metadata reader), so
