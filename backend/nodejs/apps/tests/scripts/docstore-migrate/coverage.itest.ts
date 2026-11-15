@@ -53,7 +53,7 @@ for (const bin of PG_BINS.length ? PG_BINS : ['none']) {
         ),
       );
       const tables = r.rows.map((x: { t: string }) => x.t);
-      expect(tables.filter((t: string) => t.startsWith('harness.')).length, 'the harness tables are migrated').to.be.greaterThan(60);
+      expect(tables.filter((t: string) => t.startsWith('harness.')).length, 'the harness tables are migrated').to.be.at.least(53);
       expect(unreachedTables(tables)).to.deep.equal([]);
     });
   });

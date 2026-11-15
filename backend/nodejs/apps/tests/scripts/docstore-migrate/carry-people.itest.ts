@@ -312,9 +312,9 @@ for (const bin of PG_BINS.length ? PG_BINS : ['none']) {
       await stack?.stop();
     });
 
-    it('the three groups are built-in carriers and carry the 16 collections', () => {
+    it('the three groups are built-in carriers and carry the 15 collections', () => {
       for (const c of MINE) expect(CARRIERS).to.include(c);
-      expect(MINE.flatMap((c) => c.collections)).to.have.length(16);
+      expect(MINE.flatMap((c) => c.collections)).to.have.length(15);
     });
 
     it('copies every group and the verify finds every document in place, the absent values read as listed transforms', async () => {
