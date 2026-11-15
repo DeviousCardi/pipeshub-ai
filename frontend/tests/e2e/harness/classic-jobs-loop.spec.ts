@@ -21,6 +21,7 @@ import { allowOnceButton, lane, ScriptedModel, ScriptedSaas, type Lane } from '.
 import {
   centre,
   allowAsk,
+  escapeRegExp,
   badgeLabel,
   cardNow,
   cardStatus,
@@ -183,7 +184,7 @@ test('CJ-E2: a job that asks reads Needs you; the dot, the badge and the Needs y
   // Review in chat: the chat, the job's panel and the ask, all in the URL (D9); the card is on screen with its ask.
   // The link names the ask; the chat takes `ask` out of the URL once it has brought the card into view.
   const review = row.getByRole('link', { name: 'Review in chat' });
-  await expect(review).toHaveAttribute('href', new RegExp(`[?&]ask=${ask.replace(/[.]/g, '\\.')}(&|$)`));
+  await expect(review).toHaveAttribute('href', new RegExp(`[?&]ask=${escapeRegExp(ask)}(&|$)`));
   await review.click();
   await expect(page).toHaveURL(new RegExp(`conversationId=${conversationId}`));
   await expect(page).toHaveURL(new RegExp(`[?&]job=${jobRunId}(&|$)`));

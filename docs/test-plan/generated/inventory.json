@@ -3,7 +3,7 @@
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2058,
  "claimedTestFiles": 3889,
- "claimedTests": 41099,
+ "claimedTests": 41100,
  "claimedFilesByLevel": {
   "cohesion": 61,
   "component": 48,
@@ -8780,7 +8780,7 @@
    "name": "Toolsets and credentials",
    "status": "built",
    "files": 104,
-   "tests": 1070,
+   "tests": 1071,
    "filesByLevel": {
     "cohesion": 3,
     "contract": 1,
@@ -8795,7 +8795,7 @@
     "deployment": 0,
     "e2e-browser": 3,
     "integration": 7,
-    "unit": 1039
+    "unit": 1040
    },
    "markers": {
     "integration": 3
@@ -8850,7 +8850,7 @@
      "path": "backend/nodejs/apps/tests/libs/middlewares/security-headers.test.ts",
      "level": "unit",
      "markers": [],
-     "tests": 20
+     "tests": 21
     },
     {
      "path": "backend/nodejs/apps/tests/libs/utils/metered-upload.test.ts",

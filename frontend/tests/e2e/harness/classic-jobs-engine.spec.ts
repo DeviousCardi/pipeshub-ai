@@ -36,6 +36,7 @@ import { allowOnceButton, conversationPath, ScriptedModel, ScriptedSaas, type La
 import {
   centre,
   ALREADY_FINISHED,
+  escapeRegExp,
   allowAsk,
   BUDGETS,
   cardElapsed,
@@ -136,7 +137,7 @@ test('CJ-E1: a code_task card goes Starting, Working, Done with its file; Detail
 
   await expect(card).toHaveAttribute('data-status', 'working', { timeout: 240_000 });
   await expect(card).toHaveRole('group');
-  await expect(card).toHaveAttribute('aria-label', new RegExp(`^${scenario.goal.replace(/[.]/g, '\\.')}[\\s\\S]*, Working$`));
+  await expect(card).toHaveAttribute('aria-label', new RegExp(`^${escapeRegExp(scenario.goal)}[\\s\\S]*, Working$`));
   await expect(cardStatus(card)).toHaveText('Working');
   await expect(cardNow(card)).not.toBeEmpty({ timeout: 60_000 });
   await expect(cardNow(card)).not.toContainText(/[{}]|"tool"|runId/);
@@ -372,7 +373,7 @@ test('CJ-E3: Stop on a working job reads "Stopped by you" on the card, the panel
 
   // One click, no confirm (D11).
   // An engine job's title is its whole goal, so the name starts with the goal's first line.
-  await expect(stopButton(card)).toHaveAccessibleName(new RegExp(`^Stop job: ${scenario.goal.replace(/[.]/g, '\\.')}`));
+  await expect(stopButton(card)).toHaveAccessibleName(new RegExp(`^Stop job: ${escapeRegExp(scenario.goal)}`));
   await centre(stopButton(card));
   await stopButton(card).click();
   await expect(page.getByRole('alertdialog')).toHaveCount(0);

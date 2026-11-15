@@ -11,6 +11,7 @@
  *   through Playwright's polling.
  * - **Checks.** axe over the page (WCAG 2.1 AA), touch targets at phone width, and the pictures for the evidence.
  */
+import { randomBytes } from 'node:crypto';
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -331,6 +332,11 @@ export async function grantTools(api: APIRequestContext, agentKey: string, wante
   expect(write.ok(), `grant ${missing.join(', ')}: ${write.status()} ${await write.text()}`).toBe(true);
 }
 
+/** `text` as a literal inside a RegExp, so a goal or ask id with `(`, `?` or `\\` still matches only itself. */
+export function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // A second person: the shared-chat viewer (D14).
 // ---------------------------------------------------------------------------------------------------------------------
@@ -341,7 +347,7 @@ export type Viewer = { email: string; password: string; userId: string };
 export async function createViewer(api: APIRequestContext): Promise<Viewer> {
   // Node sets a starting password only for the demo domain; anyone else is invited and picks their own.
   const email = `cj5-viewer-${Date.now()}@acme-demo.example`;
-  const password = `Cj5-${Math.random().toString(36).slice(2, 10)}!Aa1`;
+  const password = `Cj5-${randomBytes(6).toString('hex')}!Aa1`;
   const res = await api.post('/api/v1/users', { data: { fullName: 'Casey Viewer', email, role: 'member', password } });
   expect(res.ok(), `creating the viewer: ${res.status()} ${await res.text()}`).toBe(true);
   const body = (await res.json()) as { user?: { _id?: string; id?: string }; _id?: string; id?: string };
