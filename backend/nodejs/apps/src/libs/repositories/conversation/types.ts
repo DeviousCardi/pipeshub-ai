@@ -154,6 +154,8 @@ export interface MessageDto {
   truncatedBy?: IMessage['truncatedBy'];
   budgetScope?: IMessage['budgetScope'];
   runOutcome?: IMessage['runOutcome'];
+  notFound?: IMessage['notFound'];
+  limits?: IMessage['limits'];
   command?: IMessage['command'];
   label?: IMessage['label'];
 }
