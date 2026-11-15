@@ -1126,8 +1126,10 @@ def check_helm_images(repo: Path) -> list[Finding]:
 
 # A remote script run by a shell or interpreter the moment it arrives: nothing checks what was fetched.
 # `| python3 -c '...'` reads the response as data (the program is the -c text), so it is not flagged.
+# An env assignment's name holds no `=`: with `\S+=\S+` a line like `| env a==b env a==b ...` splits two ways per
+# assignment and the scan backtracks exponentially.
 _PIPE_SHELL = re.compile(
-    r"\b(?:curl|wget)\b[^|;&]*\|\s*(?:sudo\s+(?:-\S+\s+)*)?(?:env\s+\S+=\S+\s+)*"
+    r"\b(?:curl|wget)\b[^|;&]*\|\s*(?:sudo\s+(?:-\S+\s+)*)?(?:env\s+[^\s=]+=\S+\s+)*"
     r"(?:/usr/(?:local/)?bin/|/bin/)?(?:(?:ba|z|da|k)?sh|python\d*(?:\.\d+)?|perl|node|ruby|php)\b(?!\s+-c\b)"
 )
 # A fetch that keeps what it fetched (-o/-O/--output, a redirect, or a pipe into an unpacker); a POST or an

