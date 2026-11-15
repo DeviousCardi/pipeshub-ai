@@ -60,7 +60,7 @@ class MapKv implements SlackLinkKv {
 
 const people = {
   getLive: async (orgId: string, id: string) =>
-    ({ [`${ORG_A}/${ALICE}`]: { _id: ALICE, orgId: ORG_A, email: 'alice@a.test' }, [`${ORG_B}/${BOB}`]: { _id: BOB, orgId: ORG_B, email: 'bob@b.test' } })[`${orgId}/${id}`] ?? null,
+    ({ [`${ORG_A}/${ALICE}`]: { _id: ALICE, orgId: ORG_A, email: 'alice@a.test' }, [`${ORG_B}/${BOB}`]: { _id: BOB, orgId: ORG_B, email: 'bob@b.test' } } as Record<string, { _id: string; orgId: string; email: string }>)[`${orgId}/${id}`] ?? null,
   getAccountState: async () => ({ kind: 'human' as const, isDisabled: false }),
 }
 

@@ -756,6 +756,7 @@ describe('Enterprise Search Routes', () => {
       const route = chat.stack.find(
         (layer: any) => layer.route?.path === '/:conversationId/messages/stream' && layer.route.methods.post,
       )?.route
+      if (route === undefined) return expect.fail('the chat stream route')
       const names: string[] = route.stack.map((layer: any) => layer.name)
       const guards = names.flatMap((name, at) => (name === 'refuseNonOwnerTurn' ? [at] : []))
       expect(guards, 'one guard before the durable layer, one after it').to.have.length(2)

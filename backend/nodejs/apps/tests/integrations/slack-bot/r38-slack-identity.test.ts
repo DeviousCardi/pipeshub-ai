@@ -347,7 +347,7 @@ describe('R38-IDENT SEC-C-03: a link is made once, by signing in, and is single-
     })
   }
 
-  for (const [teamId, slackUserId] of [['t0home', 'U0ALICE'], [HOME, 'U0ALICE/../x'], ['Т0HOME', 'U0ALICE'], [HOME, '']]) {
+  for (const [teamId, slackUserId] of [['t0home', 'U0ALICE'], [HOME, 'U0ALICE/../x'], ['Т0HOME', 'U0ALICE'], [HOME, '']] as Array<[string, string]>) {
     it(`never names a link with a non-Slack id (${teamId}, ${slackUserId})`, async () => {
       expect(await problem(links.request({ ...request, teamId, slackUserId }))).to.equal('unknown')
       expect(await links.find(ORG, { teamId, slackUserId })).to.equal(null)
@@ -443,7 +443,7 @@ describe('R38-IDENT SEC-C-03: Node answers a Slack token only as the linked acco
     const req = slackRequest({ email: 'cfo@x.test', slackTeamId: HOME, slackUserId: 'U0ALICE' })
     expect(await refused(req)).to.equal('accepted')
     expect(req.user).to.include({ userId: ALICE, email: 'alice@x.test' })
-    const minted = jwt.verify(req.headers.authorization.replace('Bearer ', ''), 'session-secret') as Record<string, unknown>
+    const minted = jwt.verify(String(req.headers.authorization).replace('Bearer ', ''), 'session-secret') as Record<string, unknown>
     expect(minted).to.include({ userId: ALICE, email: 'alice@x.test', role: 'member' })
   })
 

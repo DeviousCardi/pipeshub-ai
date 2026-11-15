@@ -34,6 +34,9 @@ const notice: RunEndedNotice = {
   channels: ['in_app', 'email', 'slack'],
 };
 
+/** A run-ended notice mails through its own template; any other mail here is a wrong path. */
+const unexpectedTemplate = async (): Promise<void> => expect.fail('a run-ended notice sent a template mail');
+
 const ANSWER =
   '## Digest\n\nThree **new** tickets [1], see [the board](https://x.test/b).\n\n' +
   '::artifact[digest.pdf](record:rec-1){application/pdf|doc|rec-1|ARTIFACT|1}';
@@ -54,7 +57,7 @@ describe('TR-07 HarnessScheduleNotifier.runEnded', () => {
     return {
       mails,
       slacks,
-      mail: { sendRunEnded: async (m: (typeof mails)[number]) => void mails.push(m) },
+      mail: { sendRunEnded: async (m: (typeof mails)[number]) => void mails.push(m), sendTemplate: unexpectedTemplate },
       slack: { send: async (m: (typeof slacks)[number]) => (slacks.push(m), 'sent' as const) },
     };
   }
@@ -122,6 +125,7 @@ describe('TR-07 HarnessScheduleNotifier.runEnded', () => {
       questions: { asked: 0, open: false },
       delegated: 0,
       cost: { usdMicros: 120_000, tokens: 9_000 },
+      costEstimated: false,
       durationMs: 42_000,
     };
     await new HarnessScheduleNotifier({
@@ -155,7 +159,7 @@ describe('TR-07 HarnessScheduleNotifier.runEnded', () => {
       await new HarnessScheduleNotifier({
         answer: async () => null,
         person: async () => ({ email: 'alice@example.com', name: 'Alice' }),
-        mail: { sendRunEnded: async () => Promise.reject(new Error('smtp down')) },
+        mail: { sendRunEnded: async () => Promise.reject(new Error('smtp down')), sendTemplate: unexpectedTemplate },
         slack: { send: async (m) => (slacks.push(m), 'sent') },
       }).runEnded({ ...notice, status: 'failed', channels: ['in_app', 'email', 'slack'] });
     } catch (error) {
