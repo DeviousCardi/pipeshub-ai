@@ -63,25 +63,6 @@ def _js(v: Any) -> Any:  # noqa: ANN401
 
 _SERVICE_SUFFIX = f"@{SERVICE_ACCOUNT_EMAIL_DOMAIN}"
 _AGENT_CAN = {"can_edit": ("OWNER", "WRITER", "ORGANIZER"), "can_delete": ("OWNER",), "can_share": ("OWNER", "ORGANIZER")}
-# what an agent edit may write; its toolsets, knowledge and servers are edges, written by the caller
-_AGENT_FIELDS = ("name", "description", "startMessage", "systemPrompt", "tags", "isActive", "instructions", "isServiceAccount", "serviceAccountUserId",
-                 "sendUserContext", "webSearch", "defaultReasoningEffort", "apiToolsetTools")
-
-
-def _model_entries(models: list) -> list[str]:
-    """``<key>_<name>`` (or the bare key) per model, first seen kept: from ``{modelKey, modelName}`` objects or ``<key>_<name>`` strings; anything else is skipped."""
-    out: list[str] = []
-    for m in models:
-        if isinstance(m, dict):
-            key, name = m.get("modelKey"), m.get("modelName", "")
-        elif isinstance(m, str):
-            key, _, name = m.partition("_")
-        else:
-            continue
-        entry = f"{key}_{name}" if key and name else key
-        if entry and entry not in out:
-            out.append(entry)
-    return out
 
 
 def _stub_app(connector_id: str, app_type: Any = None) -> dict:  # noqa: ANN401
@@ -1172,27 +1153,6 @@ class IdentityMixin(PgBase):
             self.logger.error("Failed to get agent: %s", e)
             return None
 
-    async def update_agent(self, agent_id: str, agent_updates: dict[str, Any], user_id: str, org_id: str, transaction: str | None = None) -> bool | None:
-        """Saves the agent's own fields (the harness settings among them: engine profile, model account, owner team, role models, gates,
-        environment), for a user who may edit it; False otherwise. Tools, knowledge and MCP servers are edges, written elsewhere."""
-        if not self._mine(org_id):
-            return False
-        try:
-            perm = await self.check_agent_permission(agent_id, user_id, org_id)
-            if not perm or not perm.get("can_edit", False):
-                self.logger.warning("User %s may not edit agent %s", user_id, agent_id)
-                return False
-            document = agent_update_document(agent_updates, user_id, get_epoch_timestamp_in_ms())
-            if not await self.update_node(agent_id, CollectionNames.AGENT_INSTANCES.value, document, transaction=transaction):
-                self.logger.error("Failed to update agent %s", agent_id)
-                return False
-            return True
-        except (MissingOrgContext, SystemContextNotAllowed, OrgMismatch, SchemaValidationError):
-            raise
-        except Exception as e:
-            self.logger.error("Failed to update agent: %s", e)
-            return False
-
     async def get_agents_by_model_key(self, org_id: str, model_key: str) -> list[dict]:
         """The live agents of the org that use the model (its key, or a key that starts ``<key>_``): those a user of the org owns and those shared with the org."""
         if not self._mine(org_id):
@@ -1307,13 +1267,8 @@ class IdentityMixin(PgBase):
         if not perm or not perm["can_edit"]:
             self.logger.warning("User %s may not edit agent %s", user_id, agent_id)
             return False
-        data = {"updatedAtTimestamp": get_epoch_timestamp_in_ms(), "updatedBy": user_id, **{f: agent_updates[f] for f in _AGENT_FIELDS if f in agent_updates}}
-        if "models" in agent_updates:
-            models = agent_updates["models"]
-            if isinstance(models, list):
-                data["models"] = _model_entries(models)
-            elif models is None:
-                data["models"] = []
+        # One builder for every backend: the harness settings are kept, as JSON text where the other backends store them so.
+        data = agent_update_document(agent_updates, user_id, get_epoch_timestamp_in_ms())
         return await self.update_node(agent_id, "agentInstances", data, transaction=transaction)
 
     @_soft(False)
