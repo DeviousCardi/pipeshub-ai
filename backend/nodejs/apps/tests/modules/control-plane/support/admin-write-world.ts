@@ -507,6 +507,29 @@ export async function startAdminWriteWorld(options: AdminWriteWorldOptions): Pro
           probe.write('document:orgs.codingEngineAutoRoute');
           return preferences.writeOrgAutoRoute(orgId, on);
         },
+        readSession: (orgId, sessionId) => preferences.readSession(orgId, sessionId),
+        writeSession: (orgId, sessionId, choice) => {
+          probe.write('document:chatSessions.codingEngine');
+          return preferences.writeSession(orgId, sessionId, choice);
+        },
+        readSessionPin: (orgId, sessionId) => preferences.readSessionPin(orgId, sessionId),
+        writeSessionPin: (orgId, sessionId, engine) => {
+          probe.write('document:chatSessions.codingEnginePin');
+          return preferences.writeSessionPin(orgId, sessionId, engine);
+        },
+        readSessionRepository: (orgId, sessionId) => preferences.readSessionRepository(orgId, sessionId),
+        writeSessionRepository: (orgId, sessionId, repository) => {
+          probe.write('document:chatSessions.repository');
+          return preferences.writeSessionRepository(orgId, sessionId, repository);
+        },
+        eraseUser: (orgId, userId) => {
+          probe.write('document:users.codingEngine');
+          return preferences.eraseUser(orgId, userId);
+        },
+        eraseSession: (orgId, sessionId) => {
+          probe.write('document:chatSessions.codingEngine');
+          return preferences.eraseSession(orgId, sessionId);
+        },
       },
       transaction,
     }),

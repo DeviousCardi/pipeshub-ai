@@ -5,6 +5,7 @@
 import { expect } from 'chai';
 import { readProblem } from '../../../src/modules/control-plane';
 import type { AdminPinServices } from '../../../src/modules/control-plane';
+import type { SectionContext } from '../../../src/modules/control-plane/application/policy-admin';
 import { catalogItem } from './support/catalog-fixtures';
 import { ORG_A } from './support/cp-objects';
 import { startAdminApi, type AdminApiWorld } from './support/admin-api-world';
@@ -68,10 +69,10 @@ describe('CPD-11 admin routes: policy, connections, explain, audit', () => {
       items: [KEYED],
       validated: { skill: {} },
       pin,
-      context: async (_orgId, _scope, section) =>
+      context: async (_orgId, _scope, section): Promise<SectionContext> =>
         section === 'models'
-          ? { ceilings: {}, options: { 'models.routes': ['anthropic:claude', 'openai:gpt-5'] } }
-          : { ceilings: { 'budgets.maxTurns': 100 }, options: {} },
+          ? { ceilings: {}, options: { 'models.routes': ['anthropic:claude', 'openai:gpt-5'] }, locked: [] }
+          : { ceilings: { 'budgets.maxTurns': 100 }, options: {}, locked: [] },
       narrows: async (_orgId, layer: any) =>
         (layer.budgets?.maxTurns ?? 0) > 100
           ? { code: 'widening', dimension: 'budgets.maxTurns', layer: 'org', detail: 'above the release ceiling' }
@@ -91,6 +92,7 @@ describe('CPD-11 admin routes: policy, connections, explain, audit', () => {
       revision: 0,
       ceilings: { 'budgets.maxTurns': 100 },
       options: {},
+      locked: [],
     });
     expect(read.etag).to.equal('"0"');
     const saved = await world.call('PUT', '/policy/org/current/budgets', { body: { value: { maxTurns: 40 } }, ifMatch: '0' });

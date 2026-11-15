@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { HttpEngineAvailability } from '../../../src/modules/agent-harness/adapters/http/http-engine-availability';
+import { InMemoryCodingEnginePreferences } from '../../../src/modules/agent-harness/adapters/in-memory-coding-engine-preferences';
 import { InMemoryConfigDocumentStore } from '../../../src/modules/agent-harness/adapters/in-memory-config-document-store';
 import { InMemoryExecutionStore } from '../../../src/modules/agent-harness/adapters/in-memory-execution-store';
 import {
@@ -20,7 +21,6 @@ import { RunAdmissionService } from '../../../src/modules/agent-harness/applicat
 import type { EngineProfilesDocument } from '../../../src/modules/agent-harness/domain/engine-profiles';
 import { HarnessConflictError } from '../../../src/modules/agent-harness/domain/errors';
 import type { EngineAvailability } from '../../../src/modules/agent-harness/ports/engine-availability';
-import type { StoredCodingEngines } from '../../../src/modules/agent-harness/ports/coding-engines';
 import { testControlPlane } from '../control-plane/support/in-memory';
 import { agentDefinition, grantingAccess } from './support/agent-definition';
 import { testModelAccess } from './support/model-access';
@@ -36,7 +36,6 @@ const COMPOSE: EngineAvailability = {
 };
 
 const service = (availability: EngineAvailability): CodingEngineService => {
-  const stored: StoredCodingEngines = { org: null, user: null, session: null };
   return new CodingEngineService({
     ceilings: new ConfigEngineProfileSettings(
       new InMemoryConfigDocumentStore<EngineProfilesDocument>(),
@@ -44,13 +43,7 @@ const service = (availability: EngineAvailability): CodingEngineService => {
       { now: () => 7 },
     ),
     access: { engineRefusals: async () => new Map(), signInsCarried: async () => true },
-    preferences: {
-      read: async () => stored,
-      readSession: async () => null,
-      writeUser: async () => undefined,
-      writeOrg: async () => undefined,
-      writeSession: async () => undefined,
-    },
+    preferences: new InMemoryCodingEnginePreferences(),
     transaction: testControlPlane(),
     availability,
   });

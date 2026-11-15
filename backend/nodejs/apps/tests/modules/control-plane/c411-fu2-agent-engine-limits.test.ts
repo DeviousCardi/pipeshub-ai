@@ -18,6 +18,7 @@ import {
   isStoreOnly,
   withStoreOnly,
 } from '../../../src/modules/control-plane/domain/store-only-dimensions';
+import type { SectionContext } from '../../../src/modules/control-plane/application/policy-admin';
 import type { PolicyLayer } from '../../../src/modules/control-plane/domain/policy-alias';
 import { ERROR_CODES } from '../../../src/modules/control-plane/contracts/generated/errors';
 import { EngineProfileStep } from '../../../src/modules/agent-harness/application/admission/policy-steps';
@@ -81,7 +82,8 @@ describe('C411-FU-2 an agent’s engine limits on its policy layer', () => {
               .filter(([path]) => path.startsWith(`${section}.`))
               .map(([path, entry]) => [path, entry.value]),
           );
-          return { ceilings, options: section === 'models' ? { 'models.routes': ['openai:gpt-5', 'anthropic:claude'] } : {}, locked: [] };
+          const options: SectionContext['options'] = section === 'models' ? { 'models.routes': ['openai:gpt-5', 'anthropic:claude'] } : {};
+          return { ceilings, options, locked: [] };
         },
       });
     });

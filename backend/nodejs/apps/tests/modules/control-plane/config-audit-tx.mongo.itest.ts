@@ -209,6 +209,15 @@ describe('QA-4 config writes and their audit on a MongoDB replica set', function
         writeUser: (orgId, userId, choice) => codingEngines.writeUser(orgId, userId, choice),
         writeOrg: (orgId, engine) => codingEngines.writeOrg(orgId, engine),
         writeOrgAutoRoute: (orgId, on) => codingEngines.writeOrgAutoRoute(orgId, on),
+        readSession: (orgId, sessionId) => codingEngines.readSession(orgId, sessionId),
+        writeSession: (orgId, sessionId, choice) => codingEngines.writeSession(orgId, sessionId, choice),
+        readSessionPin: (orgId, sessionId) => codingEngines.readSessionPin(orgId, sessionId),
+        writeSessionPin: (orgId, sessionId, engine) => codingEngines.writeSessionPin(orgId, sessionId, engine),
+        readSessionRepository: (orgId, sessionId) => codingEngines.readSessionRepository(orgId, sessionId),
+        writeSessionRepository: (orgId, sessionId, repository) =>
+          codingEngines.writeSessionRepository(orgId, sessionId, repository),
+        eraseUser: (orgId, userId) => codingEngines.eraseUser(orgId, userId),
+        eraseSession: (orgId, sessionId) => codingEngines.eraseSession(orgId, sessionId),
       },
     });
   });
