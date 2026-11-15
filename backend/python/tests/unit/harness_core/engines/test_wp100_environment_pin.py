@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from harness_core.contracts.generated.run_spec import RunSpec
 from harness_core.engines.environments import (
     PIN_INVALID,
     EnvironmentInvalid,
@@ -32,6 +31,7 @@ if TYPE_CHECKING:
 
     from pydantic import JsonValue
 
+    from harness_core.contracts.generated.run_spec import RunSpec
     from harness_core.testing.sandbox.fake import FakeProcessContext
 
 AGENT_PIN: dict[str, JsonValue] = {

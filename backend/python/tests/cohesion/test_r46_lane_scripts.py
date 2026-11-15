@@ -13,13 +13,16 @@ import os
 import signal
 import subprocess
 import time
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from tests.cohesion.compose_files import BASE as BASE_COMPOSE
 from tests.cohesion.compose_files import compose_services
 from tests.cohesion.support import REPO_ROOT
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 E2E = REPO_ROOT / "deployment" / "e2e"
 RUN_SH = E2E / "run.sh"

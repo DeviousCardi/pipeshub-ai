@@ -12,7 +12,6 @@ more; everything the golden names must be there unchanged.
 
 from __future__ import annotations
 
-import argparse
 import os
 import re
 import stat
@@ -28,6 +27,7 @@ from harness_engines.pipeshub import (
 from harness_engines.pipeshub import ph as ph_cli
 
 if TYPE_CHECKING:
+    import argparse
     from pathlib import Path
 
     from harness_core.engines.types import GatewayEndpoints

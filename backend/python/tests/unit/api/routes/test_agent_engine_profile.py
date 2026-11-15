@@ -4,8 +4,7 @@ through the real ``ConfiguredEngineCeilings`` over a fake ``ConfigurationService
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -13,6 +12,9 @@ from fastapi import HTTPException
 
 import app.edition_config  # noqa: F401  (edition seams load before any router)
 from tests.support.bound_org import bind_test_org
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 ORG = "org-1"
 

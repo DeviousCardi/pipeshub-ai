@@ -12,8 +12,7 @@ hold it as text, a rollback restores it, and the run definition carries it to No
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock
 
 import jsonschema
@@ -36,6 +35,9 @@ from tests.unit.api.routes.test_wp51_agent_gates import (
     _graph,
     _update,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @pytest.fixture(autouse=True)

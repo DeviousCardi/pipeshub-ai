@@ -8,8 +8,7 @@ underlying metrics library can be swapped without touching call sites.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from prometheus_client import (
     CollectorRegistry,
@@ -20,6 +19,9 @@ from prometheus_client import (
 )
 
 from app.telemetry.flag import telemetry_enabled
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class CounterHandle(Protocol):

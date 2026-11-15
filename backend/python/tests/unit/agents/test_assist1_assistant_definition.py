@@ -9,9 +9,8 @@ the agent chat route's.
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
 from types import SimpleNamespace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -23,6 +22,9 @@ from app.api.middlewares.auth import AUTH_POLICY_ATTR
 from app.harness.assembly.descriptor_pins import LiveMcpDescriptors
 from tests.support.bound_org import bind_test_org
 from tests.support.mcp_tool_admission import mcp_approvals_required  # noqa: F401 - the fixture, used by name
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @pytest.fixture(autouse=True)

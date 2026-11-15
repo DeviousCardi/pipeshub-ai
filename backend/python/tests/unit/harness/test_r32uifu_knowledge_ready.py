@@ -12,9 +12,7 @@ import importlib
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
-
-import pytest
+from typing import TYPE_CHECKING, Any
 
 REPO = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(REPO / "deployment" / "e2e"))
@@ -22,6 +20,9 @@ sys.path.insert(0, str(REPO / "deployment" / "e2e"))
 smoke = importlib.import_module("smoke_human")
 journeys = importlib.import_module("journeys")
 from lane import HttpAnswer, StackError  # noqa: E402
+
+if TYPE_CHECKING:
+    import pytest
 
 PAGE = "# Travel policy\n\nBook flights at least 14 days ahead."
 

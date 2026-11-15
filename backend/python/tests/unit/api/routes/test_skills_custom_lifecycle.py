@@ -14,8 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Iterator
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -46,6 +45,9 @@ from app.api.routes.skills import (
 from app.config.constants.arangodb import CollectionNames
 from tests.support.bound_org import another_request, bind_test_org
 from tests.unit.agents.adapter.test_skills_graph_store import FakeGraphProvider
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 _SKILLS = CollectionNames.AGENT_SKILLS.value
 _AGENT_HAS_SKILL = CollectionNames.AGENT_HAS_SKILL.value

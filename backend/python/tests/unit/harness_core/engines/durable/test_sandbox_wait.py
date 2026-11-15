@@ -8,7 +8,7 @@ reason the user may retry.
 
 from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
 
 from harness_core.engines.controller import EngineController
 from harness_core.kernel.durable.capability import (
@@ -18,6 +18,9 @@ from harness_core.kernel.durable.capability import (
 )
 from harness_core.sandbox.errors import BrokerUnavailable, SandboxNotFound
 from harness_core.testing.engines.durable import EngineWorld
+
+if TYPE_CHECKING:
+    import pytest
 
 RUN = "run-sw"
 

@@ -9,9 +9,7 @@ granted, built or not.
 from __future__ import annotations
 
 import json
-from typing import Any
-
-import pytest
+from typing import TYPE_CHECKING, Any
 
 from app.agent_loop_lib.tools.registry import ToolRegistry
 from app.agents.agent_loop.mcp_access import MCPAccessResolver
@@ -24,6 +22,9 @@ from harness_core.kernel.core.messages import ToolCall
 from harness_core.kernel.durable import ToolContext
 from harness_core.tools.durable_port import RegistryToolPort
 from tests.unit.agents.adapter.conftest import make_context
+
+if TYPE_CHECKING:
+    import pytest
 
 CTX = ToolContext("run-1", "org-1", "t1.0", "att-1", "k")
 TRACKER = "Release tracker: launch blockers and signoffs."

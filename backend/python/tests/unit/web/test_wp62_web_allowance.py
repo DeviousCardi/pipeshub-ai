@@ -9,7 +9,7 @@ while the run had USD 4.66 of its USD 5 left. One GitHub tree listing it fetched
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -23,12 +23,14 @@ from app.utils.chat_helpers import CitationRefMapper
 from app.utils.html_to_blocks import TextBlock
 from app.web.budget import RUN, STANDARD, WEB_BUDGET_KEY, WebBudget
 from app.web.chain import ChainOutcome, Cooldowns
-from app.web.deadline import Deadline
 from app.web.errors import BudgetExhausted
 from app.web.models import Attempt, CallerContext, WebPage
 from app.web.services import WebFetchService
 from app.web.tools.fetch_url import MAX_PAGE_TEXT_CHARS, create_fetch_url_tool
 from tests.unit.web.test_services import RecordingGate
+
+if TYPE_CHECKING:
+    from app.web.deadline import Deadline
 
 CALLER = CallerContext(org_id="org-1", user_id="user-1")
 # The recorded child made 26 page reads and 6 searches before it was stopped; a research task needs more than that.

@@ -1,8 +1,7 @@
 """Who gets to see a STDIO server's stderr in `app.api.routes.mcp_servers` responses."""
 from __future__ import annotations
 
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -25,6 +24,9 @@ from tests.unit.agents.mcp.refresh_failures import (
     token_endpoint_error,
 )
 from tests.unit.api.routes.mcp_route_fakes import FakeConfigService, route_request
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 _STDERR = "server: EXA_API_KEY=sk-live-123 rejected"
 

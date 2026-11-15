@@ -22,15 +22,19 @@ import shutil
 import tarfile
 import tempfile
 import uuid
-from collections.abc import Iterator
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
 
-from app.agent_loop_lib.sandbox.coding.base import CodingSandboxBackend
 from app.agent_loop_lib.sandbox.coding.docker import DockerCodingSandbox
 from app.agent_loop_lib.sandbox.coding.docker_client import DockerClientProvider
 from app.agent_loop_lib.sandbox.coding.local import LocalCodingSandbox
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from app.agent_loop_lib.sandbox.coding.base import CodingSandboxBackend
 
 # An image that already carries node + python3 + a baked node_modules.
 # `deployment/sandbox/Dockerfile` builds `pipeshub/sandbox:latest`; a local

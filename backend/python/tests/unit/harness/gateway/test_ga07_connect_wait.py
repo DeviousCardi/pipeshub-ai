@@ -8,6 +8,8 @@ it runs once; declined, the re-call is refused with the next step.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from harness_core.engines.durable.kernel import _decisions_note  # pyright: ignore[reportPrivateUsage]
 from harness_core.gateway.endpoint import WHILE_WAITING
 from harness_core.interactions.connect import ConnectNeed
@@ -17,13 +19,15 @@ from harness_core.interactions.connect_wait import (
     connect_interaction_id,
 )
 from harness_core.interactions.ports import RunBinding
-from harness_core.kernel.core.messages import ToolCall
 from harness_core.testing.contracts.tool_endpoint import (
     BINDING,
     build_endpoint,
     claims_for,
 )
 from harness_core.testing.engines.gateway import FakeInteractionBridge
+
+if TYPE_CHECKING:
+    from harness_core.kernel.core.messages import ToolCall
 
 RUN = RunBinding("org-1", "ses-1", "run-1")
 JIRA = ConnectNeed("Jira", "toolset", "inst_jira_1")

@@ -38,6 +38,20 @@ from app.modules.parsers.excel.prompt_template import RowDescriptions
 from app.modules.retrieval import degraded_notice
 from app.services.llm_gateway.gateway import Invocable, get_llm_gateway, provider_key
 from app.utils.aimodels import coerce_message_content_to_text
+
+# The sanitizer lives in app.utils.answer_links (imports only ``re``); its names stay importable from here.
+from app.utils.answer_links import (
+    _flatten_unusable_markdown_links as _flatten_unusable_markdown_links,
+)
+from app.utils.answer_links import (
+    _strip_llm_authored_markers as _strip_llm_authored_markers,
+)
+from app.utils.answer_links import (
+    link_workspace_files as link_workspace_files,
+)
+from app.utils.answer_links import (
+    strip_llm_authored_markers_in_parts as strip_llm_authored_markers_in_parts,
+)
 from app.utils.citations import (
     detect_hallucinated_citation_urls,
     normalize_citations_and_chunks,
@@ -698,21 +712,6 @@ async def handle_simple_mode(
             ref_to_url=ref_to_url, web_records=web_records,chat_mode=chat_mode,
         ):
             yield event
-
-
-# The sanitizer lives in app.utils.answer_links (imports only ``re``); its names stay importable from here.
-from app.utils.answer_links import (  # noqa: E402
-    _flatten_unusable_markdown_links as _flatten_unusable_markdown_links,
-)
-from app.utils.answer_links import (
-    _strip_llm_authored_markers as _strip_llm_authored_markers,
-)
-from app.utils.answer_links import (
-    link_workspace_files as link_workspace_files,
-)
-from app.utils.answer_links import (
-    strip_llm_authored_markers_in_parts as strip_llm_authored_markers_in_parts,
-)
 
 
 def _append_task_markers(answer: str, conversation_tasks: list | None) -> str:

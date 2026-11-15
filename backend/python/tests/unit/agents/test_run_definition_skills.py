@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -25,6 +24,9 @@ from harness_core.skills import SkillRef, skill_bundle_digest
 from tests.support.agent_versions import versions_beside
 from tests.support.bound_org import bind_test_org
 from tests.unit.agents.adapter.test_skills_graph_store import FakeGraphProvider
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @pytest.fixture(autouse=True)

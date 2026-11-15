@@ -1,8 +1,7 @@
 """The server listings and the Discover button with the tool cache."""
 from __future__ import annotations
 
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -13,6 +12,9 @@ from app.api.routes import mcp_servers
 from app.api.routes.mcp_servers import get_instance_tools, get_my_mcp_servers
 from tests.support.bound_org import bind_test_org
 from tests.unit.api.routes.mcp_route_fakes import FakeConfigService, route_request
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 _CREDENTIALS = "/services/mcp/credentials/inst-1/user-1"
 

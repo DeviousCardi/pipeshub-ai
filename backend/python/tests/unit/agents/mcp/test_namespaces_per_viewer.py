@@ -5,8 +5,7 @@ tool names, and the chat that receives a selection must name the tools the same 
 """
 from __future__ import annotations
 
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -23,6 +22,9 @@ from app.api.routes.mcp_servers import get_my_mcp_servers
 from tests.support.bound_org import bind_test_org
 from tests.unit.agents.adapter.conftest import make_context
 from tests.unit.api.routes.mcp_route_fakes import FakeConfigService, route_request
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 def _github(instance_id: str, created_at: int, **extra: Any) -> dict[str, Any]:  # noqa: ANN401

@@ -7,7 +7,7 @@ words, and that neither the agent's `skill_manage` nor the learning loop can mak
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 import pytest
 from fastapi import HTTPException
@@ -37,6 +37,9 @@ from tests.unit.api.routes.test_skills_custom_lifecycle import (
     _LifecycleGraphProvider,
     _request,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 TRIAGE = SkillWriteRequest(
     name="triage",

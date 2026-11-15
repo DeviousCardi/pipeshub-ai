@@ -2,18 +2,20 @@ from __future__ import annotations
 
 import asyncio
 from types import SimpleNamespace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from app.agent_loop_lib.core.types import ToolCall
 from app.agent_loop_lib.hooks.events import HookEvent
-from app.agent_loop_lib.hooks.middleware.context import ToolResultContext
 from app.agent_loop_lib.hooks.registry import HookRegistry
 from app.agent_loop_lib.tools.base import ParameterType, Tool, ToolOutput, ToolParameter
 from app.agent_loop_lib.tools.executor import ToolExecutor
 from app.agent_loop_lib.tools.invocation import InvocationStart
 from app.agent_loop_lib.tools.registry import ToolRegistry
+
+if TYPE_CHECKING:
+    from app.agent_loop_lib.hooks.middleware.context import ToolResultContext
 
 
 class _CountingTool(Tool):

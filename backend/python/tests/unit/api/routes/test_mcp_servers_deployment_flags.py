@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -10,6 +10,9 @@ import pytest
 from app.api.routes.mcp_servers import get_my_mcp_servers
 from app.utils.env_flags import MCP_HUB, MCP_STDIO_RUNNERS
 from tests.support.bound_org import bind_test_org
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 def _request() -> MagicMock:

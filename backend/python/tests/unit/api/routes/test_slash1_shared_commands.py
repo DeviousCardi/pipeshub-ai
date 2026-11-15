@@ -8,7 +8,6 @@ happens to a deleted user's commands (O3: personal ones are erased, shared ones 
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 import pytest
@@ -43,6 +42,7 @@ from tests.unit.api.routes.test_skills_custom_lifecycle import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from unittest.mock import MagicMock
 
 ORG, OTHER_ORG = "org-1", "org-2"

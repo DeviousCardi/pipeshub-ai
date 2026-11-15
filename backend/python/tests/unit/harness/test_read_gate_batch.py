@@ -13,7 +13,6 @@ import pytest
 
 from app.harness.knowledge.read_gate import RecordReadGate
 from app.harness.knowledge.service import KnowledgePublications
-from app.services.graph_db.interface.graph_db_provider import AccessCheck
 from tests.support.knowledge_publications import NOW, ORG, Reads
 from tests.support.knowledge_publications import publications_over as _publications
 from tests.support.knowledge_publications import publish as _publish
@@ -22,6 +21,7 @@ from tests.support.record_access import InMemoryRecordAccess
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from app.services.graph_db.interface.graph_db_provider import AccessCheck
     from harness_core.knowledge.publications import ReadDecision
 
 READER = "reader"

@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -16,6 +15,9 @@ from harness_core.kernel.task_ledger import TaskLedger
 from harness_engines.claude_code.mapper import ClaudeEventMapper
 from harness_engines.codex.mapper import CodexEventMapper
 from harness_engines.opencode.mapper import OpencodeEventMapper
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 VECTOR = json.loads(
     (Path(__file__).resolve().parents[5] / "contracts" / "harness" / "vectors" / "plan-steps.json").read_text()

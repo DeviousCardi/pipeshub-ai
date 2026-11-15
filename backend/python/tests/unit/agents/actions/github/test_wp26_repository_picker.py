@@ -7,8 +7,7 @@ branches and update times only; the routes answer 404 for a connection that is n
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -24,6 +23,9 @@ from app.agents.actions.github.repository_picker import (
     repository_name_ok,
 )
 from tests.support.bound_org import bind_test_org
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 TOKEN = "gho_fake0123456789"
 # GitHub's own API, named so a GITHUB_API_URL left in the environment cannot change which links count.

@@ -10,10 +10,9 @@ Over the real ``GraphSkillStore``, seeder and bundle builder on the in-memory gr
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
 from datetime import UTC, datetime
 from types import SimpleNamespace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -58,6 +57,9 @@ from harness_core.workspace.memory import (
 from tests.support.bound_org import bind_test_org
 from tests.support.config_service import FakeConfigurationService
 from tests.unit.agents.adapter.test_skills_graph_store import FakeGraphProvider
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 ORG, SESSION = "org-1", "ses-1"
 ME = SimpleNamespace(user_id="user-me", key="key-me")

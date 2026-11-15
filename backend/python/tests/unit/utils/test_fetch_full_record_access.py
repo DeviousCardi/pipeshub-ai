@@ -14,7 +14,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.harness.knowledge.read_gate import RecordReadGate
-from app.services.graph_db.interface.graph_db_provider import AccessCheck
 from app.utils.fetch_full_record import (
     NOT_INDEXED_YET,
     PUBLICATION_ANSWER_ONLY,
@@ -29,6 +28,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
     from collections.abc import Set as AbstractSet
 
+    from app.services.graph_db.interface.graph_db_provider import AccessCheck
     from harness_core.knowledge.publications import ReadDecision
 
 ORG = "org-1"

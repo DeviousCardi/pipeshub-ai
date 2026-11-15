@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
@@ -39,6 +38,8 @@ from tests.unit.harness.mcp_runner.support import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from harness_core.testing.sandbox.egress import EgressRequest
 
 ECHO_TOOL = "mcp_echo_echo"

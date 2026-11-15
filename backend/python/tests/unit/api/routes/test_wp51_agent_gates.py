@@ -5,8 +5,7 @@ carries them to Node so every run of the agent is held to them."""
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import jsonschema
@@ -21,6 +20,9 @@ from app.schema.arango.documents import agent_schema
 from app.services.graph_db.arango.arango_http_provider import ArangoHTTPProvider
 from app.services.graph_db.neo4j.neo4j_provider import Neo4jProvider
 from tests.support.bound_org import bind_test_org
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 ORG = "org-1"
 
