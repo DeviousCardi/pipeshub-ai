@@ -89,6 +89,7 @@ import {
   waitForPersonMs,
   WORKER_OWNED_RUN_STATUSES,
   endsWithoutTranscript,
+  heldByAnotherAttempt,
 } from '../domain/execution';
 import { Followup, FollowupsWrite } from '../domain/followups';
 import { PreparedJournalAppend, PreparedJournalEvent } from '../domain/journal';
@@ -1560,17 +1561,13 @@ export class InMemoryExecutionStore
     runId: string,
     errorType: string,
     journal: readonly PreparedJournalAppend[],
+    holder?: string,
   ): Promise<boolean> {
     const run = this.requireRun(orgId, runId);
     if (TERMINAL_RUN_STATUSES.has(run.status)) return false;
-    this.expire(
-      run,
-      'failed',
-      'run_failed',
-      { errorType },
-      this.clock.now(),
-      journal,
-    );
+    const now = this.clock.now();
+    if (heldByAnotherAttempt(run, now, holder ?? null)) return false;
+    this.expire(run, 'failed', 'run_failed', { errorType }, now, journal);
     return true;
   }
 

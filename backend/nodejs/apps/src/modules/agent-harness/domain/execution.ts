@@ -651,6 +651,21 @@ export const WORKER_OWNED_RUN_STATUSES: ReadonlySet<RunStatus> = new Set([
 ]);
 
 /**
+ * An attempt other than `holder` holds the run on a lease that has not lapsed by `now`. A store-side failure
+ * (`ExecutionStore.failRun`) refuses such a run: it would clear the lease under a worker still in its attempt, which
+ * a claim never does. Once the lease lapses the run is lost and may be failed.
+ */
+export const heldByAnotherAttempt = (
+  run: Pick<HarnessRun, 'status' | 'leaseExpiresAt' | 'attemptId'>,
+  now: number,
+  holder: string | null,
+): boolean =>
+  WORKER_OWNED_RUN_STATUSES.has(run.status) &&
+  run.leaseExpiresAt !== null &&
+  run.leaseExpiresAt > now &&
+  run.attemptId !== holder;
+
+/**
  * How long an inline run waits for the process that admitted it to claim it
  * before the sweeper hands it to dispatched workers [R-11].
  */

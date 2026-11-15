@@ -255,12 +255,17 @@ export interface ExecutionStore {
     transcript?: RunTranscript,
     fence?: CommitFence,
   ): Promise<CommitReceipt>;
-  /** Fails a non-terminal run for a store-side reason; false if it already ended. */
+  /**
+   * Fails a non-terminal run for a store-side reason; false if it already ended, or if an attempt other than `holder`
+   * still holds it on an unexpired lease (`heldByAnotherAttempt`), judged on the store's clock in the same
+   * compare-and-set. `holder`: the attempt the caller acts for, which may fail the run it holds.
+   */
   failRun(
     orgId: string,
     runId: string,
     errorType: string,
     journal: readonly PreparedJournalAppend[],
+    holder?: string,
   ): Promise<boolean>;
   get(orgId: string, runId: string): Promise<HarnessRun | null>;
   /** The session's completed children of root runs, latest first (the engine state a code_task child carries). */

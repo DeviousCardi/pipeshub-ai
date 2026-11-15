@@ -1365,14 +1365,26 @@ export class MongoExecutionStore
     runId: string,
     errorType: string,
     journal: readonly PreparedJournalAppend[],
+    holder?: string,
   ): Promise<boolean> {
     const document = await AgentRunModel.findOne({ orgId, runId }).lean();
     if (!document) throw new HarnessNotFoundError();
     const current = this.toRun(document);
     if (TERMINAL_RUN_STATUSES.has(current.status)) return false;
+    // `heldByAnotherAttempt` on DB time, in the compare-and-set: a renewal moves the lease without a revision.
+    const notHeld = WORKER_OWNED_RUN_STATUSES.has(current.status)
+      ? {
+          $expr: {
+            $or: [
+              { $not: [this.isAfterNow('leaseExpiresAt')] },
+              ...(holder !== undefined ? [{ $eq: ['$attemptId', holder] }] : []),
+            ],
+          },
+        }
+      : {};
     const expiry = await this.expire(
       current,
-      {},
+      notHeld,
       'failed',
       'run_failed',
       { errorType },

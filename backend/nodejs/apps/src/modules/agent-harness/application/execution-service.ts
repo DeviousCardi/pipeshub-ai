@@ -776,7 +776,9 @@ export class ExecutionService {
   /**
    * WP-111: a run pinned to an engine an admin has since turned off starts no new engine session: its first claim
    * and a claim after a lost attempt both fail it `engine_off`, and the parent's loop reads a failed child. A
-   * live attempt is not cut short here: an operator's stop (ADR-OPS-01) is what ends work already running.
+   * live attempt is not cut short here: the store fails no run another attempt holds on a live lease, so a claim
+   * for one is refused as any claim of a held run is, and an operator's stop (ADR-OPS-01) is what ends work
+   * already running.
    */
   private async refuseEngineOff(
     subject: ClaimSubject,
@@ -797,6 +799,7 @@ export class ExecutionService {
       engine,
     );
     if (off !== 'engine_off' && off !== 'engine_group_required') return;
+    const failed = await this.failRun(subject.run, ENGINE_OFF_ERROR);
     this.logger.info(
       'run.engine_off',
       harnessLogMeta('run.engine_off', {
@@ -804,10 +807,9 @@ export class ExecutionService {
         engine: engine.kind,
         version: engine.version,
         reason: off,
-        outcome: 'failed',
+        outcome: failed ? 'failed' : 'left_to_holder',
       }),
     );
-    await this.failRun(subject.run, ENGINE_OFF_ERROR);
     throw new HarnessConflictError(
       'RUN_NOT_CLAIMABLE',
       'The coding engine this run is pinned to is turned off',
@@ -868,7 +870,7 @@ export class ExecutionService {
             outcome: 'failed',
           }),
         );
-        await this.failRun(claimed, JOURNAL_PAYLOAD_MISSING);
+        await this.failRun(claimed, JOURNAL_PAYLOAD_MISSING, claimed.attemptId ?? undefined);
       } else if (claimed.attemptId !== null && claimed.workerId !== null) {
         await this.release({
           orgId: claimed.orgId,
@@ -1939,7 +1941,11 @@ export class ExecutionService {
       return await this.journals.resolve(events);
     } catch (error) {
       if (error instanceof JournalPayloadMissingError) {
-        await this.failRun(run, JOURNAL_PAYLOAD_MISSING);
+        await this.failRun(
+          run,
+          JOURNAL_PAYLOAD_MISSING,
+          owning ? query.attemptId : undefined,
+        );
       }
       if (error instanceof PayloadStoreUnavailableError && owning) {
         return this.yieldForPayloadStore(
@@ -2568,7 +2574,12 @@ export class ExecutionService {
     }
   }
 
-  private async failRun(run: HarnessRun, errorType: string): Promise<void> {
+  /** `holder`: the attempt this call acts for; without one, a run another attempt still holds is left to it. */
+  private async failRun(
+    run: HarnessRun,
+    errorType: string,
+    holder?: string,
+  ): Promise<boolean> {
     const journal =
       run.harnessMajor === 2
         ? [
@@ -2583,10 +2594,12 @@ export class ExecutionService {
             }),
           ]
         : [];
-    if (await this.store.failRun(run.orgId, run.runId, errorType, journal)) {
-      this.ended(run, { ...run, status: 'failed' });
-      this.asksMoved(run, { ...run, status: 'failed' });
+    if (!(await this.store.failRun(run.orgId, run.runId, errorType, journal, holder))) {
+      return false;
     }
+    this.ended(run, { ...run, status: 'failed' });
+    this.asksMoved(run, { ...run, status: 'failed' });
+    return true;
   }
 
   private position(

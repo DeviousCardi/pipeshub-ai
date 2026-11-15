@@ -70,6 +70,7 @@ import {
   waitForPersonMs,
   waitsForPerson,
   WORKER_OWNED_RUN_STATUSES,
+  heldByAnotherAttempt,
   endsWithoutTranscript,
 } from '../../../../modules/agent-harness/domain/execution';
 import {
@@ -1327,6 +1328,7 @@ export class PgExecutionStore
     runId: string,
     errorType: string,
     journal: readonly PreparedJournalAppend[],
+    holder?: string,
   ): Promise<boolean> {
     const current = runOfRow(
       await inOrgRead(orgId, (k) => readRun(k, orgId, runId)),
@@ -1340,6 +1342,8 @@ export class PgExecutionStore
       'run_failed',
       { errorType },
       journal,
+      undefined,
+      { holder: holder ?? null },
     );
     return expiry !== 'lost';
   }
@@ -1953,6 +1957,7 @@ export class PgExecutionStore
       nextStatus,
     ),
     transcript?: RunTranscript,
+    lease?: { holder: string | null },
   ): Promise<Expiry> {
     return inOrgTransaction(current.orgId, async (tx, k): Promise<Expiry> => {
       const row = await lockRun(k, current.orgId, current.runId);
@@ -1966,6 +1971,23 @@ export class PgExecutionStore
         return 'lost';
       }
       const now = await this.time.now(k);
+      // Read under the row lock: a renewal moves the lease without a revision.
+      if (
+        lease !== undefined &&
+        heldByAnotherAttempt(
+          {
+            status: doc['status'] as RunStatus,
+            leaseExpiresAt: after(doc['leaseExpiresAt'], now)
+              ? (doc['leaseExpiresAt'] as number)
+              : null,
+            attemptId: typeof doc['attemptId'] === 'string' ? doc['attemptId'] : null,
+          },
+          now,
+          lease.holder,
+        )
+      ) {
+        return 'lost';
+      }
       const terminal = TERMINAL_RUN_STATUSES.has(nextStatus);
       await saveRun(k, {
         ...doc,
