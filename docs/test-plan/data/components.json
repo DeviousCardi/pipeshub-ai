@@ -2987,6 +2987,7 @@
         "backend/python/tests/unit/services/artifact_registry/test_erasure.py",
         "backend/python/tests/unit/services/artifact_registry/test_erasure_real_graph.py",
         "backend/python/tests/unit/services/chat_attachments/**",
+        "backend/python/tests/unit/schema/test_record_rollback_safety.py",
         "backend/python/tests/unit/harness_core/kernel/test_fold_erased.py",
         "backend/nodejs/apps/tests/modules/agent-harness/erasure-job-store*.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/conversation-erasure*.ts",

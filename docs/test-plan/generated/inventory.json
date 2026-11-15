@@ -2,8 +2,8 @@
  "generatedBy": "scripts/harness_test_inventory.py",
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2063,
- "claimedTestFiles": 3895,
- "claimedTests": 41125,
+ "claimedTestFiles": 3896,
+ "claimedTests": 41134,
  "claimedFilesByLevel": {
   "cohesion": 64,
   "component": 48,
@@ -18,7 +18,7 @@
   "live": 6,
   "perf": 3,
   "replay": 16,
-  "unit": 3158
+  "unit": 3159
  },
  "components": [
   {
@@ -16110,21 +16110,21 @@
    "id": "ERA",
    "name": "Erasure and retention (E7, E7B)",
    "status": "built",
-   "files": 67,
-   "tests": 379,
+   "files": 68,
+   "tests": 387,
    "filesByLevel": {
     "cohesion": 1,
     "contract": 6,
     "integration": 17,
     "integration-docker": 2,
-    "unit": 41
+    "unit": 42
    },
    "testsByLevel": {
     "cohesion": 15,
     "contract": 56,
     "integration": 83,
     "integration-docker": 16,
-    "unit": 209
+    "unit": 217
    },
    "markers": {
     "docker": 2
@@ -16501,6 +16501,12 @@
      "tests": 3
     },
     {
+     "path": "backend/python/tests/unit/schema/test_record_rollback_safety.py",
+     "level": "unit",
+     "markers": [],
+     "tests": 4
+    },
+    {
      "path": "backend/python/tests/unit/services/artifact_registry/test_erasure.py",
      "level": "unit",
      "markers": [],
@@ -16518,7 +16524,7 @@
      "path": "backend/python/tests/unit/services/chat_attachments/test_unsent_uploads.py",
      "level": "unit",
      "markers": [],
-     "tests": 5
+     "tests": 9
     },
     {
      "path": "backend/python/tests/unit/services/chat_attachments/test_uploads.py",
@@ -17099,7 +17105,7 @@
    "name": "Legacy query path (today's loop)",
    "status": "built (reference and kill-switch target)",
    "files": 693,
-   "tests": 16236,
+   "tests": 16237,
    "filesByLevel": {
     "contract": 5,
     "integration": 2,
@@ -17114,7 +17120,7 @@
     "integration-docker": 12,
     "live": 39,
     "replay": 7,
-    "unit": 16077
+    "unit": 16078
    },
    "markers": {
     "ai_agents": 6,
@@ -20674,7 +20680,7 @@
      "path": "backend/python/tests/unit/api/routes/test_chatbot_document_attachments.py",
      "level": "unit",
      "markers": [],
-     "tests": 25
+     "tests": 26
     },
     {
      "path": "backend/python/tests/unit/api/routes/test_chatbot_extended_95_coverage.py",
