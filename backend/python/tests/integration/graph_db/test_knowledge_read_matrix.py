@@ -26,6 +26,7 @@ import pytest
 import pytest_asyncio
 
 from app.config.constants.service import config_node_constants
+from app.core import org_context
 from app.services.featureflag.config.config import CONFIG
 from tests.integration.graph_db.knowledge_read_seed import seed
 from tests.integration.graph_db.test_knowledge_publications import (
@@ -91,6 +92,27 @@ class Observed:
     views: dict[Reader, dict[Cell, str]] = field(default_factory=dict[Reader, dict[Cell, str]])
     # reader -> the markers a chat run's prefetch of that reader returned
     prefetched: dict[Reader, set[str]] = field(default_factory=dict[Reader, set[str]])
+    # the first distinct errors logged while observing, tracebacks included: a tool answers a failure with a
+    # one-line message, and the module fixture's captured log is shown with no test's failure
+    errors: list[str] = field(default_factory=list[str])
+
+    def why(self) -> str:
+        return "\n\n".join(self.errors) or "(nothing logged at ERROR while observing)"
+
+
+class _Errors(logging.Handler):
+    LIMIT: Final = 5
+
+    def __init__(self, into: list[str]) -> None:
+        super().__init__(logging.ERROR)
+        self.setFormatter(logging.Formatter("%(name)s: %(message)s"))
+        self._into = into
+        self._seen: set[str] = set()
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if len(self._into) < self.LIMIT and (key := f"{record.name}:{record.getMessage()}") not in self._seen:
+            self._seen.add(key)
+            self._into.append(self.format(record))
 
 
 def _config(world: World) -> FakeConfigurationService:
@@ -107,6 +129,14 @@ def _agent(world: World) -> dict[str, Any]:
         "knowledge": [{"connectorId": world.drive, "type": "Drive"}, {"connectorId": world.slack, "type": "SLACK"}],
         "models": [],
     }
+
+
+def _as_run(world: World, reader: Reader, *, chat: bool = False) -> Any:  # noqa: ANN401 - a context manager
+    """The org binding a worker gives the run's task (``PipesHubRuntimeAssembler.build``), which the knowledge tools
+    pin their principal to."""
+    from app.harness.assembly.assembler import run_org_context
+
+    return org_context.bind(run_org_context(_run(world, reader, chat=chat)))
 
 
 def _run(world: World, reader: Reader, *, chat: bool = False) -> Any:  # noqa: ANN401 - RunContext
@@ -224,17 +254,24 @@ async def observed(backend: IGraphDBProvider) -> AsyncIterator[Observed]:
     stub_agent_reads(graph, _agent(world))
     services = MatrixServices(world, graph, config, _agent(world), vectors)  # type: ignore[arg-type]
     seen = Observed(world)
-    with blob_seam(world, StoredFiles()):  # type: ignore[arg-type]
-        for path in PATHS:
-            for cell in CELLS:
-                tools = await _tools(services, world, path)
-                for surface, name, arguments in _calls(world.record(cell, "drive"), world.record(cell, "slack")):
-                    answer = await tools.call(name, arguments)
-                    if surface is not None:
-                        seen.answers[(surface, path, cell)] = answer
-        for reader in ("alice", "carol"):
-            seen.views[reader] = await _views(graph, world, config, reader)
-            seen.prefetched[reader] = await _prefetched(services, world, reader)
+    errors = _Errors(seen.errors)
+    logging.getLogger().addHandler(errors)
+    try:
+        with blob_seam(world, StoredFiles()):  # type: ignore[arg-type]
+            with _as_run(world, "alice"):
+                for path in PATHS:
+                    for cell in CELLS:
+                        tools = await _tools(services, world, path)
+                        for surface, name, arguments in _calls(world.record(cell, "drive"), world.record(cell, "slack")):
+                            answer = await tools.call(name, arguments)
+                            if surface is not None:
+                                seen.answers[(surface, path, cell)] = answer
+            for reader in ("alice", "carol"):
+                seen.views[reader] = await _views(graph, world, config, reader)
+                with _as_run(world, reader, chat=True):
+                    seen.prefetched[reader] = await _prefetched(services, world, reader)
+    finally:
+        logging.getLogger().removeHandler(errors)
     yield seen
 
 
@@ -259,7 +296,7 @@ def test_qa27_2_every_cell_shows_what_the_matrix_says(observed: Observed, surfac
         if (want := expected_on(surface, path, cell))
         != (got := _outcome(observed, surface, path, cell))
     }
-    assert wrong == {}, wrong
+    assert wrong == {}, f"{wrong}\n\nlogged while observing:\n{observed.why()}"
 
 
 @pytest.mark.parametrize("path", PATHS)
@@ -284,7 +321,7 @@ def test_qa27_3_the_loop_and_the_durable_kernel_answer_alike(observed: Observed,
         if normalized(observed.answers[(surface, "loop", cell)], ())
         != normalized(observed.answers[(surface, "durable", cell)], ())
     }
-    assert differ == set(), differ
+    assert differ == set(), f"{differ}\n\nlogged while observing:\n{observed.why()}"
 
 
 def test_qa27_4_the_shared_view_shows_the_reader_what_the_reader_may_read(observed: Observed) -> None:
@@ -320,4 +357,4 @@ def test_qa27_5_a_participants_prefetch_is_the_participants_own(observed: Observ
         for (cell, _), s in world.records.items()
         if expected("search", cell, reader) == "served"
     }
-    assert observed.prefetched[reader] == readable
+    assert observed.prefetched[reader] == readable, observed.why()
