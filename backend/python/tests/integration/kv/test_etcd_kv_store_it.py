@@ -24,6 +24,8 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="module")]
+# One key for the store and the service over it, strong enough for the hardened profile tests/conftest.py sets.
+SECRET = "c79dbe7e3afddf1bf57ddbdbbeb5bd49f09979d108f4f77e9e5038d2836be81d"
 
 
 @pytest.fixture(scope="module")
@@ -37,7 +39,7 @@ async def store() -> AsyncIterator:
 
     with pytest.MonkeyPatch.context() as mp:
         mp.setenv("ETCD_URL", etcd_url)
-        mp.setenv("SECRET_KEY", "c79dbe7e3afddf1bf57ddbdbbeb5bd49f09979d108f4f77e9e5038d2836be81d")
+        mp.setenv("SECRET_KEY", SECRET)
         kv = Etcd3EncryptedKeyValueStore(logging.getLogger("etcd-it"))
     try:
         await asyncio.wait_for(kv.get_all_keys(), timeout=10.0)
@@ -54,7 +56,7 @@ class TestEtcdKvStore(KvStoreContract):
 
         # No watch thread: it would subscribe on the module-scoped store from a loop of its own.
         with pytest.MonkeyPatch.context() as mp, patch.object(ConfigurationService, "_start_watch"):
-            mp.setenv("SECRET_KEY", "etcd-it-secret")
+            mp.setenv("SECRET_KEY", SECRET)
             svc = ConfigurationService(logging.getLogger("etcd-it-svc"), store)
         await store.create_key(key, {"owner": "a"})
 

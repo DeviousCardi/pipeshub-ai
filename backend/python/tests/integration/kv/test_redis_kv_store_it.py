@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="module")]
 
 LOGGER = logging.getLogger("redis-kv-it")
-SECRET = "redis-kv-it-secret"
+SECRET = "0cc027328ec9b923d445ea7c80a544943a3ceef09e18ecd9636978ad88bc4771"
 # How long a cross-process invalidation may take to arrive; it is one PUBLISH on a local server.
 DELIVERY_S = 10.0
 
