@@ -786,6 +786,8 @@ jobs:
           for fn in sha256_file offline_bundle_trusted_root verify_offline_bundle_signature; do
             eval "$(awk -v fn="$fn" '$0 ~ "^"fn"\\(\\) \\{"{g=1} g{print} g&&/^\}/{exit}' "$installer")"
           done
+          # Read by the installer functions eval'd above.
+          # shellcheck disable=SC2034
           SCRIPT_DIR="$PWD/deployment/docker-compose"
           m="$RUNNER_TEMP/bundle/pipeshub-offline-${VERSION}-${ARCH}.manifest"
           root="$(offline_bundle_trusted_root "$m")"

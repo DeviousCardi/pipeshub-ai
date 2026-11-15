@@ -68,7 +68,6 @@ jobs:
         # Pull requests run the Es-PR lane; the nightly and a manual run add the engine lane.
         lane: ${{ fromJSON((github.event_name == 'pull_request' && '["harness"]') || (github.event.inputs.lane == 'harness' && '["harness"]') || (github.event.inputs.lane == 'durable' && '["durable"]') || (github.event.inputs.lane == 'pg' && '["pg"]') || (github.event.inputs.lane == 'airgap' && '["airgap"]') || '["harness","durable","pg","airgap"]') }}
     env:
-      E2E_STATE_DIR: ${{ runner.temp }}/e2e
       E2E_MONGO_CONTAINER: pxh-ci-mongo-${{ github.run_id }}-${{ matrix.lane }}
       E2E_REDIS_CONTAINER: pxh-ci-redis-${{ github.run_id }}-${{ matrix.lane }}
       E2E_SANDBOX_IMAGE: pipeshubai/pipeshub-sandbox:e2e
@@ -77,6 +76,11 @@ jobs:
       E2E_KEEP_WORK: '1'
       CI: 'true'
     steps:
+      # The runner context is not available in job-level env, so the paths under RUNNER_TEMP are set here.
+      - name: Set the run's state directories
+        run: |
+          echo "E2E_STATE_DIR=$RUNNER_TEMP/e2e" >> "$GITHUB_ENV"
+
       - name: Checkout code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -133,7 +137,7 @@ jobs:
         run: |
           docker run -d --name "$E2E_MONGO_CONTAINER" --label pipeshub.harness.owner=x-lead mongo:8.0.17 --replSet rs0 --bind_ip_all
           docker run -d --name "$E2E_REDIS_CONTAINER" --label pipeshub.harness.owner=x-lead redis:7.4.12-bookworm
-          for i in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             docker exec "$E2E_MONGO_CONTAINER" mongosh --quiet --eval 'try { rs.status().ok } catch (e) { rs.initiate().ok }' && break
             sleep 2
           done
@@ -169,15 +173,19 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/volume=100gb
     timeout-minutes: ${{ github.event.schedule == '0 2 * * 6' && 360 || 120 }}
     env:
-      E2E_STATE_DIR: ${{ runner.temp }}/e2e
       E2E_MONGO_CONTAINER: pxh-ci-mongo-${{ github.run_id }}-matrix
       E2E_REDIS_CONTAINER: pxh-ci-redis-${{ github.run_id }}-matrix
       E2E_SANDBOX_IMAGE: pipeshubai/pipeshub-sandbox:e2e
       E2E_PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.64.1-jammy
       E2E_KEEP_WORK: '1'
-      QA6_RESULTS_DIR: ${{ runner.temp }}/qa6
       CI: 'true'
     steps:
+      # The runner context is not available in job-level env, so the paths under RUNNER_TEMP are set here.
+      - name: Set the run's state directories
+        run: |
+          echo "E2E_STATE_DIR=$RUNNER_TEMP/e2e" >> "$GITHUB_ENV"
+          echo "QA6_RESULTS_DIR=$RUNNER_TEMP/qa6" >> "$GITHUB_ENV"
+
       - name: Checkout code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -240,7 +248,7 @@ jobs:
         run: |
           docker run -d --name "$E2E_MONGO_CONTAINER" --label pipeshub.harness.owner=x-lead mongo:8.0.17 --replSet rs0 --bind_ip_all
           docker run -d --name "$E2E_REDIS_CONTAINER" --label pipeshub.harness.owner=x-lead redis:7.4.12-bookworm
-          for i in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             docker exec "$E2E_MONGO_CONTAINER" mongosh --quiet --eval 'try { rs.status().ok } catch (e) { rs.initiate().ok }' && break
             sleep 2
           done
