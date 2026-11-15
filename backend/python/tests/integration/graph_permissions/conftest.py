@@ -49,7 +49,7 @@ import pytest
 from tests.support import it_backends
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Iterator
 
     from app.services.graph_db.arango.arango_http_provider import ArangoHTTPProvider
     from app.services.graph_db.neo4j.neo4j_provider import Neo4jProvider
@@ -58,6 +58,19 @@ if TYPE_CHECKING:
 
 #: These suites write through the real processor (the harness runs the connector write path), so they stay strict.
 _REAL_WRITER_MODULES = frozenset({"test_write_path", "test_record_property_projection"})
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _neo4j_schema_notifications_quiet() -> "Iterator[None]":
+    """The synthetic worlds leave most labels, relationship types and properties unused, so Neo4j attaches a
+    notification quoting the whole query to nearly every read: tens of thousands per name-search test, each
+    formatted and redacted by the console handler the suite's logging installs, which pushed one test past its
+    timeout. The app silences them only under DATA_STORE=neo4j, which this two-store suite does not set."""
+    notifications = logging.getLogger("neo4j.notifications")
+    level = notifications.level
+    notifications.setLevel(logging.ERROR)
+    yield
+    notifications.setLevel(level)
 
 
 @pytest.fixture(autouse=True)
