@@ -84,7 +84,7 @@ jobs:
       - name: Install frontend deps and Playwright browsers
         working-directory: frontend
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npx playwright install chromium --with-deps
 
       # From GHCR so CI neither spends nor inflates Docker Hub pulls; the compose
@@ -213,6 +213,8 @@ jobs:
           TEST_USER_EMAIL: ${{ env.PIPESHUB_TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ env.PIPESHUB_TEST_USER_PASSWORD }}
           # The stack's Mailpit catches invite emails; the invite test reads them back.
+          # A stack made for this run: specs tagged @disposable run on it (WP-71).
+          E2E_DISPOSABLE_STACK: '1'
           SMTP_HOST: mailpit
           SMTP_PORT: '1025'
         run: npm run test:e2e:smoke 2>&1
