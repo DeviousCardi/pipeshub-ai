@@ -75,6 +75,8 @@ def _no_admin(method: str, path: str, why: str, **kw: Any) -> AdminRoute:
 
 
 _CM = "/api/v1/configurationManager"
+_HARNESS = "/api/v1/agent-harness"
+_HARNESS_ADMIN = f"{_HARNESS}/admin"
 
 NODE_ADMIN_ROUTES: tuple[AdminRoute, ...] = (
     # orgAuthConfig.routes.ts (router-level userAdminCheck)
@@ -217,6 +219,30 @@ NODE_ADMIN_ROUTES: tuple[AdminRoute, ...] = (
               member_body={"fullName": "IT Admin Probe", "email": "it-admin-probe@test-pipeshub.com"}),
     AdminRoute("DELETE", "/api/v1/users/:id"),
     AdminRoute("GET", "/api/v1/users/:id/adminCheck"),
+    # configuration_manager/routes/cm_routes.ts (Slack identity links)
+    AdminRoute("GET", f"{_CM}/slack-bot/identity-links"),
+    AdminRoute("DELETE", f"{_CM}/slack-bot/identity-links/:teamId/:slackUserId"),
+    # agent-harness/transport/{admin,engine-signin,memory,model-account}-routes.ts. Every write
+    # is validated after the admin check, so the admin's malformed request stores nothing.
+    AdminRoute("GET", f"{_HARNESS_ADMIN}/approvals"),
+    AdminRoute("PUT", f"{_HARNESS_ADMIN}/approvals", admin="invalid"),
+    AdminRoute("GET", f"{_HARNESS_ADMIN}/dependencies"),
+    AdminRoute("GET", f"{_HARNESS_ADMIN}/worker-settings"),
+    AdminRoute("GET", f"{_HARNESS_ADMIN}/session-retention"),
+    AdminRoute("PUT", f"{_HARNESS_ADMIN}/session-retention", admin="invalid"),
+    AdminRoute("PUT", f"{_HARNESS_ADMIN}/coding-engine", admin="invalid"),
+    AdminRoute("GET", f"{_HARNESS_ADMIN}/engine-accounts"),
+    AdminRoute("PUT", f"{_HARNESS_ADMIN}/engine-accounts", admin="invalid"),
+    AdminRoute("DELETE", f"{_HARNESS_ADMIN}/engine-accounts/users/:userId/claude", admin="invalid"),
+    AdminRoute("GET", f"{_HARNESS_ADMIN}/memory-policy"),
+    AdminRoute("PUT", f"{_HARNESS_ADMIN}/memory-policy", admin="invalid"),
+    AdminRoute("GET", f"{_HARNESS_ADMIN}/memories"),
+    AdminRoute("POST", f"{_HARNESS_ADMIN}/memories/:memoryId/review", admin="invalid"),
+    AdminRoute("DELETE", f"{_HARNESS_ADMIN}/memories/:memoryId", admin="invalid"),
+    AdminRoute("GET", f"{_HARNESS_ADMIN}/model-accounts"),
+    AdminRoute("POST", f"{_HARNESS_ADMIN}/model-accounts", admin="invalid"),
+    AdminRoute("PUT", f"{_HARNESS_ADMIN}/model-accounts/:accountId", admin="invalid"),
+    AdminRoute("DELETE", f"{_HARNESS_ADMIN}/model-accounts/:accountId", admin="invalid"),
 )
 
 
@@ -425,7 +451,11 @@ class SwitchedOff:
         )
 
 
-SWITCHED_OFF: tuple[SwitchedOff, ...] = ()
+SWITCHED_OFF: tuple[SwitchedOff, ...] = (
+    # agent-harness/transport/harness-switch.ts: off unless the install sets AGENT_HARNESS_WORKER_ENABLED.
+    SwitchedOff(_HARNESS, 404, "The agent harness is not enabled on this install.",
+                "the agent harness is off on this stack"),
+)
 
 # Rows a downstream build adds (helper/suite_extensions.py). Last, so the
 # extension can build its rows with everything above.

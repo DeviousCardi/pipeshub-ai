@@ -229,6 +229,18 @@ def test_a_router_mounted_outside_app_ts_is_found(tmp_path: Path) -> None:
     }
 
 
+def test_a_router_handed_through_a_switch_is_found_at_its_prefix(tmp_path: Path) -> None:
+    _write(tmp_path, "app.ts", """
+        export const SWITCHED_PREFIX = '/api/v1/switched';
+        this.app.use(
+          SWITCHED_PREFIX,
+          whenHarnessSwitchedOn(createSwitchedRouter(this.container)),
+        );
+        this.app.use('/api/v1/twice', wrap(other(createNestedRouter(container))));
+    """)
+    assert router_mounts(tmp_path) == {"createSwitchedRouter": {"/api/v1/switched"}}
+
+
 def _conditional_rows() -> dict[str, ConditionalRoute]:
     return {route.handler: route for route in CONDITIONAL_ROUTES}
 
