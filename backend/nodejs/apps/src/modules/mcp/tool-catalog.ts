@@ -4,7 +4,8 @@
  * server mounts.
  */
 
-import { registerCodeGraphTools } from './code-graph.tools';
+import { registerCodeGraphTools, ToolRegistrar } from './code-graph.tools';
+import { PUBLIC_MCP_TOOLS } from './constants/allowed-tools';
 
 export interface McpAccessTool {
   name: string;
@@ -40,6 +41,8 @@ async function buildCatalog(): Promise<McpAccessTool[]> {
         error: noop,
       },
       dynamic: false,
+      // The catalog lists what a request's server can mount, so it applies the same allowlist.
+      allowedTools: [...PUBLIC_MCP_TOOLS],
       // Lists the citation tools, which a per-request server shows only to clients with views.
       apps: true,
       scopes,
@@ -48,7 +51,9 @@ async function buildCatalog(): Promise<McpAccessTool[]> {
         throw new Error('The tool catalog never calls a tool.');
       },
     });
-    registerCodeGraphTools(server, {
+    // The package's McpServer is typed against its own zod 4; comparing that
+    // generic signature to ToolRegistrar's exceeds tsc's instantiation depth.
+    registerCodeGraphTools(server as unknown as ToolRegistrar, {
       aiBackend: '',
       authorization: '',
     });

@@ -41,6 +41,7 @@ import {
   reauthenticateToolsetInstance,
   getInstanceOAuthAuthorizationUrl,
   getInstanceStatus,
+  getGithubRepositoryListing,
   getToolsetToolRules,
   updateToolsetToolRules,
   listToolsetOAuthConfigs,
@@ -62,6 +63,28 @@ import { integerCheck } from '../../../libs/utils/zod-formats';
 // ============================================================================
 // Validation Schemas
 // ============================================================================
+
+const githubInstanceParams = z.object({ instanceId: z.string().min(1).max(128) });
+
+/** GIT-FLOW repository picker: a search over the caller's repositories, a page at a time. */
+const githubRepositoriesSchema = z.object({
+  params: githubInstanceParams,
+  query: z.object({
+    search: z.string().max(200).optional(),
+    page: z.string().regex(/^[1-9][0-9]{0,3}$/).optional(),
+  }),
+});
+
+/** GIT-FLOW repository picker: one repository's branches (`owner/name`). */
+const githubBranchesSchema = z.object({
+  params: githubInstanceParams,
+  query: z.object({
+    repository: z
+      .string()
+      .max(201)
+      .regex(/^[A-Za-z0-9_][A-Za-z0-9._-]{0,99}\/[A-Za-z0-9_][A-Za-z0-9._-]{0,99}$/),
+  }),
+});
 
 /**
  * Schema for toolset list query parameters
@@ -590,6 +613,25 @@ export function createToolsetsRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.TOOLSET_READ),
     getInstanceStatus(config)
+  );
+
+  /**
+   * GIT-FLOW (WP-26): the repository picker's repositories and branches, read with the caller's own sign-in to a
+   * GitHub toolset instance.
+   */
+  router.get(
+    '/instances/:instanceId/github/repositories',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.TOOLSET_READ),
+    ValidationMiddleware.validate(githubRepositoriesSchema),
+    getGithubRepositoryListing(config, 'repositories')
+  );
+  router.get(
+    '/instances/:instanceId/github/branches',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.TOOLSET_READ),
+    ValidationMiddleware.validate(githubBranchesSchema),
+    getGithubRepositoryListing(config, 'branches')
   );
 
   /**

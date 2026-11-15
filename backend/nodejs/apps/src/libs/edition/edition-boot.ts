@@ -25,8 +25,10 @@ export interface EditionContainers {
 export interface EditionBoot {
   /** Extra broker topics created with the required ones. */
   topics: TopicDefinition[];
-  /** Added to the built-in lists when STRICT_MODE turns the CSP on. */
+  /** Added to the built-in source lists of the pages' CSP (ADR-WEB-01). */
   cspSources: EditionCspSources;
+  /** The edition's consent and decision pages: never framed, like the sign-in pages (UNFRAMEABLE_PAGE_PATHS). */
+  unframeablePaths: string[];
   initialize(
     configurationManagerConfig: ConfigurationManagerConfig,
     appConfig: AppConfig,
@@ -46,6 +48,7 @@ export interface EditionBoot {
 export const noopEditionBoot: EditionBoot = {
   topics: [],
   cspSources: { connectSrc: [], scriptSrc: [], frameSrc: [] },
+  unframeablePaths: [],
   initialize: async () => {},
   mountRawRoutes: () => {},
   mountRoutes: () => {},

@@ -29,7 +29,20 @@ import {
   handleBackendError,
   handleConnectorResponse,
 } from '../../tokens_manager/utils/connector.utils';
+import { z } from 'zod';
+import {
+  actorRefOfUser,
+  changedPaths,
+  controlPlaneHttpError,
+  ControlPlaneTransaction,
+  McpManifestApprovalTarget,
+  orgScope,
+  type ApprovalRequest,
+  type ConfigChangeApprovalsFactory,
+} from '../../control-plane';
+import { canonicalDigest } from '../../agent-harness/contracts/canonical-json';
 import { revealQuery } from '../../configuration_manager/utils/secretReveal';
+import { getCurrentOrgId } from '../../../libs/context/orgContext';
 
 const logger = Logger.getInstance({
   service: 'McpServersController',
@@ -309,6 +322,167 @@ export const getMcpInstanceTools = proxyMcp(
   HttpMethod.GET,
   (req) => `/instances/${encInstanceId(req)}/tools${queryString(req.query as Record<string, unknown>, ['cached'])}`,
   'Get MCP server instance tools',
+);
+
+// ============================================================================
+// MCP hub (P2.8): tool-manifest approval and a STDIO instance's runner fields
+// ============================================================================
+
+/**
+ * A proxied MCP hub write as one audited control-plane write (CPD-1): the
+ * forward is the transaction's external effect, so `config.changed` (the
+ * instance, the fields sent, a digest of the body) is recorded only when the
+ * connectors service accepted the change, and a refusal passes through as
+ * before with nothing recorded.
+ */
+function auditedProxyMcp(
+  method: HttpMethodValue,
+  pathBuilder: PathBuilder,
+  action: string,
+  objectType: string,
+) {
+  return (appConfig: AppConfig, controlPlane: ControlPlaneTransaction) =>
+    async (
+      req: AuthenticatedUserRequest,
+      res: Response,
+      next: NextFunction,
+    ): Promise<void> => {
+      const userId: unknown = req.user?.userId;
+      const orgId: unknown = getCurrentOrgId();
+      try {
+        if (typeof userId !== 'string' || typeof orgId !== 'string') {
+          throw new UnauthorizedError('User authentication required');
+        }
+        const body: unknown = req.body ?? null;
+        const { result } = await controlPlane.run(
+          { orgId, actor: actorRefOfUser(userId) },
+          (tx) =>
+            Promise.resolve({
+              result: tx.external(async () => {
+                const response = await executeConnectorCommand(
+                  `${appConfig.connectorBackend}${MCP_BASE}${pathBuilder(req)}`,
+                  method,
+                  buildProxyHeaders(req),
+                  body,
+                );
+                if (response.statusCode < 200 || response.statusCode >= 300) {
+                  throw handleBackendError(response, action);
+                }
+                return response;
+              }),
+              change: {
+                scope: orgScope(orgId),
+                object: { type: objectType, id: String(req.params.instanceId) },
+                revisionFrom: null,
+                revisionTo: null,
+                changeDigest: canonicalDigest(body),
+                changed: changedPaths(null, body),
+              },
+            }),
+        );
+        handleConnectorResponse(result.value, res, action, `${action} failed`);
+      } catch (error: unknown) {
+        logger.error(`Error in MCP servers proxy: ${action}`, {
+          error: error instanceof Error ? error.message : String(error),
+          userId,
+        });
+        next(handleBackendError(controlPlaneHttpError(error), action));
+      }
+    };
+}
+
+export const getMcpInstanceManifest = proxyMcp(
+  HttpMethod.GET,
+  (req) => `/instances/${encInstanceId(req)}/manifest`,
+  'Get MCP server tool manifest',
+);
+
+export const approveMcpInstanceManifest = auditedProxyMcp(
+  HttpMethod.PUT,
+  (req) => `/instances/${encInstanceId(req)}/manifest`,
+  'Approve MCP server tool manifest',
+  'mcp-manifest',
+);
+
+const manifestApprovalBody = z
+  .object({
+    tools: z
+      .array(z.object({ name: z.string().min(1).max(128), digest: z.string().regex(/^sha256:[0-9a-f]{64}$/) }).strict())
+      .max(1000),
+  })
+  .strict();
+
+/**
+ * With configuration-change approvals bound (`CONTROL_PLANE_APPROVALS_FACTORY`),
+ * a manifest approval is an `ApprovalRequest{change: descriptor_change}` that
+ * the admin who sends it both asks and decides, in one audited control-plane
+ * write whose effect is the hub's own write (the Python route, with the
+ * caller's credential). A body the approvals cannot read goes to the hub as
+ * before, which refuses it.
+ */
+export function approveMcpManifestThroughWorkflow(
+  appConfig: AppConfig,
+  workflowFor: ConfigChangeApprovalsFactory,
+  controlPlane: ControlPlaneTransaction,
+) {
+  const action = 'Approve MCP server tool manifest';
+  const unparsed = approveMcpInstanceManifest(appConfig, controlPlane);
+  return async (req: AuthenticatedUserRequest, res: Response, next: NextFunction): Promise<void> => {
+    const userId: unknown = req.user?.userId;
+    const orgId: unknown = getCurrentOrgId();
+    const body = manifestApprovalBody.safeParse(req.body);
+    if (!body.success || typeof userId !== 'string' || typeof orgId !== 'string') {
+      await unparsed(req, res, next);
+      return;
+    }
+    const hubWrite = async (request: ApprovalRequest, subset: readonly string[] | null) => {
+      const tools = Object.entries(request.change.descriptors ?? {})
+        .filter(([name]) => subset === null || subset.includes(name))
+        .map(([name, digest]) => ({ name, digest }));
+      const response = await executeConnectorCommand(
+        `${appConfig.connectorBackend}${MCP_BASE}/instances/${encInstanceId(req)}/manifest`,
+        HttpMethod.PUT,
+        buildProxyHeaders(req),
+        { tools },
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) throw handleBackendError(response, action);
+      return response;
+    };
+    try {
+      const { applied } = await workflowFor([new McpManifestApprovalTarget(hubWrite)]).submit({
+        actor: { orgId, userId },
+        target: { type: 'installation', id: String(req.params.instanceId) },
+        change: {
+          type: 'descriptor_change',
+          descriptors: Object.fromEntries(body.data.tools.map((tool) => [tool.name, tool.digest])),
+        },
+        decision: { decision: 'approve' },
+      });
+      handleConnectorResponse(applied?.value, res, action, `${action} failed`);
+    } catch (error: unknown) {
+      logger.error(`Error in MCP manifest approval: ${action}`, {
+        error: error instanceof Error ? error.message : String(error),
+        userId,
+      });
+      next(handleBackendError(controlPlaneHttpError(error), action));
+    }
+  };
+}
+
+export const updateMcpInstanceRunner = auditedProxyMcp(
+  HttpMethod.PUT,
+  (req) => `/instances/${encInstanceId(req)}/runner`,
+  'Update MCP server runner settings',
+  'mcp-runner',
+);
+
+// SEC-B-02-FU-1: the admin's word that the server runs inside the organization, which keeps its tools'
+// arguments inside it for the flow guard. Python checks the caller is the org's admin.
+export const updateMcpInstanceBoundary = auditedProxyMcp(
+  HttpMethod.PUT,
+  (req) => `/instances/${encInstanceId(req)}/boundary`,
+  'Update where an MCP server runs',
+  'mcp-boundary',
 );
 
 // ============================================================================

@@ -16,6 +16,7 @@ const appUsersInviteTemplate = loadTemplate('src/modules/mail/views/layouts/appu
 const joinRequestNotifyTemplate = loadTemplate('src/modules/mail/views/layouts/appusers/joinRequestNotify.hbs');
 const joinRequestDecisionTemplate = loadTemplate('src/modules/mail/views/layouts/appusers/joinRequestDecision.hbs');
 const orgEmailVerificationTemplate = loadTemplate('src/modules/mail/views/layouts/org/orgEmailVerification.hbs');
+const scheduledRunEndedTemplate = loadTemplate('src/modules/mail/views/layouts/user/scheduledRunEnded.hbs');
 const headerTemplate = loadTemplate('src/modules/mail/views/partials/header.hbs');
 const footerTemplate = loadTemplate('src/modules/mail/views/partials/footer.hbs');
 const headTemplate = loadTemplate('src/modules/mail/views/partials/head.hbs');
@@ -100,5 +101,4 @@ export const orgEmailVerification = (templateData: Record<string,any>): string =
 export const domainLimitReached = (templateData: Record<string,any>): string => compileTemplate(domainLimitReachedTemplate, templateData);
 export const joinRequestNotify = (templateData: Record<string,any>): string => compileTemplate(joinRequestNotifyTemplate, templateData);
 export const joinRequestDecision = (templateData: Record<string,any>): string => compileTemplate(joinRequestDecisionTemplate, templateData);
-
-
+export const scheduledRunEnded = (templateData: Record<string,any>): string => compileTemplate(scheduledRunEndedTemplate, templateData);

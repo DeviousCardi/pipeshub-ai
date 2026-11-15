@@ -7,7 +7,34 @@ import {
   purgeBranchArtifacts,
 } from '../controller/compare.controller';
 import { NextFunction, Router, Response } from 'express';
+import { prometheusChatPathMetrics } from '../../agent-harness/adapters/telemetry/chat-path-metrics';
+import { legacyTurnMetrics } from '../../agent-harness/transport/legacy-turn-metrics';
+import { scanAfterAuthentication } from '../../agent-harness/transport/pasted-secret-guard';
+import { agentEngineCheck } from '../../agent-harness/transport/model-account-routes';
+import {
+  agentErasureQueue,
+  agentDataEraser,
+  createActiveRunMiddleware,
+  createConversationRunStatesMiddleware,
+  createChatCancelMiddleware,
+  createChatTurnMiddleware,
+  createCollaboratorTurns,
+  runFeedback,
+  sessionErasures,
+  sessionRunStopper,
+  sessionForks,
+  sessionParticipants,
+  sharedArtifacts,
+  sharedCitations,
+} from '../../agent-harness/composition';
+import {
+  slackSurface,
+  webSurface,
+} from '../../agent-harness/transport/chat-turn-route';
 import { Container } from 'inversify';
+import { createSessionRoles } from '../../../libs/repositories/agent-harness/session-roles';
+import { refuseNonOwnerTurns } from '../utils/turn-role-guard';
+import { forkConversation as forkConversationPrivately } from '../controller/session-fork.controller';
 import {
   grepRecords,
   searchEntities,
@@ -19,7 +46,7 @@ import { AuthMiddleware } from '../../../libs/middlewares/auth.middleware';
 import {
   archiveConversation,
   archiveSearch,
-  deleteConversationById,
+  deleteConversationByIdWith,
   deleteSearchById,
   deleteSearchHistory,
   getAllConversations,
@@ -38,7 +65,7 @@ import {
   unpinConversation,
   unshareConversationById,
   unshareSearch,
-  updateFeedback,
+  updateFeedbackWith,
   updateTitle,
   streamChat,
   uploadChatAttachments,
@@ -51,11 +78,12 @@ import {
   addMessageStreamToAgentConversationInternal,
   getAllAgentConversations,
   getAgentConversationById,
-  deleteAgentConversationById,
+  deleteAgentConversationByIdWith,
   createAgent,
   getAgent,
   deleteAgent,
   updateAgent,
+  agentVersions,
   listAgents,
   getWebSearchProviderUsage,
   getModelUsage,
@@ -64,8 +92,9 @@ import {
   cancelAgentConversationStream,
   streamChatInternal,
   addMessageStreamInternal,
+  hydrateScopedRequestAsUser,
   updateAgentConversationTitle,
-  updateAgentFeedback,
+  updateAgentFeedbackWith,
   archiveAgentConversation,
   unarchiveAgentConversation,
   listAllArchivesAgentConversation,
@@ -98,6 +127,8 @@ import { ValidationMiddleware } from '../../../libs/middlewares/validation.middl
 import {
   conversationIdParamsSchema,
   enterpriseSearchCreateSchema,
+  slackStreamCreateSchema,
+  slackAddMessageStreamSchema,
   enterpriseSearchStreamCreateSchema,
   enterpriseSearchSearchSchema,
   enterpriseSearchRetrieveSchema,
@@ -109,6 +140,9 @@ import {
   addMessageParamsSchema,
   addMessageStreamParamsSchema,
   conversationShareParamsSchema,
+  conversationUnshareParamsSchema,
+  conversationForkSchema,
+  agentConversationForkSchema,
   conversationTitleParamsSchema,
   conversationProjectLinkSchema,
   conversationProjectVisibilitySchema,
@@ -143,6 +177,10 @@ import {
   agentAttachmentRecordIdParamsSchema,
   createAgentSchema,
   updateAgentSchema,
+  listAgentVersionsSchema,
+  getAgentVersionSchema,
+  publishAgentVersionSchema,
+  rollbackAgentVersionSchema,
   deleteAgentSchema,
   getAgentParamsSchema,
   getWebSearchProviderUsageRequestSchema,
@@ -165,15 +203,44 @@ import { OAuthScopeNames } from '../../../libs/enums/oauth-scopes.enum';
 import { KeyValueStoreService } from '../../../libs/services/keyValueStore.service';
 import { guardPathParams } from '../../../libs/middlewares/safe-path-params.middleware';
 import { fillDefaultChatModel } from '../utils/default-chat-model';
+import {
+  expandChatCommand,
+  expandViaSkillsService,
+  pipeshubCommandsFor,
+  regenerateChatCommand,
+  storedRegenerateCommand,
+} from '../utils/chat-command';
+import { pipeshubPromptCommands } from '../../agent-harness/application/pipeshub-prompt-commands';
+import type { SessionWorkspaceService } from '../../agent-harness/application/session-workspace-service';
+import { AGENT_HARNESS_SESSION_WORKSPACES } from '../../agent-harness/binders/tokens';
 import { rejectClientConversationHistory } from '../utils/client-history-guard';
 
 /** Max bytes per file for chat attachment uploads (PDF/JPEG/PNG). Aligned with frontend, Slack, and Python. */
 const CHAT_ATTACHMENT_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 
+/** `/review` and `/init`, PipesHub's own prompt commands (SLASH2), expanded before SLASH1's user commands. */
+const pipeshubCommandsOf = (container: Container) =>
+  pipeshubCommandsFor(
+    pipeshubPromptCommands(() =>
+      container.isBound(AGENT_HARNESS_SESSION_WORKSPACES)
+        ? container.get<SessionWorkspaceService>(
+            AGENT_HARNESS_SESSION_WORKSPACES,
+          )
+        : undefined,
+    ),
+  );
+
+/** A regenerate of a `/review` answer reviews the workspace again (LC2FIX): its message keeps only what was typed. */
+const regenerateCommandOf = (container: Container) =>
+  regenerateChatCommand(storedRegenerateCommand, pipeshubCommandsOf(container));
+
 export function createConversationalRouter(container: Container): Router {
   const router = Router();
   guardPathParams(router, 'recordId');
-  const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
+  // SEC-CR-07: a pasted secret never reaches validation, routing or storage; SEC-C-01: nor is an anonymous body scanned.
+  const authMiddleware = scanAfterAuthentication(
+    container.get<AuthMiddleware>('AuthMiddleware'),
+  );
   const appConfig = container.get<AppConfig>('AppConfig');
   const compareArtifacts: CompareArtifacts = {
     copier: (req) => forkArtifactCopier(appConfig, req),
@@ -193,6 +260,42 @@ export function createConversationalRouter(container: Container): Router {
   const internalAttachmentUpload = createMulter({
     storage: multer.memoryStorage(),
     limits: { fileSize: CHAT_ATTACHMENT_UPLOAD_MAX_BYTES, files: 10 },
+  });
+  const turnRoleGuard = refuseNonOwnerTurns(createSessionRoles());
+  // R38AUTHZ-FU-2: a collaborator the org lets send turns reaches the harness, which admits their turn as them; one
+  // the harness leaves to today's loop is refused there, since that loop serves only the conversation's owner.
+  const harnessTurnRoleGuard = refuseNonOwnerTurns(
+    createSessionRoles(),
+    container.isBound('KeyValueStoreService')
+      ? createCollaboratorTurns(
+          container.get<KeyValueStoreService>('KeyValueStoreService'),
+        )
+      : undefined,
+  );
+  // Turns today's loop serves, counted beside the durable path's (DUR3).
+  const legacyChatTurn = legacyTurnMetrics('assistant', prometheusChatPathMetrics);
+  // Every turn, web, API/PAT or MCP, is routed by the server in this one request (LAT1).
+  const chatTurn = createChatTurnMiddleware(container, {
+    kind: 'chat',
+    surface: webSurface,
+  });
+  // A /command becomes the turn's text before validation and routing (SLASH1).
+  const chatCommand = expandChatCommand(
+    expandViaSkillsService(appConfig),
+    pipeshubCommandsOf(container),
+  );
+  const chatRegenerate = createChatTurnMiddleware(container, {
+    kind: 'chat',
+    surface: webSurface,
+    turn: 'regenerate',
+  });
+  // A run id naming a running durable turn stops it; any other is today's cancel (LAT2).
+  const chatCancel = createChatCancelMiddleware(container, { kind: 'chat' });
+  const slackChatRun = createChatTurnMiddleware(container, {
+    kind: 'chat',
+    surface: slackSurface,
+    identify: (req) =>
+      hydrateScopedRequestAsUser(req as AuthenticatedServiceRequest, appConfig),
   });
   /**
    * @route POST /api/v1/conversations
@@ -277,8 +380,11 @@ export function createConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_CHAT),
     rejectClientConversationHistory,
+    chatCommand,
     ValidationMiddleware.validate(enterpriseSearchStreamCreateSchema),
     defaultChatModel,
+    chatTurn,
+    legacyChatTurn,
     streamChat(appConfig),
   );
 
@@ -286,8 +392,10 @@ export function createConversationalRouter(container: Container): Router {
     '/internal/stream',
     authMiddleware.scopedTokenValidator(TokenScopes.CONVERSATION_CREATE),
     rejectClientConversationHistory,
-    ValidationMiddleware.validate(enterpriseSearchCreateSchema),
+    ValidationMiddleware.validate(slackStreamCreateSchema),
     defaultChatModel,
+    slackChatRun,
+    legacyChatTurn,
     streamChatInternal(appConfig),
   );
 
@@ -305,6 +413,7 @@ export function createConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_CHAT),
     ValidationMiddleware.validate(addMessageParamsSchema),
+    turnRoleGuard,
     defaultChatModel,
     addMessage(appConfig),
   );
@@ -340,16 +449,23 @@ export function createConversationalRouter(container: Container): Router {
     '/:conversationId/messages/stream',
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_CHAT),
+    chatCommand,
     ValidationMiddleware.validate(addMessageStreamParamsSchema),
+    harnessTurnRoleGuard,
     defaultChatModel,
+    chatTurn,
+    turnRoleGuard,
+    legacyChatTurn,
     addMessageStream(appConfig),
   );
 
   router.post(
     '/internal/:conversationId/messages/stream',
     authMiddleware.scopedTokenValidator(TokenScopes.CONVERSATION_CREATE),
-    ValidationMiddleware.validate(addMessageParamsSchema),
+    ValidationMiddleware.validate(slackAddMessageStreamSchema),
     defaultChatModel,
+    slackChatRun,
+    legacyChatTurn,
     addMessageStreamInternal(appConfig),
   );
 
@@ -364,6 +480,7 @@ export function createConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_READ),
     ValidationMiddleware.validate(getAllConversationsQuerySchema),
+    createConversationRunStatesMiddleware(container),
     (req: AuthenticatedUserRequest, res: Response, next: NextFunction) =>
       getAllConversations(req, res, next, appConfig),
   );
@@ -379,7 +496,11 @@ export function createConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_READ),
     ValidationMiddleware.validate(conversationIdParamsSchema),
-    getConversationById(appConfig),
+    createActiveRunMiddleware(container, 'chat'),
+    getConversationById(appConfig, {
+      citations: sharedCitations(container),
+      artifacts: sharedArtifacts(container),
+    }),
   );
 
   /**
@@ -394,7 +515,7 @@ export function createConversationalRouter(container: Container): Router {
     requireScopes(OAuthScopeNames.CONVERSATION_WRITE),
     ValidationMiddleware.validate(conversationIdParamsSchema),
     purgeBranchArtifacts(compareArtifacts),
-    deleteConversationById(appConfig),
+    deleteConversationByIdWith(appConfig, sessionErasures(container), sessionRunStopper(container)),
   );
 
   /**
@@ -408,7 +529,21 @@ export function createConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_WRITE),
     ValidationMiddleware.validate(conversationShareParamsSchema),
-    shareConversationById(appConfig),
+    shareConversationById(appConfig, sessionParticipants(container)),
+  );
+
+  /**
+   * @route POST /api/v1/conversations/:conversationId/fork
+   * @desc Continue a conversation privately (SS3): a copy owned by the caller
+   * holding their own turns and a placeholder for everyone else's
+   * @access Private (any participant)
+   */
+  router.post(
+    '/:conversationId/fork',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.CONVERSATION_WRITE),
+    ValidationMiddleware.validate(conversationForkSchema),
+    forkConversationPrivately(sessionForks(container)),
   );
 
   /**
@@ -424,8 +559,8 @@ export function createConversationalRouter(container: Container): Router {
     '/:conversationId/unshare',
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_WRITE),
-    ValidationMiddleware.validate(conversationShareParamsSchema),
-    unshareConversationById(appConfig),
+    ValidationMiddleware.validate(conversationUnshareParamsSchema),
+    unshareConversationById(appConfig, sessionParticipants(container)),
   );
 
   /**
@@ -469,11 +604,15 @@ export function createConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_CHAT),
     ValidationMiddleware.validate(regenerateAnswersParamsSchema),
+    turnRoleGuard,
     defaultChatModel,
+    regenerateCommandOf(container),
+    chatRegenerate,
+    legacyChatTurn,
     regenerateAnswers(appConfig),
   );
 
-  const authenticate = authMiddleware.authenticate.bind(authMiddleware);
+  const authenticate = authMiddleware.authenticate;
 
   /**
    * @route POST /api/v1/conversations/:conversationId/compare/branch
@@ -541,6 +680,7 @@ export function createConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_CHAT),
     ValidationMiddleware.validate(cancelConversationStreamParamsSchema),
+    chatCancel,
     cancelConversationStream(appConfig),
   );
 
@@ -570,7 +710,7 @@ export function createConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.CONVERSATION_WRITE),
     ValidationMiddleware.validate(updateFeedbackParamsSchema),
-    updateFeedback,
+    updateFeedbackWith(runFeedback(container)),
   );
 
   /**
@@ -818,7 +958,10 @@ export function createSemanticSearchRouter(container: Container): Router {
 export function createAgentConversationalRouter(container: Container): Router {
   const router = Router();
   guardPathParams(router, 'agentKey', 'recordId', 'provider', 'model_key');
-  const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
+  // SEC-CR-07: a pasted secret never reaches validation, routing or storage; SEC-C-01: nor is an anonymous body scanned.
+  const authMiddleware = scanAfterAuthentication(
+    container.get<AuthMiddleware>('AuthMiddleware'),
+  );
   const appConfig = container.get<AppConfig>('AppConfig');
   const keyValueStoreService = container.isBound('KeyValueStoreService')
     ? container.get<KeyValueStoreService>('KeyValueStoreService')
@@ -827,6 +970,33 @@ export function createAgentConversationalRouter(container: Container): Router {
   const agentAttachmentUpload = createMulter({
     storage: multer.memoryStorage(),
     limits: { fileSize: CHAT_ATTACHMENT_UPLOAD_MAX_BYTES, files: 10 },
+  });
+  const turnRoleGuard = refuseNonOwnerTurns(createSessionRoles());
+  const legacyAgentTurn = legacyTurnMetrics('agent', prometheusChatPathMetrics);
+  // Every turn, web, API/PAT or MCP, is routed by the server in this one request (LAT1).
+  const agentTurn = createChatTurnMiddleware(container, {
+    kind: 'agent',
+    surface: webSurface,
+  });
+  const agentCommand = expandChatCommand(
+    expandViaSkillsService(appConfig),
+    pipeshubCommandsOf(container),
+  );
+  const agentRegenerate = createChatTurnMiddleware(container, {
+    kind: 'agent',
+    surface: webSurface,
+    turn: 'regenerate',
+  });
+  const agentCancel = createChatCancelMiddleware(container, { kind: 'agent' });
+  const slackAgentRun = createChatTurnMiddleware(container, {
+    kind: 'agent',
+    surface: slackSurface,
+    identify: (req) =>
+      hydrateScopedRequestAsUser(
+        req as AuthenticatedServiceRequest,
+        appConfig,
+        keyValueStoreService,
+      ),
   });
 
   /**
@@ -858,7 +1028,10 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_EXECUTE),
     rejectClientConversationHistory,
+    agentCommand,
     ValidationMiddleware.validate(agentStreamCreateSchema),
+    agentTurn,
+    legacyAgentTurn,
     streamAgentConversation(appConfig),
   );
 
@@ -867,6 +1040,7 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_EXECUTE),
     ValidationMiddleware.validate(agentAddMessageSchema),
+    turnRoleGuard,
     addMessageToAgentConversation(appConfig),
   );
 
@@ -874,7 +1048,11 @@ export function createAgentConversationalRouter(container: Container): Router {
     '/:agentKey/conversations/:conversationId/messages/stream',
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_EXECUTE),
+    agentCommand,
     ValidationMiddleware.validate(agentAddMessageParamsSchema),
+    turnRoleGuard,
+    agentTurn,
+    legacyAgentTurn,
     addMessageStreamToAgentConversation(appConfig),
   );
 
@@ -883,6 +1061,8 @@ export function createAgentConversationalRouter(container: Container): Router {
   router.post(
     '/:agentKey/conversations/internal/:conversationId/messages/stream',
     authMiddleware.scopedTokenValidator(TokenScopes.CONVERSATION_CREATE),
+    slackAgentRun,
+    legacyAgentTurn,
     addMessageStreamToAgentConversationInternal(
       appConfig,
       keyValueStoreService,
@@ -893,6 +1073,8 @@ export function createAgentConversationalRouter(container: Container): Router {
     '/:agentKey/conversations/internal/stream',
     authMiddleware.scopedTokenValidator(TokenScopes.CONVERSATION_CREATE),
     rejectClientConversationHistory,
+    slackAgentRun,
+    legacyAgentTurn,
     streamAgentConversationInternal(appConfig, keyValueStoreService),
   );
 
@@ -930,10 +1112,14 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_EXECUTE),
     ValidationMiddleware.validate(regenerateAgentAnswersParamsSchema),
+    turnRoleGuard,
+    regenerateCommandOf(container),
+    agentRegenerate,
+    legacyAgentTurn,
     regenerateAgentAnswers(appConfig),
   );
 
-  const authenticate = authMiddleware.authenticate.bind(authMiddleware);
+  const authenticate = authMiddleware.authenticate;
 
   /**
    * @route POST /api/v1/agents/:agentKey/conversations/:conversationId/message/:messageId/fork
@@ -960,6 +1146,7 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_EXECUTE),
     ValidationMiddleware.validate(cancelAgentConversationStreamParamsSchema),
+    agentCancel,
     cancelAgentConversationStream(appConfig),
   );
 
@@ -972,7 +1159,7 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_EXECUTE),
     ValidationMiddleware.validate(updateAgentFeedbackParamsSchema),
-    updateAgentFeedback,
+    updateAgentFeedbackWith(runFeedback(container)),
   );
 
   router.get(
@@ -980,6 +1167,7 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_READ),
     ValidationMiddleware.validate(getAllAgentConversationsQuerySchema),
+    createConversationRunStatesMiddleware(container),
     (req: AuthenticatedUserRequest, res: Response, next: NextFunction) =>
       getAllAgentConversations(req, res, next, appConfig),
   );
@@ -989,7 +1177,19 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_READ),
     ValidationMiddleware.validate(getAgentConversationByIdSchema),
-    getAgentConversationById(appConfig),
+    createActiveRunMiddleware(container, 'agent'),
+    getAgentConversationById(appConfig, {
+      citations: sharedCitations(container),
+      artifacts: sharedArtifacts(container),
+    }),
+  );
+
+  router.post(
+    '/:agentKey/conversations/:conversationId/fork',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.AGENT_WRITE),
+    ValidationMiddleware.validate(agentConversationForkSchema),
+    forkConversationPrivately(sessionForks(container)),
   );
 
   /**
@@ -1002,7 +1202,7 @@ export function createAgentConversationalRouter(container: Container): Router {
     authenticate,
     requireScopes(OAuthScopeNames.AGENT_WRITE),
     ValidationMiddleware.validate(agentConversationShareParamsSchema),
-    shareAgentConversation(appConfig),
+    shareAgentConversation(appConfig, sessionParticipants(container)),
   );
 
   /**
@@ -1015,7 +1215,7 @@ export function createAgentConversationalRouter(container: Container): Router {
     authenticate,
     requireScopes(OAuthScopeNames.AGENT_WRITE),
     ValidationMiddleware.validate(agentConversationUnshareParamsSchema),
-    unshareAgentConversation(appConfig),
+    unshareAgentConversation(appConfig, sessionParticipants(container)),
   );
 
   router.delete(
@@ -1023,7 +1223,7 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_WRITE),
     ValidationMiddleware.validate(deleteAgentConversationParamsSchema),
-    deleteAgentConversationById(appConfig),
+    deleteAgentConversationByIdWith(appConfig, sessionErasures(container), sessionRunStopper(container)),
   );
 
   /**
@@ -1108,6 +1308,7 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_WRITE),
     ValidationMiddleware.validate(createAgentSchema),
+    agentEngineCheck(container),
     createAgent(appConfig),
   );
 
@@ -1124,7 +1325,41 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_WRITE),
     ValidationMiddleware.validate(updateAgentSchema),
+    agentEngineCheck(container),
     updateAgent(appConfig),
+  );
+
+  // OWD-14: an agent's immutable published versions; the agent itself is the draft.
+  router.get(
+    '/:agentKey/versions',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.AGENT_READ),
+    ValidationMiddleware.validate(listAgentVersionsSchema),
+    agentVersions(appConfig, 'list'),
+  );
+
+  router.get(
+    '/:agentKey/versions/:version',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.AGENT_READ),
+    ValidationMiddleware.validate(getAgentVersionSchema),
+    agentVersions(appConfig, 'get'),
+  );
+
+  router.post(
+    '/:agentKey/versions',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.AGENT_WRITE),
+    ValidationMiddleware.validate(publishAgentVersionSchema),
+    agentVersions(appConfig, 'publish'),
+  );
+
+  router.post(
+    '/:agentKey/versions/:version/rollback',
+    authMiddleware.authenticate,
+    requireScopes(OAuthScopeNames.AGENT_WRITE),
+    ValidationMiddleware.validate(rollbackAgentVersionSchema),
+    agentVersions(appConfig, 'rollback'),
   );
 
   router.delete(
@@ -1132,7 +1367,11 @@ export function createAgentConversationalRouter(container: Container): Router {
     authMiddleware.authenticate,
     requireScopes(OAuthScopeNames.AGENT_WRITE),
     ValidationMiddleware.validate(deleteAgentSchema),
-    deleteAgent(appConfig),
+    deleteAgent(
+      appConfig,
+      agentDataEraser(container),
+      agentErasureQueue(container),
+    ),
   );
 
   router.get(
