@@ -525,6 +525,60 @@ def test_every_rendered_same_image_service_keeps_the_baseline(rel: str) -> None:
     assert gaps == {}
 
 
+_SIZE_UNITS = {"": 1, "k": 1 << 10, "m": 1 << 20, "g": 1 << 30}
+
+
+def _bytes(value: object) -> int | None:
+    """A Compose or Neo4j size (``4G``, ``512m``, ``${VAR:-2G}``) in bytes, read at its default."""
+    m = re.fullmatch(r"(?:\$\{[A-Za-z0-9_]+:?-)?(\d+)([kKmMgG]?)[bB]?\}?", str(value).strip())
+    return int(m.group(1)) * _SIZE_UNITS[m.group(2).lower()] if m else None
+
+
+def _neo4j_setting(env: dict[str, str], name: str) -> str | None:
+    # The image maps NEO4J_server_memory_* (5.x) and the deprecated NEO4J_dbms_memory_* to the same setting.
+    return env.get(f"NEO4J_server_memory_{name}") or env.get(f"NEO4J_dbms_memory_{name}")
+
+
+def neo4j_memory_gaps(svc: dict[str, Any]) -> list[str]:
+    """A Neo4j under a memory limit that leaves its heap or page cache unset sizes them from the host's memory, finds
+    they exceed the limit, and exits 3 at start; so both are set, and fit under the limit together."""
+    if _image_repo(_image_ref(svc)) != "neo4j":
+        return []
+    limit = _bytes(_limits(svc).get("memory"))
+    if limit is None:
+        return []
+    raw = svc.get("environment") or {}
+    env = dict(str(e).split("=", 1) for e in raw if "=" in str(e)) if isinstance(raw, list) else dict(raw)
+    heap, cache = _neo4j_setting(env, "heap_max__size"), _neo4j_setting(env, "pagecache_size")
+    if heap is None or cache is None:
+        return ["memory limit without a heap and page cache size"]
+    if (_bytes(heap) or 0) + (_bytes(cache) or 0) >= limit:
+        return ["heap and page cache do not fit under the memory limit"]
+    return []
+
+
+@pytest.mark.parametrize("rel", sorted(str(p.relative_to(COMPOSE_DIR))
+                                       for p in COMPOSE_DIR.rglob("docker-compose*.yml")))
+def test_every_limited_neo4j_sizes_its_memory_within_the_limit(rel: str) -> None:
+    gaps = {n: g for n, s in _services(COMPOSE_DIR / rel).items() if (g := neo4j_memory_gaps(s))}
+    assert gaps == {}
+
+
+@pytest.mark.parametrize(("env", "limit", "expect"), [
+    ({"NEO4J_AUTH": "neo4j/x"}, "4G", ["memory limit without a heap and page cache size"]),
+    ({"NEO4J_server_memory_heap_max__size": "2G", "NEO4J_server_memory_pagecache_size": "1G"}, "4G", []),
+    (["NEO4J_dbms_memory_heap_max__size=${NEO4J_HEAP_MAX:-2G}", "NEO4J_dbms_memory_pagecache_size=1G"], "4G", []),
+    ({"NEO4J_server_memory_heap_max__size": "3G", "NEO4J_server_memory_pagecache_size": "1G"}, "4G",
+     ["heap and page cache do not fit under the memory limit"]),
+    ({"NEO4J_AUTH": "neo4j/x"}, None, []),
+])
+def test_the_neo4j_memory_rule_sees_each_shape(env: object, limit: str | None, expect: list[str]) -> None:
+    svc: dict[str, Any] = {"image": "neo4j:5.26.0@sha256:abc", "environment": env}
+    if limit:
+        svc["deploy"] = {"resources": {"limits": {"memory": limit}}}
+    assert neo4j_memory_gaps(svc) == expect
+
+
 def test_the_same_image_rule_sees_each_shape() -> None:
     assert _image_ref({"image": "${SANDBOX_DOCKER_IMAGE:-pipeshubai/pipeshub-sandbox:${IMAGE_TAG:-latest}}"}) \
         == "pipeshubai/pipeshub-sandbox:latest"

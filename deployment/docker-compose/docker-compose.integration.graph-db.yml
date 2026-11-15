@@ -37,6 +37,11 @@ services:
       # holds one so a write fails partway; a write already committing cannot be
       # terminated, only timed out.
       - NEO4J_db_lock_acquisition_timeout=10s
+      # Unset, Neo4j sizes its heap and page cache from the host's memory, which
+      # exceeds the 4G limit below, and it exits 3 at start.
+      - NEO4J_server_memory_heap_initial__size=1G
+      - NEO4J_server_memory_heap_max__size=2G
+      - NEO4J_server_memory_pagecache_size=1G
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
       interval: 5s
