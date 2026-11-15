@@ -21,7 +21,8 @@
   },
   "office-utils": {
     "1.0.3": "sha256:e923fd23bdfceea68013fdfba9048796d88340fe9faaed8d85a32a826c33b799",
-    "1.1.0": "sha256:8d2b1a303f0bf6e627f30ba5a93a0e4c61c64302d099280a7af20c2ebd4cbce4"
+    "1.1.0": "sha256:8d2b1a303f0bf6e627f30ba5a93a0e4c61c64302d099280a7af20c2ebd4cbce4",
+    "1.1.1": "sha256:e7e99a6be3e999893fd5f011c69d19ed2f9870bfcc1a9bd8a9dd0e180076c853"
   },
   "pdf": {
     "1.3.0": "sha256:6b5d5506bb60c26e05f4a3c10ecc4059f30176092a8fd0d2f7faf06e41164493",

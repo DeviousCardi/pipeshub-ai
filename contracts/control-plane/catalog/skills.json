@@ -272,11 +272,11 @@
     },
     {
       "schemaVersion": 1,
-      "ref": "skill:pipeshub/office-utils@1.1.0",
+      "ref": "skill:pipeshub/office-utils@1.1.1",
       "kind": "skill",
       "publisher": "pipeshub",
       "name": "office-utils",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "orgId": null,
       "provenance": "builtin",
       "source": {
@@ -315,15 +315,15 @@
                 "size": 2515
               },
               "SKILL.md": {
-                "sha256": "34788630a2ab8306484425e0559905b3fc7def8004b1cbf2ee0f7dd6c4581e17",
+                "sha256": "02e6a059b4f1504dd462d3b45af4d8ef150468d0683fa644471471176e172673",
                 "size": 5161
               }
             },
-            "digest": "sha256:e325952f3c9762bd75274b67ac0668a1a2028d06b2d226b5c815a85fa1979cd1"
+            "digest": "sha256:e7e99a6be3e999893fd5f011c69d19ed2f9870bfcc1a9bd8a9dd0e180076c853"
           }
         ]
       },
-      "descriptorSetDigest": "sha256:97903d07428e92cbc366fb6bed737c5aa89a8d739bd49ea631d47ada27ac7394",
+      "descriptorSetDigest": "sha256:17b219635b4910d105d4509bce155e7752511be3b166ead04d7fcb4be60883cd",
       "deprecated": false,
       "createdAt": 0
     },

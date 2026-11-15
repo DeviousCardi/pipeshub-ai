@@ -309,7 +309,7 @@ class TestPackVersions:
     def test_this_change_bumped_every_pack_it_touched(self) -> None:
         versions = {name: version for name, (version, _) in _digests().items()}
         assert versions["pdf"] == "1.4.1"
-        assert versions["office-utils"] == "1.1.0"
+        assert versions["office-utils"] == "1.1.1"
         assert versions["docx"] == "1.2.0"
         assert versions["pptx"] == "1.3.0"
         assert versions["file-conversion"] == "1.2.0"

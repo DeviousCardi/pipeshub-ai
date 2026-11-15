@@ -10,7 +10,7 @@ metadata:
     status: active
     source: builtin
     pack_name: office-utils
-    pack_version: 1.1.0
+    pack_version: 1.1.1
 ---
 
 # Office Open XML utilities
