@@ -27,7 +27,9 @@ from tests.unit.harness import test_node_journal_contract as contract
 
 BACKSTOP = Path(__file__).resolve().parents[2] / "support" / "timeout_backstop.py"
 
-# A test whose own failure a busy background task swallows: the shape of an engine run's poll loops.
+# A test whose own failure a busy background task swallows: the shape of an engine run's poll loops. The task never
+# yields, so the alarm always lands in its step; one that yielded let the alarm land in the event loop now and then,
+# which ended the test at its timeout and left nothing for the backstop to catch.
 SWALLOWING_TEST = '''
 import asyncio
 
@@ -39,7 +41,6 @@ async def test_waits_while_a_task_spins():
     async def spin():
         while True:
             sum(range(20_000))
-            await asyncio.sleep(0)
 
     spinner = asyncio.create_task(spin())
     await asyncio.Event().wait()
