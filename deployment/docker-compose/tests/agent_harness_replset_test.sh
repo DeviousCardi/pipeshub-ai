@@ -49,9 +49,11 @@ if [[ "${AGENT_HARNESS_RUN_NODE_ADMISSION_TEST:-false}" == "true" ]]; then
   mongo_uri="mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@127.0.0.1:${mongo_port}/?authSource=admin&replicaSet=rs0&directConnection=true"
   # The itests take the replica set from MONGO_IT_URI and need REDIS_IT_URL as well (the caller runs Redis);
   # require-itest-stores stops the run up front when either is missing, rather than mid-load.
+  # --no-config skips the suite's harness-on helper, and the harness is off unless an install turns it on.
   (
     cd "${repo_dir}/backend/nodejs/apps"
     AGENT_HARNESS_TEST_MONGO_URI="${mongo_uri}" MONGO_IT_URI="${mongo_uri}" REPLICA_SET_AVAILABLE=true \
+      AGENT_HARNESS_WORKER_ENABLED=true \
       TS_NODE_PROJECT=tsconfig.test.json \
       npx mocha --no-config \
         --require reflect-metadata \
