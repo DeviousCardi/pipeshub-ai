@@ -3498,6 +3498,7 @@
         "deployment/docker-compose/tests/**",
         "deployment/helm/tests/**",
         "deployment/e2e/**",
+        "backend/nodejs/apps/tests/cohesion/itest-runners-harness-switch.test.ts",
         "backend/python/tests/cohesion/test_c15_data_migrations.py",
         "backend/python/tests/cohesion/test_htimg_rebuild_recreates_code_services.py",
         "backend/python/tests/cohesion/test_signkit_human_stack_signin.py",
