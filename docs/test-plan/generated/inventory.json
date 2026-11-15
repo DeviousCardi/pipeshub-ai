@@ -1,11 +1,11 @@
 {
  "generatedBy": "scripts/harness_test_inventory.py",
  "componentMap": "docs/test-plan/data/components.json",
- "harnessTestFiles": 2062,
- "claimedTestFiles": 3894,
- "claimedTests": 41123,
+ "harnessTestFiles": 2063,
+ "claimedTestFiles": 3895,
+ "claimedTests": 41125,
  "claimedFilesByLevel": {
-  "cohesion": 63,
+  "cohesion": 64,
   "component": 48,
   "contract": 148,
   "deployment": 47,
@@ -2889,10 +2889,10 @@
    "id": "JRN",
    "name": "Journal, execution store, outbox and sweepers",
    "status": "built",
-   "files": 148,
-   "tests": 928,
+   "files": 149,
+   "tests": 930,
    "filesByLevel": {
-    "cohesion": 2,
+    "cohesion": 3,
     "component": 1,
     "contract": 21,
     "fault": 1,
@@ -2900,7 +2900,7 @@
     "unit": 80
    },
    "testsByLevel": {
-    "cohesion": 8,
+    "cohesion": 10,
     "component": 17,
     "contract": 171,
     "fault": 1,
@@ -3656,6 +3656,12 @@
     },
     {
      "path": "backend/python/tests/cohesion/test_c15_data_migrations.py",
+     "level": "cohesion",
+     "markers": [],
+     "tests": 2
+    },
+    {
+     "path": "backend/python/tests/cohesion/test_docstore_migrate_shard_suites.py",
      "level": "cohesion",
      "markers": [],
      "tests": 2
