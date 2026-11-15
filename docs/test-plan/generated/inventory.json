@@ -3,7 +3,7 @@
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2058,
  "claimedTestFiles": 3889,
- "claimedTests": 41100,
+ "claimedTests": 41105,
  "claimedFilesByLevel": {
   "cohesion": 61,
   "component": 48,
@@ -6599,7 +6599,7 @@
    "name": "Model gateway and transports",
    "status": "built",
    "files": 81,
-   "tests": 637,
+   "tests": 638,
    "filesByLevel": {
     "cohesion": 1,
     "component": 1,
@@ -6616,7 +6616,7 @@
     "integration": 4,
     "integration-docker": 2,
     "replay": 1,
-    "unit": 572
+    "unit": 573
    },
    "markers": {
     "docker": 1,
@@ -6943,7 +6943,7 @@
      "path": "backend/python/tests/unit/harness_core/gateway/test_sec2_refusal_reports.py",
      "level": "unit",
      "markers": [],
-     "tests": 8
+     "tests": 9
     },
     {
      "path": "backend/python/tests/unit/harness_core/gateway/test_sec2_refusal_sink_contract.py",
@@ -8780,7 +8780,7 @@
    "name": "Toolsets and credentials",
    "status": "built",
    "files": 104,
-   "tests": 1071,
+   "tests": 1072,
    "filesByLevel": {
     "cohesion": 3,
     "contract": 1,
@@ -8795,7 +8795,7 @@
     "deployment": 0,
     "e2e-browser": 3,
     "integration": 7,
-    "unit": 1040
+    "unit": 1041
    },
    "markers": {
     "integration": 3
@@ -9136,7 +9136,7 @@
      "path": "backend/python/tests/unit/harness/credentials/test_sources.py",
      "level": "unit",
      "markers": [],
-     "tests": 25
+     "tests": 26
     },
     {
      "path": "backend/python/tests/unit/harness/credentials/test_sync3_shared_owner.py",
@@ -26756,7 +26756,7 @@
    "name": "Deployment, migrations and upgrade",
    "status": "built",
    "files": 112,
-   "tests": 520,
+   "tests": 521,
    "filesByLevel": {
     "cohesion": 15,
     "deployment": 46,
@@ -26775,7 +26775,7 @@
     "gate-slow": 1,
     "integration": 11,
     "integration-docker": 19,
-    "unit": 344
+    "unit": 345
    },
    "markers": {
     "docker": 2,
@@ -27481,7 +27481,7 @@
      "path": "scripts/test_supply_chain.py",
      "level": "unit",
      "markers": [],
-     "tests": 89
+     "tests": 90
     },
     {
      "path": "scripts/test_workflow_lint.py",
@@ -27730,7 +27730,7 @@
    "name": "Deterministic test kit",
    "status": "built",
    "files": 46,
-   "tests": 319,
+   "tests": 321,
    "filesByLevel": {
     "cohesion": 4,
     "gate-slow": 2,
@@ -27745,7 +27745,7 @@
     "integration": 55,
     "integration-docker": 3,
     "replay": 10,
-    "unit": 223
+    "unit": 225
    },
    "markers": {
     "docker": 1,
@@ -27990,7 +27990,7 @@
      "path": "backend/python/tests/unit/harness_core/test_replay_kit.py",
      "level": "unit",
      "markers": [],
-     "tests": 20
+     "tests": 22
     },
     {
      "path": "backend/python/tests/unit/harness_core/test_scripted_model.py",
