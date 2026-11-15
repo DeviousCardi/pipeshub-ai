@@ -43,7 +43,12 @@ permissions:
 jobs:
   mongodb-replica-set:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+    services:
+      redis:
+        image: redis:7.4.12-bookworm@sha256:2e3eb11462c4e3759e6972678dd051d150ff54b1e60714b3c33b701260172a90
+        ports:
+          - 6379:6379
     steps:
       - name: Checkout code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -64,6 +69,7 @@ jobs:
       - name: Verify transactions, atomic admission, and restart
         env:
           AGENT_HARNESS_RUN_NODE_ADMISSION_TEST: 'true'
+          REDIS_IT_URL: redis://127.0.0.1:6379
         run: deployment/docker-compose/tests/agent_harness_replset_test.sh
 
   journal-failover:

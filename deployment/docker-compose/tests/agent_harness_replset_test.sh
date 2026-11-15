@@ -46,13 +46,17 @@ if [[ "${AGENT_HARNESS_RUN_NODE_ADMISSION_TEST:-false}" == "true" ]]; then
   mongo_endpoint=$("${compose[@]}" port mongodb 27017)
   mongo_port=${mongo_endpoint##*:}
   repo_dir=$(cd "${compose_dir}/../.." && pwd)
+  mongo_uri="mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@127.0.0.1:${mongo_port}/?authSource=admin&replicaSet=rs0&directConnection=true"
+  # The itests take the replica set from MONGO_IT_URI and need REDIS_IT_URL as well (the caller runs Redis);
+  # require-itest-stores stops the run up front when either is missing, rather than mid-load.
   (
     cd "${repo_dir}/backend/nodejs/apps"
-    AGENT_HARNESS_TEST_MONGO_URI="mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@127.0.0.1:${mongo_port}/?authSource=admin&replicaSet=rs0&directConnection=true" \
+    AGENT_HARNESS_TEST_MONGO_URI="${mongo_uri}" MONGO_IT_URI="${mongo_uri}" REPLICA_SET_AVAILABLE=true \
       TS_NODE_PROJECT=tsconfig.test.json \
       npx mocha --no-config \
         --require reflect-metadata \
         --require ts-node/register \
+        --require ./tests/helpers/require-itest-stores.ts \
         --timeout 30000 \
         --extension ts \
         --exit \
