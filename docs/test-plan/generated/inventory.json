@@ -3,7 +3,7 @@
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2058,
  "claimedTestFiles": 3889,
- "claimedTests": 41108,
+ "claimedTests": 41112,
  "claimedFilesByLevel": {
   "cohesion": 61,
   "component": 48,
@@ -9449,7 +9449,7 @@
    "name": "Skills",
    "status": "built (creator scoping by CPS, merged at a168c7d5c)",
    "files": 36,
-   "tests": 457,
+   "tests": 459,
    "filesByLevel": {
     "contract": 2,
     "gate-slow": 1,
@@ -9462,7 +9462,7 @@
     "gate-slow": 1,
     "integration": 5,
     "integration-docker": 19,
-    "unit": 388
+    "unit": 390
    },
    "markers": {
     "docker": 6,
@@ -9532,7 +9532,7 @@
      "path": "backend/python/tests/unit/api/routes/test_slash1_shared_commands.py",
      "level": "unit",
      "markers": [],
-     "tests": 17
+     "tests": 19
     },
     {
      "path": "backend/python/tests/unit/harness/assembly/test_durable_skill_learning.py",
@@ -17080,7 +17080,7 @@
    "name": "Legacy query path (today's loop)",
    "status": "built (reference and kill-switch target)",
    "files": 693,
-   "tests": 16234,
+   "tests": 16236,
    "filesByLevel": {
     "contract": 5,
     "integration": 2,
@@ -17095,7 +17095,7 @@
     "integration-docker": 12,
     "live": 39,
     "replay": 7,
-    "unit": 16075
+    "unit": 16077
    },
    "markers": {
     "ai_agents": 6,
@@ -21069,7 +21069,7 @@
      "path": "backend/python/tests/unit/api/routes/test_slash1_shared_commands.py",
      "level": "unit",
      "markers": [],
-     "tests": 17
+     "tests": 19
     },
     {
      "path": "backend/python/tests/unit/api/routes/test_speech.py",
@@ -26758,7 +26758,7 @@
    "name": "Deployment, migrations and upgrade",
    "status": "built",
    "files": 112,
-   "tests": 521,
+   "tests": 523,
    "filesByLevel": {
     "cohesion": 15,
     "deployment": 46,
@@ -26776,7 +26776,7 @@
     "fault": 68,
     "gate-slow": 1,
     "integration": 11,
-    "integration-docker": 19,
+    "integration-docker": 21,
     "unit": 345
    },
    "markers": {
@@ -26933,7 +26933,7 @@
      "markers": [
       "docker"
      ],
-     "tests": 19
+     "tests": 21
     },
     {
      "path": "backend/python/tests/unit/harness/security/test_sec_d_12_workflows.py",
@@ -27756,7 +27756,8 @@
    },
    "unmatchedTestGlobs": [
     "backend/python/tests/unit/harness/testinfra/__init__.py",
-    "backend/python/tests/unit/harness/sandbox_broker/sbxleak_inner.py"
+    "backend/python/tests/unit/harness/sandbox_broker/sbxleak_inner.py",
+    "backend/nodejs/apps/tests/modules/agent-harness/support/without.ts"
    ],
    "unmatchedSourceGlobs": [
     "integration-tests/perf/bench_harness.py",
