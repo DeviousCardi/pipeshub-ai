@@ -18,7 +18,7 @@ from harness_core.testing.contracts.image_binaries import (
 )
 from harness_core.testing.engines.binary import Directory, Link
 
-from .conftest import DOCKER_TEST_IMAGE
+from .conftest import DOCKER_TEST_IMAGE, skip_without_docker
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -46,11 +46,10 @@ def _dockerfile(base: str) -> str:
 
 @pytest.fixture(scope="module")
 def provider() -> Iterator[DockerClientProvider]:
+    # The image is built FROM the sandbox test image: a daemon without it (the unit job's runner) skips here, as the
+    # rest of the Docker lane does, instead of erroring in the build.
+    skip_without_docker()
     docker_provider = DockerClientProvider(max_workers=4)
-    try:
-        docker_provider.client.ping()
-    except Exception as exc:
-        pytest.skip(f"needs a Docker daemon: {type(exc).__name__}")
     yield docker_provider
     api = docker_provider.client.api
     for info in api.containers(all=True, filters={"label": [f"{NAMESPACE}.managed=1"]}):
