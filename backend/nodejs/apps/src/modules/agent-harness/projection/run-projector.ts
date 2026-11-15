@@ -761,8 +761,8 @@ export class RunProjector {
         return index;
       }
       // G-05: the run's verification reads as a notice beside its answer, live as on reload.
-      case 'verification.recorded':
       // G-48: a move to an alternate model reads as a notice too.
+      case 'verification.recorded':
       case 'model.fallback':
       case 'x.pipeshub.run.notice':
         this.noticed(event, out);

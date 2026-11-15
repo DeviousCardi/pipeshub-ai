@@ -69,7 +69,7 @@ export class CostPush {
         this.arm();
       });
     }, wait);
-    this.timer.unref?.();
+    this.timer.unref();
   }
 
   close(): void {
@@ -89,6 +89,7 @@ export class CostPush {
       return;
     }
     const key = JSON.stringify(budget);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- close() can run while the read above is awaited
     if (this.closed || key === this.sent) return;
     this.sent = key;
     this.options.send({

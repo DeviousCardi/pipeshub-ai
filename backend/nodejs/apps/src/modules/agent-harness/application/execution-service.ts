@@ -2252,8 +2252,9 @@ export class ExecutionService {
             toolId?: unknown;
           };
           return {
-            invocationId: String(data.invocationId ?? ''),
-            toolId: String(data.toolId ?? ''),
+            invocationId:
+              typeof data.invocationId === 'string' ? data.invocationId : '',
+            toolId: typeof data.toolId === 'string' ? data.toolId : '',
             attemptId: event.attemptId ?? null,
           };
         }),

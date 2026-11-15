@@ -611,30 +611,32 @@ export class ModelAccessService {
   private async firstClaudeModel(
     orgId: string,
   ): Promise<{ modelKey: string; modelName: string } | undefined> {
-    const list = this.options.models?.list;
-    if (list === undefined) return undefined;
+    const models = this.options.models;
+    if (models?.list === undefined) return undefined;
     let entries;
     try {
-      entries = await list.call(this.options.models, orgId);
+      entries = await models.list(orgId);
     } catch {
       return undefined;
     }
-    const entry = entries.find(
-      (each) =>
-        machineName(each.provider, 'unknown') === CLAUDE_PLAN_PROVIDER &&
-        each.modelNames.length > 0,
-    );
-    return entry === undefined
-      ? undefined
-      : { modelKey: entry.modelKey, modelName: entry.modelNames[0]! };
+    for (const each of entries) {
+      const [modelName] = each.modelNames;
+      if (
+        modelName !== undefined &&
+        machineName(each.provider, 'unknown') === CLAUDE_PLAN_PROVIDER
+      ) {
+        return { modelKey: each.modelKey, modelName };
+      }
+    }
+    return undefined;
   }
 
   /** The Anthropic models the org configured, for a refusal to name; none when they cannot be listed. */
   private async claudeModelNames(orgId: string): Promise<string[]> {
-    const list = this.options.models?.list;
-    if (list === undefined) return [];
+    const models = this.options.models;
+    if (models?.list === undefined) return [];
     try {
-      const entries = await list.call(this.options.models, orgId);
+      const entries = await models.list(orgId);
       return [
         ...new Set(
           entries

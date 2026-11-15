@@ -121,7 +121,8 @@ export function queuedReplyFrames(
   reply: string = QUEUED_REPLY,
   handOff?: QueuedHandOff,
 ): ProjectedFrame[] {
-  const id = (k: number) => `q:${runId}:${String(messageSeq)}:${String(k)}`;
+  const id = (k: number): string =>
+    `q:${runId}:${String(messageSeq)}:${String(k)}`;
   return [
     {
       id: id(1),

@@ -324,6 +324,6 @@ export function editionJsonBodies(): RequestHandler {
       next();
       return;
     }
-    parse(req, res, next);
+    void parse(req, res, next);
   };
 }

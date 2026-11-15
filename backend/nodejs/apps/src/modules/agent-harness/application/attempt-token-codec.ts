@@ -90,8 +90,8 @@ export function generateSigningKey(
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
   return {
     kid: signingKeyId(publicKey, prefix),
-    privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
-    publicKey: publicKey.export({ type: 'spki', format: 'pem' }).toString(),
+    privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+    publicKey: publicKey.export({ type: 'spki', format: 'pem' }),
     createdAt: now,
     retiredAt: null,
   };

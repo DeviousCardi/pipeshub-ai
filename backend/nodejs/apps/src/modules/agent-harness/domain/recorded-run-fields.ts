@@ -79,7 +79,7 @@ export function recordedRunFieldsOn(
 /** `run` without the fields an edition records: what the worker is handed (it folds its own). */
 export function withoutRecordedRunFields<T extends object>(run: T): T {
   if (recorded.length === 0) return run;
-  const out = { ...run } as Record<string, unknown>;
-  for (const { field } of recorded) delete out[field];
-  return out as T;
+  const out: T = { ...run };
+  for (const { field } of recorded) Reflect.deleteProperty(out, field);
+  return out;
 }

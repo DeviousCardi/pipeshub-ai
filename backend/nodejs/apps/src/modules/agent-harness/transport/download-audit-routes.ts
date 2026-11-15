@@ -56,7 +56,7 @@ export const idList = (
       `not a valid ${what} list`,
     );
 
-export const auditDatetime = z.string().datetime({ offset: true });
+export const auditDatetime = z.iso.datetime({ offset: true });
 
 const window = {
   from: auditDatetime.optional(),

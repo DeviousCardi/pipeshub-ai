@@ -5,7 +5,15 @@ export class InMemoryRunReadyNotifier implements RunReadyNotifier {
   readonly notices: RunReadyNotice[] = [];
   private readonly listeners = new Set<(notice: RunReadyNotice) => void>();
 
-  async notify(notices: readonly RunReadyNotice[]): Promise<void> {
+  notify(notices: readonly RunReadyNotice[]): Promise<void> {
+    // The executor turns a listener's throw into a rejection, as an async method would.
+    return new Promise<void>((resolve) => {
+      this.announce(notices);
+      resolve();
+    });
+  }
+
+  private announce(notices: readonly RunReadyNotice[]): void {
     for (const notice of notices) {
       // Ids and the transition only, as Redis publishes them: a listener never sees what the caller passed beyond.
       const announced = {

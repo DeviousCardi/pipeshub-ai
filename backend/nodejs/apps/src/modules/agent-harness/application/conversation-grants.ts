@@ -12,7 +12,7 @@ import type { JournalAppend, JournalEvent } from '../domain/journal';
 import { principalRefFor } from '../domain/run-spec';
 import type { SessionExecutionScope } from '../ports/chat-session-repository';
 import type { JournalPreparer, JournalStore } from '../ports/journal-store';
-import type { OrgMemberProfiles } from '../ports/org-members';
+import type { MemberProfile, OrgMemberProfiles } from '../ports/org-members';
 import type { ExecutionService } from './execution-service';
 import { MAX_JOURNAL_PAGE } from './execution-service';
 import {
@@ -126,7 +126,8 @@ export class ConversationGrantService<Tx> {
       }),
     );
     const [revoked] = await this.views(scope.orgId, [grant]);
-    return { revoked: revoked!, runs: open.length };
+    if (revoked === undefined) throw new Error('A revoked grant has no view');
+    return { revoked, runs: open.length };
   }
 
   /** The grants the conversation holds now: its root stream, its open jobs, and the runs those grants were given on. */
@@ -216,7 +217,7 @@ export class ConversationGrantService<Tx> {
     const profiles =
       userIds.length > 0 && this.deps.members
         ? await this.deps.members.profiles(orgId, userIds)
-        : new Map();
+        : new Map<string, MemberProfile>();
     return grants.map((grant) => {
       const userId =
         grant.by?.startsWith(PRINCIPAL_PREFIX) === true

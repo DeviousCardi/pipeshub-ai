@@ -279,8 +279,9 @@ export class EngineSignInService implements EngineSignInEraser {
     );
     const view: SignInAttemptView = {
       attemptId,
-      runId: String(answer['runId'] ?? ''),
-      sessionId: String(answer['sessionId'] ?? ''),
+      runId: typeof answer['runId'] === 'string' ? answer['runId'] : '',
+      sessionId:
+        typeof answer['sessionId'] === 'string' ? answer['sessionId'] : '',
       state:
         (answer['state'] as SignInAttemptView['state'] | undefined) ??
         'waiting',
@@ -421,11 +422,9 @@ export class EngineSignInService implements EngineSignInEraser {
     }
     const answer = await relay.ask(attemptId, caller, request, timeoutMs);
     // Anyone but the owner, an answer that names no owner, and an attempt no worker holds, are the same: not found.
-    if (
-      answer === null ||
-      answer.ok !== true ||
-      answer['ownerId'] !== caller.userId
-    ) {
+    // The worker's answer is parsed JSON, so `ok` is checked as it arrived.
+    const ok: unknown = answer?.ok;
+    if (answer === null || ok !== true || answer['ownerId'] !== caller.userId) {
       throw new HarnessNotFoundError('No such sign-in');
     }
     return answer;

@@ -60,16 +60,14 @@ export interface SharedBudgetGuard {
 /** No shared budget: every reservation is admitted as asked, and only the run's own budget bounds it. */
 export const noSharedBudgets: SharedBudgetGuard = Object.freeze({
   recordsSpend: false,
-  admit: async (
+  admit: (
     _orgId: string,
     _attribution: CostAttribution,
     requested: BudgetAmount,
-  ): Promise<BudgetAmount> => requested,
-  stoppingLeft: async (): Promise<SharedBudgetLeft> => ({
-    left: null,
-    scope: null,
-  }),
-  foldSoon: async (): Promise<void> => undefined,
+  ): Promise<BudgetAmount> => Promise.resolve(requested),
+  stoppingLeft: (): Promise<SharedBudgetLeft> =>
+    Promise.resolve({ left: null, scope: null }),
+  foldSoon: (): Promise<void> => Promise.resolve(),
 });
 
 /**
@@ -84,6 +82,6 @@ export interface CostEraser {
 
 /** No spend records are kept, so there is nothing to sweep or erase. */
 export const noCostEraser: CostEraser = Object.freeze({
-  sweep: async (): Promise<number> => 0,
-  eraseUser: async (): Promise<number> => 0,
+  sweep: (): Promise<number> => Promise.resolve(0),
+  eraseUser: (): Promise<number> => Promise.resolve(0),
 });

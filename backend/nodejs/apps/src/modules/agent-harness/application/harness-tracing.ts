@@ -34,7 +34,7 @@ export interface HarnessTracer {
 export const noopHarnessTracer: HarnessTracer = {
   enabled: false,
   record: () => undefined,
-  flush: async () => undefined,
+  flush: () => Promise.resolve(),
 };
 
 export class InMemoryHarnessTracer implements HarnessTracer {
@@ -45,8 +45,8 @@ export class InMemoryHarnessTracer implements HarnessTracer {
     this.spans.push(span);
   }
 
-  async flush(): Promise<void> {
-    return undefined;
+  flush(): Promise<void> {
+    return Promise.resolve();
   }
 }
 

@@ -465,14 +465,12 @@ function rankRaiseRulesOrder(spec: OrderSpec): Order {
     ].sort()) {
       const left = x[key];
       const right = y[key];
-      out[key] =
-        left === undefined
-          ? right!
-          : right === undefined
-            ? left
-            : looseness(left) <= looseness(right)
-              ? left
-              : right;
+      if (left === undefined || right === undefined) {
+        const only = left ?? right;
+        if (only !== undefined) out[key] = only;
+        continue;
+      }
+      out[key] = looseness(left) <= looseness(right) ? left : right;
     }
     return out;
   };

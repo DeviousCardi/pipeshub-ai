@@ -166,6 +166,7 @@ function checkedOp(
       return typeof op.value === 'string'
         ? { ...op, value: artifacts().text(op.value) }
         : op;
+    case undefined:
     default:
       return op;
   }

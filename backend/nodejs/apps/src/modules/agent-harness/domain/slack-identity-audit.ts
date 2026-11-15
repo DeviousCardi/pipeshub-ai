@@ -54,13 +54,12 @@ export function slackIdentityAuditEntry(
   };
   if (change.type === SLACK_LINKED_KIND) {
     fields['by'] = principalRefFor(change.userId);
-    fields['moved'] =
+    const moved =
       change.previousUserId !== undefined &&
       change.previousUserId !== change.userId;
-    if (fields['moved'] === true)
-      fields['previousAccount'] = principalRefFor(
-        change.previousUserId as string,
-      );
+    fields['moved'] = moved;
+    if (moved && change.previousUserId !== undefined)
+      fields['previousAccount'] = principalRefFor(change.previousUserId);
   } else {
     if (change.actorId !== undefined)
       fields['by'] = principalRefFor(change.actorId);

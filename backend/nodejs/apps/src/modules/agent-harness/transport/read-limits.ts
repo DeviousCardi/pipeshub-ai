@@ -35,7 +35,7 @@ export const PUBLIC_READ_LIMITS: HttpReadLimits = {
 };
 
 export function boundedServer(
-  handler: http.RequestListener,
+  handler: (req: http.IncomingMessage, res: http.ServerResponse) => unknown,
   limits: HttpReadLimits,
 ): http.Server {
   // Node takes `headersTimeout` as an option (and checks it against `requestTimeout` there) though its
@@ -45,7 +45,10 @@ export function boundedServer(
     requestTimeout: limits.requestTimeoutMs,
     connectionsCheckingInterval: limits.checkIntervalMs,
   };
-  const server = http.createServer(options, handler);
+  const server = http.createServer(options, (req, res) => {
+    // Express 5 types an app as maybe returning a promise; the app answers its own errors, so nothing waits on it.
+    void handler(req, res);
+  });
   applyReadLimits(server, limits);
   return server;
 }

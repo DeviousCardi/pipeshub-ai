@@ -55,7 +55,12 @@ export class ApprovalWaitingSource implements InboxWaitingSource {
 export function toolApp(toolName: string): string | null {
   const parts = toolName.split(/__|\./).filter((part) => part.length > 0);
   if (parts.length < 2) return null;
-  const app = parts[0] === 'mcp' && parts.length > 2 ? parts[1]! : parts[0]!;
+  const [first, second] = parts;
+  if (first === undefined) return null;
+  const app =
+    first === 'mcp' && second !== undefined && parts.length > 2
+      ? second
+      : first;
   return subjectText(app, 128) ?? null;
 }
 

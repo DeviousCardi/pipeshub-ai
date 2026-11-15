@@ -52,7 +52,9 @@ export function createHarnessAuthority(
   clock: AuthorityClock = systemAuthorityClock,
   logger?: HarnessLogger,
 ): HarnessAuthority {
-  const role = (store: HarnessAuthorityStores['workerCredential']) =>
+  const role = (
+    store: HarnessAuthorityStores['workerCredential'],
+  ): WorkerCredentialAuthority =>
     new WorkerCredentialAuthority(store, clock, undefined, logger);
   const others = stores.roleCredentials;
   return new HarnessAuthority(
@@ -129,9 +131,11 @@ export const bindAuthority: HarnessBinder = ({
     bindGatewayKeyring(container, dependencies.gatewayTokens, logger);
   }
   if (container.isBound(AGENT_HARNESS_AUTHORITY)) return;
-  const components = dependencies.authority?.components ?? {};
-  const endpointsSource = dependencies.authority?.endpoints;
-  const kvLogins = dependencies.authority?.kvLogins;
+  // Wiring that binds only part of the harness (the binder tests) passes no authority stores.
+  const stores = dependencies.authority as HarnessAuthorityStores | undefined;
+  const components = stores?.components ?? {};
+  const endpointsSource = stores?.endpoints;
+  const kvLogins = stores?.kvLogins;
   if (Object.keys(components).length > 0) {
     container
       .bind<ComponentCredentialPublisher>(AGENT_HARNESS_COMPONENT_PUBLISHER)

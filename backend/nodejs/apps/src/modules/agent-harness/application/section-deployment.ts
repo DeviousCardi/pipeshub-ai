@@ -32,7 +32,7 @@ export function sectionDeployment(
     if (section !== 'websites' && section !== 'repositories') return null;
     const tunnels = envFlag('EGRESS_CONNECT_TUNNELS', env);
     if (section === 'websites' || cache === undefined) return { tunnels };
-    let status: RepositoryCacheStatus | null = null;
+    let status: RepositoryCacheStatus | null;
     try {
       status = (await cache.read()).value;
     } catch {

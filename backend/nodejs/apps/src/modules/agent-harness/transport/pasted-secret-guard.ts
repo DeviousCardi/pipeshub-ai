@@ -131,7 +131,7 @@ const thenScan = (
         next(error);
         return;
       }
-      guard(req, res, next);
+      void guard(req, res, next);
     };
     return authenticator(req, res, after);
   };

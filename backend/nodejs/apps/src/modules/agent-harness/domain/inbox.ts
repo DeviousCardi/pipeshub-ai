@@ -453,7 +453,7 @@ export function noticeSubject(
     out: InboxSubject,
     key: K,
     value: InboxSubject[K] | undefined,
-  ) => {
+  ): void => {
     if (value !== undefined) out[key] = value;
   };
   const out: InboxSubject = {};
@@ -493,6 +493,13 @@ export function noticeSubject(
     case 'mention':
       set(out, 'chat', subjectText(p['chatTitle'], 300));
       break;
+    case 'approval':
+    case 'artefact_review':
+    case 'connector':
+    case 'memory_review':
+    case 'question':
+    case 'skill_proposal':
+    case 'system':
     default:
       set(out, 'source', subjectText(row.originService, 128));
   }

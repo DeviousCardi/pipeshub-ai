@@ -95,7 +95,7 @@ export class StorageWorkspaceObjects implements WorkspaceObjectBytes {
     );
     const bytes = bytesOf(
       response.data,
-      String(response.headers?.['content-type'] ?? ''),
+      String(response.headers['content-type'] ?? ''),
     );
     if (
       bytes.length !== ref.sizeBytes ||

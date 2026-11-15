@@ -427,7 +427,9 @@ export class BudgetLedgerService {
       token,
       settle ? { acceptExpiredForMs: SETTLE_TOKEN_GRACE_MS } : {},
     );
-    if (claims.binding !== 'run' || claims.runId !== runId) {
+    // Read as a string so the check still holds if another binding kind is ever verified here.
+    const binding: string = claims.binding;
+    if (binding !== 'run' || claims.runId !== runId) {
       throw new HarnessUnauthorizedError(
         'claims',
         'The token is not for this run',

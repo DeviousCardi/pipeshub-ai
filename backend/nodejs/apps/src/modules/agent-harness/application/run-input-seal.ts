@@ -129,7 +129,7 @@ export class RunInputSeal {
       const fields: Record<string, unknown> = {};
       for (const field of present) {
         fields[field] = input[field];
-        delete out[field];
+        Reflect.deleteProperty(out, field);
       }
       out[SEALED[part]] = await seal(part, JSON.stringify(fields));
     }

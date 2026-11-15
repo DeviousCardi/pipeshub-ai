@@ -1,4 +1,8 @@
-import { AttemptClaims, IssuedAttemptToken } from '../domain/authority';
+import {
+  AttemptClaims,
+  IssuedAttemptToken,
+  WorkerCredentialSet,
+} from '../domain/authority';
 import { HarnessUnauthorizedError } from '../domain/errors';
 import { HarnessRun } from '../domain/execution';
 import { HarnessCredentialRole } from '../domain/credential-roles';
@@ -57,7 +61,9 @@ export class HarnessAuthority {
   }
 
   /** The role's current set, for sealing into a component's document (ADR-KEY-02); null until provisioned. */
-  credentialSetFor(role: HarnessCredentialRole) {
+  credentialSetFor(
+    role: HarnessCredentialRole,
+  ): Promise<WorkerCredentialSet | null> {
     return this.authorityOf(role)?.currentSet() ?? Promise.resolve(null);
   }
 

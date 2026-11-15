@@ -1,5 +1,5 @@
 import { NextFunction, Response } from 'express';
-import { Container } from 'inversify';
+import { Container, interfaces } from 'inversify';
 import { ServiceUnavailableError } from '../../../libs/errors/http.errors';
 import { AuthenticatedUserRequest } from '../../../libs/middlewares/types';
 import type { ConversationGrantService } from '../application/conversation-grants';
@@ -27,7 +27,7 @@ export class BackgroundAgentController {
     private readonly kind: 'agent' | 'chat',
   ) {}
 
-  private service<T>(token: string): T {
+  private service<T>(token: interfaces.ServiceIdentifier<T>): T {
     if (!this.container.isBound(token)) {
       throw new ServiceUnavailableError(
         'Background agents are not available on this deployment',

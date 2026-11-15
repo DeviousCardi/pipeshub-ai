@@ -535,7 +535,7 @@ export class InMemoryExecutionStore
     if (audience !== null) {
       this.audiences.set(scope(command.orgId, command.runId), audience);
       this.journalFeatures.set(sessionScope, [
-        ...new Set([
+        ...new Set<WorkerFeature>([
           ...(this.journalFeatures.get(sessionScope) ?? []),
           SESSION_ROLES_FEATURE,
         ]),
@@ -557,7 +557,7 @@ export class InMemoryExecutionStore
     if (command.gates !== undefined) {
       this.gates.set(runKey, copy(command.gates));
       this.journalFeatures.set(sessionScope, [
-        ...new Set([
+        ...new Set<WorkerFeature>([
           ...(this.journalFeatures.get(sessionScope) ?? []),
           RUN_GATES_FEATURE,
         ]),

@@ -160,8 +160,8 @@ export const manifestDigest = (
   sha256: (text: string) => string,
 ): string =>
   sha256(
-    Object.keys(collections)
-      .sort()
-      .map((name) => `${name}:${collections[name]!.sha256}`)
+    Object.entries(collections)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([name, collection]) => `${name}:${collection.sha256}`)
       .join('\n'),
   );

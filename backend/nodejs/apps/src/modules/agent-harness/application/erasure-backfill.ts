@@ -609,10 +609,12 @@ export class ErasureBackfillService<Tx> {
       await this.renewLease(digest);
       jobs = await this.deps.jobs.findMany(orgId, open);
     }
-    const states = open.map((sessionId) => ({
-      sessionId,
-      state: jobs.has(sessionId) ? 'erased' : 'withdrawn',
-    }));
+    const states = open.map(
+      (sessionId): { sessionId: string; state: BackfillItemState } => ({
+        sessionId,
+        state: jobs.has(sessionId) ? 'erased' : 'withdrawn',
+      }),
+    );
     await this.deps.store.setItemStates(digest, states);
     this.logger.info(
       'erasure_backfill.batch_settled',

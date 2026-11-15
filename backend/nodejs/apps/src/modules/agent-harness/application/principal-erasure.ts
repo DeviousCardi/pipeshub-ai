@@ -257,7 +257,8 @@ export class PrincipalErasureRunner<Tx> {
         };
       },
     };
-    const run = steps[job.step as UserErasureStep];
+    // The step comes from the stored job, which may name one this build does not know.
+    const run = (steps as Partial<typeof steps>)[job.step as UserErasureStep];
     if (run === undefined) {
       throw new HarnessConflictError(
         'INVALID_TRANSITION',

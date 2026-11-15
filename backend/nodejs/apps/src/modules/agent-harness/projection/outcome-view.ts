@@ -70,7 +70,7 @@ export function outcomeView(data: Record<string, unknown>): OutcomeView | null {
   const file = record(delivered['file']);
   const path = file['path'];
   const by = oneOf(file['by'], ['engine', 'wrap_up'] as const);
-  const missing = Array.isArray(outcome['missing'])
+  const missing: unknown = Array.isArray(outcome['missing'])
     ? outcome['missing'][0]
     : undefined;
   const sources = delivered['sources'];

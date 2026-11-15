@@ -264,7 +264,8 @@ export class ChildRunService {
     this.journals = options.journals;
     this.logger = options.logger ?? silentHarnessLogger;
     this.workspaces = options.workspaces ?? null;
-    this.engineAuthority = options.engineAuthority ?? (async () => null);
+    this.engineAuthority =
+      options.engineAuthority ?? (() => Promise.resolve(null));
     this.engineAccess = options.engineAccess ?? null;
     this.pinning = options.pinning ?? null;
     this.configuredLlms = options.configuredLlms ?? null;
@@ -992,7 +993,7 @@ export class ChildRunService {
     const surface = (
       spec.extensions?.['x.pipeshub'] as { surface?: string } | undefined
     )?.surface;
-    let shared = true;
+    let shared: boolean;
     try {
       shared =
         this.sessionShared === null

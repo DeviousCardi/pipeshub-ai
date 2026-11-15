@@ -44,6 +44,7 @@ import type { ChildPinning } from '../application/admission/child-pinning';
 import { memorySettings } from './policy-settings';
 import { guardedWorkerFeatures } from '../domain/worker-compat';
 import { recordRunCacheRead } from '../application/run-cache-read';
+import type { SessionRoleLookup } from '../ports/session-roles';
 import { policyBackingOf, policyStoreIsRecord } from './policy-store';
 import {
   AGENT_HARNESS_AUTHORITY,
@@ -188,11 +189,7 @@ export const bindChildRuns: HarnessBinder = ({
             ),
             journal: journal.runJournal,
           }),
-          sessionShared:
-            dependencies.roles?.isShared !== undefined
-              ? (orgId, sessionId) =>
-                  dependencies.roles!.isShared!({ orgId, sessionId })
-              : null,
+          sessionShared: sessionSharedLookup(dependencies.roles),
           engineImages: brokerImages(
             () =>
               context.container.get<HarnessAuthority>(AGENT_HARNESS_AUTHORITY),
@@ -326,4 +323,12 @@ function bindMemories(
   container
     .bind<MemoryService>(AGENT_HARNESS_MEMORIES)
     .toConstantValue(memories);
+}
+
+function sessionSharedLookup(
+  roles: SessionRoleLookup | undefined,
+): ((orgId: string, sessionId: string) => Promise<boolean>) | null {
+  if (roles?.isShared === undefined) return null;
+  return (orgId, sessionId) =>
+    roles.isShared?.({ orgId, sessionId }) ?? Promise.resolve(true);
 }

@@ -19,12 +19,12 @@ const MAX_HEADER_CHARS = 512;
 export function canonicalLocale(value: string | undefined): string | undefined {
   const tag = (value ?? '').trim();
   if (tag.length > MAX_LOCALE_CHARS || !LOCALE.test(tag)) return undefined;
-  const [language, ...subtags] = tag.split('-');
+  const [language = '', ...subtags] = tag.split('-');
   return [
-    language!.toLowerCase(),
+    language.toLowerCase(),
     ...subtags.map((part) =>
       part.length === 4 && /^[A-Za-z]+$/.test(part)
-        ? part[0]!.toUpperCase() + part.slice(1).toLowerCase()
+        ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
         : part.length === 2 && /^[A-Za-z]+$/.test(part)
           ? part.toUpperCase()
           : part.toLowerCase(),

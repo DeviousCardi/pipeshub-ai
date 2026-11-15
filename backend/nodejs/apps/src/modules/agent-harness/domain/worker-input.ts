@@ -46,7 +46,7 @@ export function withoutGuardedFields(
   );
   if (dropped.length === 0) return input;
   const out: Record<string, unknown> = { ...input };
-  for (const [key] of dropped) delete out[key];
+  for (const [key] of dropped) Reflect.deleteProperty(out, key);
   return out as unknown as RunInputSnapshot;
 }
 

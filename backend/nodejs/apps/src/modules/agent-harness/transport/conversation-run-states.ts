@@ -71,7 +71,11 @@ const conversationsOf = (body: unknown): Array<Record<string, unknown>> => {
 
 const idOf = (conversation: Record<string, unknown>): string | null => {
   const id = conversation['_id'] ?? conversation['id'];
-  return id === undefined || id === null ? null : String(id);
+  if (id === undefined || id === null) return null;
+  // A Mongo document's _id is an ObjectId here, whose own toString is its hex id.
+  return typeof id === 'string'
+    ? id
+    : (id as { toString(): string }).toString();
 };
 
 function conversationIds(body: unknown): string[] {

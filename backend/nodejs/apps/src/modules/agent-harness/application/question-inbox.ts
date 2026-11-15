@@ -40,7 +40,9 @@ const isObject = (value: unknown): value is Json =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const clip = (text: string, max: number): string =>
-  [...text].length <= max ? text : [...text].slice(0, max).join('');
+  Array.from(text).length <= max
+    ? text
+    : Array.from(text).slice(0, max).join('');
 
 /** The card's first question, as `ask_user_question` and the gateway's `ask_user` write it; null: nothing to answer. */
 function asked(

@@ -34,8 +34,10 @@ const positiveInteger = (value: unknown): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value > 0;
 
 const dimensionsOf = (resolved: unknown): Dimensions => {
-  const config = (resolved as { effectiveConfig?: { dimensions?: unknown } })
-    ?.effectiveConfig;
+  const config = (
+    resolved as
+      { effectiveConfig?: { dimensions?: unknown } } | null | undefined
+  )?.effectiveConfig;
   const dimensions = config?.dimensions;
   return typeof dimensions === 'object' && dimensions !== null
     ? (dimensions as Dimensions)

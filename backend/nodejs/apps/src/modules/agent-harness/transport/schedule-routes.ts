@@ -172,7 +172,7 @@ export const scheduleAgentVersionSchema = scheduleParamsSchema.extend({
 });
 
 export const runScheduleSchema = scheduleParamsSchema.extend({
-  headers: z.object({ 'idempotency-key': idempotencyKey }).passthrough(),
+  headers: z.object({ 'idempotency-key': idempotencyKey }).loose(),
 });
 
 /** Either the signature and its timestamp, or (a webhook made before signatures) the token. */
@@ -183,7 +183,7 @@ export const webhookSchema = scheduleParamsSchema.extend({
       [TRIGGER_SIGNATURE_HEADER]: z.string().min(1).max(512).optional(),
       [TRIGGER_TIMESTAMP_HEADER]: z.string().min(1).max(32).optional(),
     })
-    .passthrough(),
+    .loose(),
 });
 
 /**

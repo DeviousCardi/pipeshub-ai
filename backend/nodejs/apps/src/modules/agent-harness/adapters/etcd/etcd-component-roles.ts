@@ -72,7 +72,7 @@ export class EtcdComponentRoles implements ComponentStoreLogins {
       await admin.addRole(role);
       held = [];
     }
-    const same = (a: EtcdPermission, b: EtcdPermission) =>
+    const same = (a: EtcdPermission, b: EtcdPermission): boolean =>
       a.key === b.key &&
       a.rangeEnd === b.rangeEnd &&
       a.permission === b.permission;

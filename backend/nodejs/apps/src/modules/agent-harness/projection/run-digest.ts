@@ -92,6 +92,8 @@ function outcomeOf(
       };
     case 'cancelled':
       return { outcome: 'cancelled' };
+    case 'failed':
+    case 'quarantined':
     default:
       return { outcome: 'failed' };
   }

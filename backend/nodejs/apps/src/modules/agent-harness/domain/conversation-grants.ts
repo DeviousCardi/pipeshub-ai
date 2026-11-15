@@ -252,7 +252,7 @@ const revokes = (
   event.type === GRANT_REVOKED_EVENT &&
   event.writer === 'node' &&
   event.data?.['toolId'] === grant.toolId &&
-  event.data?.['key'] === grant.key;
+  event.data['key'] === grant.key;
 
 /** A grant's id in the conversation's list: its tool and destination, digested (never the destination's label). */
 export const conversationGrantId = (

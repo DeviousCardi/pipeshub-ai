@@ -293,6 +293,7 @@ export class RedisLiveBus<F extends LiveFrame = LiveDelta>
         if (last === undefined || !this.followers.has(follower)) continue;
         follower.cursor = last[0];
         follower.onDeltas(this.decode(follower.runId, entries));
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- a concurrent readFollower sets `again` while this one awaits XREAD
       } while (follower.again && this.followers.has(follower));
     } catch (error) {
       if (this.followers.delete(follower) && !this.followed(follower.runId)) {

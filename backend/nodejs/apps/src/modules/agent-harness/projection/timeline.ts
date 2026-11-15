@@ -643,7 +643,10 @@ export function operatorStopOf(raw: unknown): OperatorStop | null {
     (OPERATOR_SCOPE_KINDS as readonly string[]).includes(scope) &&
     typeof reason === 'string' &&
     (OPERATOR_REASONS as readonly string[]).includes(reason)
-    ? ({ scope, reason } as OperatorStop)
+    ? {
+        scope: scope as OperatorStop['scope'],
+        reason: reason as OperatorStop['reason'],
+      }
     : null;
 }
 

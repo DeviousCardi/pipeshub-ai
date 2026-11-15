@@ -43,15 +43,15 @@ export class DependencyHealth {
 
   view(): DependencyHealthView {
     const at = this.now();
-    const view = {} as DependencyHealthView;
-    for (const store of DEPENDENCIES) {
+    const status = (store: Dependency): DependencyStatus => {
       const streak = this.streaks.get(store);
-      view[store] =
-        streak !== undefined && at - streak.last <= WINDOW_MS
-          ? { status: 'degraded', since: new Date(streak.since).toISOString() }
-          : { status: 'ok', since: null };
-    }
-    return view;
+      return streak !== undefined && at - streak.last <= WINDOW_MS
+        ? { status: 'degraded', since: new Date(streak.since).toISOString() }
+        : { status: 'ok', since: null };
+    };
+    return Object.fromEntries(
+      DEPENDENCIES.map((store) => [store, status(store)]),
+    ) as DependencyHealthView;
   }
 }
 

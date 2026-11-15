@@ -226,10 +226,9 @@ const pinOf = (
   names: readonly string[] | null,
 ): Record<string, string> | undefined => {
   if (pin === undefined) return undefined;
-  const kept = Object.keys(pin)
-    .filter((tool) => names === null || names.includes(tool))
-    .sort()
-    .map((tool) => [tool, pin[tool]!] as const);
+  const kept = Object.entries(pin)
+    .filter(([tool]) => names === null || names.includes(tool))
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
   return kept.length > 0 ? Object.fromEntries(kept) : undefined;
 };
 

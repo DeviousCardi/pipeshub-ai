@@ -12,22 +12,22 @@ export class InMemoryConversationSeenMarks implements ConversationSeenMarks {
     ) => boolean = () => true,
   ) {}
 
-  async mark(
+  mark(
     orgId: string,
     sessionId: string,
     userId: string,
     at: number,
   ): Promise<number | null> {
-    if (!this.exists(orgId, sessionId)) return null;
+    if (!this.exists(orgId, sessionId)) return Promise.resolve(null);
     const key = `${orgId}\u0000${sessionId}`;
     const marks = this.marks.get(key) ?? new Map<string, number>();
     const held = Math.max(marks.get(userId) ?? at, at);
     marks.set(userId, held);
     this.marks.set(key, marks);
-    return held;
+    return Promise.resolve(held);
   }
 
-  async read(
+  read(
     orgId: string,
     userId: string,
     sessionIds: readonly string[],
@@ -37,6 +37,6 @@ export class InMemoryConversationSeenMarks implements ConversationSeenMarks {
       const mark = this.marks.get(`${orgId}\u0000${sessionId}`)?.get(userId);
       if (mark !== undefined) found.set(sessionId, mark);
     }
-    return found;
+    return Promise.resolve(found);
   }
 }

@@ -83,10 +83,11 @@ export class PlatformHarnessRolloutSettings implements HarnessRolloutSettingsSou
  * shortcut: a constant behind the port that admission still asks, remove the port when CTL-5's flags have settled.
  */
 export class PlatformCollaboratorTurns implements CollaboratorTurnsSetting {
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- keeps the store-taking signature its siblings share, so wiring stays uniform
   constructor(_store?: KeyValueStoreService) {}
 
-  async enabled(_orgId: string): Promise<boolean> {
-    return true;
+  enabled(_orgId: string): Promise<boolean> {
+    return Promise.resolve(true);
   }
 }
 
@@ -128,9 +129,10 @@ export class PlatformKnowledgePublications implements KnowledgePublicationsSetti
  * shortcut: a constant behind the port the route still asks, remove the port when CTL-5's flags have settled.
  */
 export class PlatformActivityPanel implements ActivityPanelSetting {
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- keeps the store-taking signature its siblings share, so wiring stays uniform
   constructor(_store?: KeyValueStoreService) {}
 
-  async enabled(_orgId: string): Promise<boolean> {
-    return true;
+  enabled(_orgId: string): Promise<boolean> {
+    return Promise.resolve(true);
   }
 }

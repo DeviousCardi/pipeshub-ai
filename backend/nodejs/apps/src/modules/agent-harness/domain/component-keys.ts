@@ -167,7 +167,7 @@ export function egressSealingKeys(ring: SecretKeyRing): {
     ring.current,
     ...(ring.other !== null ? [ring.other.secret] : []),
   ];
-  const derive = (label: string) =>
+  const derive = (label: string): string[] =>
     secrets.map((secret) =>
       createHmac('sha256', Buffer.from(secret, 'utf8'))
         .update(label, 'utf8')

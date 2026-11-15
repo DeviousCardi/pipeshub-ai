@@ -16,15 +16,17 @@ export class InMemoryGroupMembership implements ActorGroupMembership {
     this.members.get(`${orgId}|${groupId}`)?.delete(userId);
   }
 
-  async memberOfAny(
+  memberOfAny(
     orgId: string,
     userId: string,
     groupIds: readonly string[],
   ): Promise<boolean> {
-    if (this.down) throw new Error('groups unreadable');
-    return groupIds.some(
-      (groupId) =>
-        this.members.get(`${orgId}|${groupId}`)?.has(userId) === true,
+    if (this.down) return Promise.reject(new Error('groups unreadable'));
+    return Promise.resolve(
+      groupIds.some(
+        (groupId) =>
+          this.members.get(`${orgId}|${groupId}`)?.has(userId) === true,
+      ),
     );
   }
 }

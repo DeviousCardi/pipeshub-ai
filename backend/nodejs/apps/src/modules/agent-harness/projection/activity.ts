@@ -754,6 +754,10 @@ export class ActivityFold {
       case 'artifact':
       case 'version':
       case 'approval':
+      case 'repository':
+      case 'signin':
+      case 'tool_result':
+      case 'tool_update':
         return;
     }
   }

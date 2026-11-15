@@ -1126,6 +1126,7 @@ async function prepareInBackground(
     ) {
       continue;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- the signal can abort while the preparation above is awaited
     if (signal.aborted) return;
     hooks.prepared(true);
     logger.info('Agent harness on: its store preparation succeeded', {

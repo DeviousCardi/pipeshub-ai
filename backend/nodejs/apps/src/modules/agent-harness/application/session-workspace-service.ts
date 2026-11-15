@@ -109,7 +109,7 @@ export const bufferedUploadFile = (
   path,
   mimeType,
   sizeBytes: bytes.length,
-  read: async () => bytes,
+  read: () => Promise.resolve(bytes),
 });
 
 export interface WorkspaceUpload {

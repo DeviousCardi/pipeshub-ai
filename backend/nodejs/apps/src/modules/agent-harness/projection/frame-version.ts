@@ -14,7 +14,7 @@ export type FrameVersion = typeof LEGACY_FRAMES | typeof OUTCOME_FRAMES;
 
 /** The version a header value names: a newer one than this Node knows reads as the newest it serves. */
 export function frameVersion(value: unknown): FrameVersion {
-  const sent = Array.isArray(value) ? value[0] : value;
+  const sent: unknown = Array.isArray(value) ? value[0] : value;
   if (typeof sent !== 'string' || !/^\s*\d{1,3}\s*$/.test(sent))
     return LEGACY_FRAMES;
   return Number.parseInt(sent, 10) >= OUTCOME_FRAMES

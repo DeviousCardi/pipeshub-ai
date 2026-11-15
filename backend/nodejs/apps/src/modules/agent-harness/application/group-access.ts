@@ -250,7 +250,7 @@ export class ChatModelGroups {
       throw new HarnessUnavailableError("The agent's models could not be read");
     }
     // No access: the agent's own route refuses the turn; its first model is then not reached.
-    return definition?.models?.[0]?.modelKey;
+    return definition?.models[0]?.modelKey;
   }
 }
 

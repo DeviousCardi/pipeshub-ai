@@ -73,7 +73,8 @@ function mergedVerify(
 ): VerifyGate | undefined {
   if (agent === undefined || turn === undefined) return agent ?? turn;
   const seen = new Set<string>();
-  const checks = [...agent.checks, ...turn.checks].filter((check) => {
+  const both: unknown[] = agent.checks;
+  const checks = both.concat(turn.checks as unknown[]).filter((check) => {
     const key = JSON.stringify(check);
     if (seen.has(key)) return false;
     seen.add(key);

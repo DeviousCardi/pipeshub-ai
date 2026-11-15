@@ -137,7 +137,9 @@ export class GatewayTokenService {
     work: (found: PinnedRun, claims: GatewayClaims) => Promise<T>,
   ): Promise<T> {
     const claims = await this.tokens.verify(token);
-    if (claims.binding !== 'run' || claims.runId !== runId) {
+    // Read as a string so the check still holds if another binding kind is ever verified here.
+    const binding: string = claims.binding;
+    if (binding !== 'run' || claims.runId !== runId) {
       throw new HarnessUnauthorizedError(
         'claims',
         'The gateway token is not for this run',

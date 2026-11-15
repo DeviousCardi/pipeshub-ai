@@ -35,13 +35,13 @@ export const INTERNAL_MAX_CONNECTIONS_ENV =
  * (SEC-DOS-04). Keep-alive matches the public listener: the same Python pools
  * reuse connections to both.
  */
-export const DEFAULT_INTERNAL_READ_LIMITS: HttpReadLimits = {
+export const DEFAULT_INTERNAL_READ_LIMITS = {
   headersTimeoutMs: 15_000,
   requestTimeoutMs: 60_000,
   keepAliveTimeoutMs: 65_000,
   checkIntervalMs: 1_000,
   maxConnections: 1_024,
-};
+} satisfies HttpReadLimits;
 
 export interface InternalListenerConfig {
   host: string;
@@ -80,7 +80,7 @@ export function internalListenerConfig(
     maxConnections: positiveIntegerSetting(
       INTERNAL_MAX_CONNECTIONS_ENV,
       env[INTERNAL_MAX_CONNECTIONS_ENV],
-      defaults.maxConnections!,
+      defaults.maxConnections,
     ),
   };
   if (readLimits.headersTimeoutMs > readLimits.requestTimeoutMs) {

@@ -73,7 +73,8 @@ export async function auditedConfigUpdate<T>(
     async (tx) => {
       const { value, revision } = await store.read();
       const next = change(value);
-      if (next === null && value === null) {
+      const stored = next ?? value;
+      if (stored === null) {
         throw new Error('A config document change must create a missing value');
       }
       if (next !== null) {
@@ -85,7 +86,6 @@ export async function auditedConfigUpdate<T>(
           }
         });
       }
-      const stored = next ?? value;
       const before = write.section(value);
       const after = write.section(stored);
       return {

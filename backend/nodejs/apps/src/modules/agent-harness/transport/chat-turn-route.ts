@@ -485,9 +485,9 @@ export function chatTurnMiddleware(
     // G-03..G-05: admission's alone, and only the durable harness enforces them.
     const sentGates = requestedGates(req.body);
     if (isObject(req.body)) {
-      delete req.body[CODING_ENGINE_FIELD];
-      delete req.body[REPOSITORY_FIELD];
-      delete req.body[GATES_FIELD];
+      Reflect.deleteProperty(req.body, CODING_ENGINE_FIELD);
+      Reflect.deleteProperty(req.body, REPOSITORY_FIELD);
+      Reflect.deleteProperty(req.body, GATES_FIELD);
     }
     if (sentGates.kind === 'invalid') {
       next(new BadRequestError(sentGates.message));
@@ -563,7 +563,17 @@ export function chatTurnMiddleware(
     const body: unknown = req.body;
     const chatMode = sentChatMode(body);
     const sessionId = req.params['conversationId'];
-    const routed = <T extends Partial<RequestIdentity>>(identity: T) => ({
+    const routed = <T extends Partial<RequestIdentity>>(
+      identity: T,
+    ): T & {
+      agentKey?: string;
+      sessionId?: string;
+      via: ReturnType<typeof requestVia>;
+      principalKind: ReturnType<typeof requestPrincipalKind>;
+      surface: typeof surface;
+      locale?: string;
+      requestId?: string;
+    } => ({
       ...identity,
       ...(agentKey !== null ? { agentKey } : {}),
       ...(sessionId !== undefined ? { sessionId } : {}),

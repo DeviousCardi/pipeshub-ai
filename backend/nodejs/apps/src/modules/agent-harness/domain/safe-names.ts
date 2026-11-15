@@ -49,7 +49,7 @@ const RESERVED_STEMS = new Set([
   'conin$',
   'conout$',
   ...['com', 'lpt'].flatMap((device) =>
-    [...'0123456789¹²³'].map((digit) => `${device}${digit}`),
+    Array.from('0123456789¹²³').map((digit) => `${device}${digit}`),
   ),
 ]);
 

@@ -1,3 +1,4 @@
+import type { IncomingHttpHeaders } from 'http';
 import { localeOf } from './request-locale';
 import { readUploadedFile } from '../../../libs/utils/multer.utils';
 import { NextFunction, Response } from 'express';
@@ -229,6 +230,16 @@ function executionScope(
     sessionId: req.params['sessionId'] as string,
     ...(kind === 'agent' ? { agentKey: req.params['agentKey'] } : {}),
   };
+}
+
+/** The caller's own `Authorization` header, forwarded with an admission; hand-built requests may carry no headers. */
+function authorizationOf(req: { headers: IncomingHttpHeaders }): {
+  authorization?: string;
+} {
+  const headers = req.headers as IncomingHttpHeaders | undefined;
+  return typeof headers?.authorization === 'string'
+    ? { authorization: headers.authorization }
+    : {};
 }
 
 export class AgentHarnessSessionController {
@@ -903,9 +914,7 @@ export class AgentHarnessSessionController {
         actorId: scope.actorId,
         ...(scope.agentKey !== undefined ? { agentKey: scope.agentKey } : {}),
         sessionId: scope.sessionId,
-        ...(typeof req.headers.authorization === 'string'
-          ? { authorization: req.headers.authorization }
-          : {}),
+        ...authorizationOf(req),
         via: requestVia(req),
         principalKind: requestPrincipalKind(req),
         idempotencyKey: body.idempotencyKey,
@@ -1030,9 +1039,7 @@ export class AgentHarnessSessionController {
             ? { agentKey: req.params['agentKey'] }
             : {}),
           ...(existingSession ? { sessionId: req.params['sessionId'] } : {}),
-          ...(typeof req.headers?.authorization === 'string'
-            ? { authorization: req.headers.authorization }
-            : {}),
+          ...authorizationOf(req),
           via: requestVia(req),
           principalKind: requestPrincipalKind(req),
           ...localeOf(req),

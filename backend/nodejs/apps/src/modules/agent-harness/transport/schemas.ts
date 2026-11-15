@@ -180,7 +180,7 @@ const legacyCommitBody = z
       !body.events.some((event) => event.type === eventType)
     ) {
       context.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['events'],
         message: `${body.status} commits require a ${eventType} event`,
       });
@@ -213,7 +213,7 @@ const transitionDetail = z.discriminatedUnion('kind', [
     .object({
       kind: z.literal('yield'),
       reason: z.enum(YIELD_REASONS).exclude(NODE_AUTHORED_YIELD_REASONS),
-      notBefore: z.string().datetime(),
+      notBefore: z.iso.datetime(),
       checkpointRef: z.string().min(1).max(512).optional(),
     })
     .strict(),
@@ -292,7 +292,7 @@ const batchedCommitBody = z
       !body.legacyEvents.some((event) => event.type === eventType)
     ) {
       context.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['legacyEvents'],
         message: `${body.transition.status} commits require a ${eventType} event`,
       });

@@ -231,6 +231,8 @@ export function jobBrief(
 ): JobBrief {
   const own = pipeshub(childSpec);
   const parentOwn = parentSpec === null ? undefined : pipeshub(parentSpec);
+  const ownKnowledge = own?.knowledge;
+  const parentKnowledge = parentOwn?.knowledge;
   const executor = childSpec.executor;
   const engine = executor?.kind === 'engine' ? executor.engine.kind : null;
   const agent: BriefAgent =
@@ -239,8 +241,8 @@ export function jobBrief(
       : { kind: 'sub_agent', role: own?.subAgent?.role ?? null };
   const tools = sorted(childSpec.grants.tools.map((grant) => grant.toolId));
   const knowledge = {
-    apps: sorted(own?.knowledge?.apps ?? []),
-    collections: sorted(own?.knowledge?.kb ?? []),
+    apps: sorted(ownKnowledge?.apps ?? []),
+    collections: sorted(ownKnowledge?.kb ?? []),
   };
   const skills = sorted((own?.skills ?? []).map((skill) => skill.name));
   const files = (child.input?.inputArtifacts ?? []).map((artifact) => ({
@@ -270,8 +272,8 @@ export function jobBrief(
       });
     }
     const keptKnowledge = [
-      ...minus(parentOwn?.knowledge?.apps ?? [], knowledge.apps),
-      ...minus(parentOwn?.knowledge?.kb ?? [], knowledge.collections),
+      ...minus(parentKnowledge?.apps ?? [], knowledge.apps),
+      ...minus(parentKnowledge?.kb ?? [], knowledge.collections),
     ];
     if (keptKnowledge.length > 0) {
       withheld.push({
