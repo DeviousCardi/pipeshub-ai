@@ -33,6 +33,7 @@ import {
 } from './egress-rekey-step';
 import {
   SecretKeyRotation,
+  type RingState,
   type RotationMode,
   type RotationResult,
   type RotationStep,
@@ -51,7 +52,11 @@ import { activeOrgIds } from '../../../libs/repositories/agent-harness/active-or
 import { getOAuthAppRepository } from '../../../libs/repositories/oauth-app';
 import { KeyValueStoreService } from '../../../libs/services/keyValueStore.service';
 import { EncryptionService } from '../../../libs/encryptor/encryptor';
-import { secretKeyRing } from '../../../libs/encryptor/secret-key-ring';
+import {
+  secretKeyRing,
+  writerKdf,
+  type SecretKeyRing,
+} from '../../../libs/encryptor/secret-key-ring';
 import { loadConfigurationManagerConfig } from '../../configuration_manager/config/config';
 import { forEnumeratedOrg } from '../../../libs/context/orgContext';
 
@@ -112,6 +117,21 @@ export interface RotateCliBackend {
   close(): Promise<void>;
 }
 
+/**
+ * Which keys the rotation may read, by role. A rotate with no previous key moves SHA-256-sealed values to the HKDF
+ * key (SEC-D-05) only where writers seal with HKDF; elsewhere there is nothing to move, and it is refused as a
+ * rotation without SECRET_KEY_PREVIOUS.
+ */
+export function rotationRing(
+  ring: SecretKeyRing,
+  env: Readonly<Record<string, string | undefined>> = process.env,
+): RingState {
+  return {
+    other: ring.other?.role ?? null,
+    cipherMove: writerKdf(env) === 'hkdf',
+  };
+}
+
 const bound: ForOrg = (orgId, fn) =>
   forEnumeratedOrg(orgId, 'secret-key-rotation', fn);
 
@@ -159,7 +179,7 @@ export async function connectRotation(
     rotation: (options, onProgress) =>
       new SecretKeyRotation({
         steps,
-        ring: { other: ring.other?.role ?? null, cipherMove: true },
+        ring: rotationRing(ring),
         lease: createLeaderLease(),
         holder: `rotate-secret-key:${randomUUID()}`,
         ...(options.acceptUnreadable !== undefined

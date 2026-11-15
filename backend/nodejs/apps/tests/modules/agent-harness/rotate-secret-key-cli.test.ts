@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { randomBytes } from 'node:crypto';
 import {
   parseRotateArgs,
+  rotationRing,
   runRotateSecretKeyCli,
   type RotateCliBackend,
 } from '../../../src/modules/agent-harness/ops/rotate-secret-key-cli';
@@ -227,5 +228,21 @@ describe('ADR-KEY-01: rotate-secret-key-cli', () => {
       const missing = new EgressStateRekeyStep({ executable: '/nonexistent/python-kr', cwd: process.cwd() });
       expect(((await missing.run(context(false)).catch((e: Error) => e)) as Error).message).to.match(/could not start/);
     });
+  });
+
+  it('KC-11: a rotate with no previous key is a cipher move only where writers seal with HKDF, else refused', async () => {
+    const key = randomBytes(32).toString('hex');
+    const alone = { current: key, other: null };
+    expect(rotationRing(alone, { SECRET_KEY_KDF: 'hkdf' })).to.deep.equal({ other: null, cipherMove: true });
+    expect(rotationRing(alone, { PIPESHUB_HARDENED: 'true' })).to.deep.equal({ other: null, cipherMove: true });
+    expect(rotationRing(alone, {})).to.deep.equal({ other: null, cipherMove: false });
+    expect(rotationRing({ current: key, other: { role: 'previous', secret: 'x' } }, {}).other).to.equal('previous');
+    const refused = await new SecretKeyRotation({
+      steps: [step(0)],
+      ring: rotationRing(alone, { SECRET_KEY_KDF: 'sha256' }),
+      lease: lease(),
+      holder: 'op',
+    }).run('rotate');
+    expect(refused.refused).to.match(/^SECRET_KEY_PREVIOUS is not set/);
   });
 });

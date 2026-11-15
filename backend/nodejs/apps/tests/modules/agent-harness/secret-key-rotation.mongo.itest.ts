@@ -28,7 +28,7 @@ import { Org } from '../../../src/modules/user_management/schema/org.schema';
 import { harnessMongoUri } from './support/harness-mongo';
 
 const DB = `harness_keyring_it_${Date.now()}_${process.pid}`;
-const ENV = ['KV_STORE_TYPE', 'REDIS_HOST', 'REDIS_PORT', 'REDIS_KV_PREFIX', 'SECRET_KEY', 'SECRET_KEY_PREVIOUS', 'SECRET_KEY_NEXT', 'DOC_STORE'];
+const ENV = ['KV_STORE_TYPE', 'REDIS_HOST', 'REDIS_PORT', 'REDIS_KV_PREFIX', 'SECRET_KEY', 'SECRET_KEY_PREVIOUS', 'SECRET_KEY_NEXT', 'SECRET_KEY_KDF', 'DOC_STORE'];
 const ALG = 'aes-256-gcm';
 
 type Singletons = { instance?: unknown };
@@ -90,6 +90,8 @@ describe('ADR-KEY-01: rotate-secret-key on the replica set and Redis', function 
     process.env.REDIS_PORT = url.port || '6379';
     process.env.REDIS_KV_PREFIX = prefix;
     delete process.env.DOC_STORE;
+    // The values are sealed and read here with the SHA-256 key (only()), whatever profile the runner has.
+    process.env.SECRET_KEY_KDF = 'sha256';
     delete process.env.SECRET_KEY_PREVIOUS;
     delete process.env.SECRET_KEY_NEXT;
     process.env.SECRET_KEY = oldKey;
