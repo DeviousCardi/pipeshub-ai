@@ -1,9 +1,9 @@
 {
  "generatedBy": "scripts/harness_test_inventory.py",
  "componentMap": "docs/test-plan/data/components.json",
- "harnessTestFiles": 2058,
- "claimedTestFiles": 3889,
- "claimedTests": 41112,
+ "harnessTestFiles": 2059,
+ "claimedTestFiles": 3890,
+ "claimedTests": 41116,
  "claimedFilesByLevel": {
   "cohesion": 61,
   "component": 48,
@@ -18,7 +18,7 @@
   "live": 6,
   "perf": 3,
   "replay": 16,
-  "unit": 3156
+  "unit": 3157
  },
  "components": [
   {
@@ -7756,19 +7756,19 @@
    "id": "KNW",
    "name": "Knowledge read gate and publications",
    "status": "built",
-   "files": 29,
-   "tests": 278,
+   "files": 30,
+   "tests": 282,
    "filesByLevel": {
     "cohesion": 1,
     "contract": 1,
     "integration": 5,
-    "unit": 22
+    "unit": 23
    },
    "testsByLevel": {
     "cohesion": 3,
     "contract": 5,
     "integration": 62,
-    "unit": 208
+    "unit": 212
    },
    "markers": {
     "integration": 4
@@ -7867,6 +7867,12 @@
      "level": "unit",
      "markers": [],
      "tests": 6
+    },
+    {
+     "path": "backend/python/tests/unit/harness/knowledge/test_run_org_binding.py",
+     "level": "unit",
+     "markers": [],
+     "tests": 4
     },
     {
      "path": "backend/python/tests/unit/harness/knowledge/test_wp12_knowledge_service.py",
