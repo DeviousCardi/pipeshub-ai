@@ -169,11 +169,7 @@ export function stubCollaboratorTurn(
 ): IMessage {
   // Persisted rows are read lean: a missing sender may be stored as null.
   const sender: unknown = message.senderId;
-  if (
-    sender === undefined ||
-    sender === null ||
-    String(sender) === forkerId
-  ) {
+  if (sender === undefined || sender === null || idText(sender) === forkerId) {
     return message;
   }
   return {
@@ -186,12 +182,13 @@ export function stubCollaboratorTurn(
 }
 
 /** Who sent a stored message (SS2): a collaborator's id, or null for the owner's own turn. */
+/** A stored id as text: a string as is, an ObjectId as its hex. */
+const idText = (id: { toString(): string }): string => id.toString();
+
 const senderOf = (message: object): string | null => {
   // Persisted rows may store a missing sender as null.
   const sender: unknown = (message as { senderId?: unknown }).senderId;
-  return sender === undefined || sender === null
-    ? null
-    : String(sender);
+  return sender === undefined || sender === null ? null : idText(sender);
 };
 
 function withExpiredApprovals(message: IMessage): IMessage {
@@ -305,9 +302,7 @@ async function copyForkArtifacts(
 function citationIdOf(link: unknown): string | null {
   if (link === null || typeof link !== 'object') return null;
   const id: unknown = (link as { citationId?: unknown }).citationId;
-  return id === undefined || id === null
-    ? null
-    : String(id);
+  return id === undefined || id === null ? null : idText(id);
 }
 
 /**

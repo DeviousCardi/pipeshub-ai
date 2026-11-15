@@ -464,10 +464,9 @@ export const withoutErrorStacks = <T extends object>(conversation: T): T => {
 export const withoutErasureMarker = <T extends object>(
   conversation: T,
 ): Omit<T, 'erasureRequestedAt'> => {
-  const { erasureRequestedAt, ...rest } = conversation as T & {
+  const { erasureRequestedAt: _marker, ...rest } = conversation as T & {
     erasureRequestedAt?: unknown;
   };
-  erasureRequestedAt;
   return rest;
 };
 
