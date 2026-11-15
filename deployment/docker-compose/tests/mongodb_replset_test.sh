@@ -76,11 +76,13 @@ mongo_eval() { # service-container mongosh with root credentials
 
 # ── the real installer functions, run in isolation ───────────────────────────
 extract_fn() { awk -v fn="$1" '$0 ~ "^"fn"\\(\\) \\{"{g=1} g{print} g&&/^\}/{exit}' "$2"; }
+definitions=""
 for fn in volume_exists mongo_container_ids mongo_counts_js mongo_probe_name \
           stop_mongo_probe start_mongo_probe migrate_mongo_to_replset; do
   definition="$(extract_fn "$fn" "$installer")"
   [[ -n "$definition" ]] || { echo "install.sh no longer defines ${fn}()" >&2; exit 1; }
   eval "$definition"
+  definitions+="${definition}"$'\n'
 done
 info()    { printf '    > %s\n' "$*"; }
 success() { printf '    + %s\n' "$*"; }
@@ -95,6 +97,20 @@ ENV_FILE="${work}/.env"
 MONGO_USERNAME="$mongo_user"
 MONGO_BACKUP_DIR="${work}/backups"
 MONGO_PROBE_WAIT_SECS=60
+COMPOSE_FILES=(-f "$COMPOSE_FILE")
+COMPOSE_FILES_SHOWN="${COMPOSE_FILES[*]}"
+
+# The extracted functions read installer globals this file must set. One left unset does not fail under set -u when
+# it is an array: compose then runs without -f, finds no project file and the migration dies with a misleading error.
+unset_globals=()
+while read -r name; do
+  declare -p "$name" >/dev/null 2>&1 || unset_globals+=("$name")
+done < <(grep -oE '\$(\{[A-Z][A-Z0-9_]*(\[[@*]\])?\}|[A-Z][A-Z0-9_]*)' <<<"$definitions" \
+  | sed -E 's/^\$\{?([A-Z][A-Z0-9_]*).*/\1/' | sort -u)
+if (( ${#unset_globals[@]} )); then
+  echo "install.sh functions read globals this test does not set: ${unset_globals[*]}" >&2
+  exit 1
+fi
 
 run_migration() { # log file
   (set -euo pipefail; migrate_mongo_to_replset) >"$1" 2>&1
