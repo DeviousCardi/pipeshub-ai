@@ -199,6 +199,12 @@ async def cleanup_namespace(
     await provider.run_blocking(cleanup, provider, namespace, volume_prefix)
 
 
+async def skip_unless_mode_runs(provider: DockerClientProvider, mode: RuntimeMode) -> None:
+    """The gVisor lane's skip (or failure under PXH_REQUIRE_GVISOR) for any fixture that builds a broker for ``mode``."""
+    if mode is RuntimeMode.GVISOR and RuntimeMode.GVISOR not in (await probe(provider)).modes():
+        skip_without_runsc()
+
+
 @pytest.fixture
 async def docker_broker(
     provider: DockerClientProvider,
@@ -208,8 +214,7 @@ async def docker_broker(
     runtime_mode: RuntimeMode,
     cleanup_namespace: None,
 ) -> AsyncIterator[DockerSandboxBroker]:
-    if runtime_mode is RuntimeMode.GVISOR and RuntimeMode.GVISOR not in (await probe(provider)).modes():
-        skip_without_runsc()
+    await skip_unless_mode_runs(provider, runtime_mode)
     broker = await DockerSandboxBroker.create(
         provider=provider,
         clock=clock,

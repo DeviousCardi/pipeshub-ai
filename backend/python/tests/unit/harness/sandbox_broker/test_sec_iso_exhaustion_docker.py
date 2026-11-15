@@ -42,7 +42,7 @@ from harness_core.sandbox.types import (
 )
 from harness_core.testing.sandbox.contract import WORK, run
 
-from .conftest import AGENT_LABEL, DOCKER_TEST_IMAGE
+from .conftest import AGENT_LABEL, DOCKER_TEST_IMAGE, skip_unless_mode_runs
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Sequence
@@ -405,7 +405,7 @@ async def quota_broker(
     provider: DockerClientProvider, clock: ManualClock, namespace: str, volume_prefix: str,
     data_volume: str, cleanup_namespace: None, runtime_mode: RuntimeMode,
 ) -> AsyncIterator[DockerSandboxBroker]:
-    del runtime_mode
+    await skip_unless_mode_runs(provider, runtime_mode)
     broker = await DockerSandboxBroker.create(
         provider=provider, clock=clock, ids=RandomIds(), label_namespace=namespace, volume_prefix=volume_prefix,
         allowed_images=frozenset({DOCKER_TEST_IMAGE}), data_volume=data_volume,
@@ -550,7 +550,7 @@ async def bounded_broker(
 
     from app.harness.sandbox.docker_broker import WriteBound
 
-    del runtime_mode
+    await skip_unless_mode_runs(provider, runtime_mode)
     device = (os.environ.get("SANDBOX_DATA_DEVICE") or "").strip()
     if not device:
         pytest.skip("SANDBOX_DATA_DEVICE names no disk under the daemon's volumes")
