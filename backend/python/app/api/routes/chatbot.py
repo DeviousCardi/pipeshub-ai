@@ -104,6 +104,7 @@ from app.services.chat_attachments.uploads import (
     UploaderKind,
     attachment_documents,
     mark_sent,
+    uploads_tracked,
     write_attachment_graph,
 )
 from app.services.featureflag.platform_settings import is_user_context_enabled
@@ -740,6 +741,7 @@ async def _upload_chat_attachments(
             raise HTTPException(status_code=500, detail="Resolved user is missing key/id")
 
     now = get_epoch_timestamp_in_ms()
+    tracked = uploads_tracked()
     uploaded_refs: list[dict[str, Any]] = []
     record_docs: list[dict[str, Any]] = []
     file_docs: list[dict[str, Any]] = []
@@ -809,6 +811,7 @@ async def _upload_chat_attachments(
                 ),
                 uploader,
                 now,
+                tracked=tracked,
                 conversation_id=payload.conversationId,
             )
 

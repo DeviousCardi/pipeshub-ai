@@ -47,8 +47,8 @@ def test_qa15g_1_an_upload_without_its_user_is_refused(claims: dict[str, Any]) -
 
 
 def test_qa15g_1_the_record_names_its_uploader_and_reads_it_back() -> None:
-    person, _ = attachment_documents("org-1", FILE, Uploader("u1", UploaderKind.PERSON), 1)
-    service, _ = attachment_documents("org-1", FILE, Uploader("p1", UploaderKind.SERVICE_ACCOUNT, "agent-7"), 1)
+    person, _ = attachment_documents("org-1", FILE, Uploader("u1", UploaderKind.PERSON), 1, tracked=True)
+    service, _ = attachment_documents("org-1", FILE, Uploader("p1", UploaderKind.SERVICE_ACCOUNT, "agent-7"), 1, tracked=True)
 
     assert (person["uploaderUserId"], person["uploaderKind"], "uploaderAgentKey" in person) == ("u1", "person", False)
     assert (service["uploaderUserId"], service["uploaderKind"], service["uploaderAgentKey"]) == (
@@ -62,5 +62,5 @@ def test_qa15g_1_the_record_names_its_uploader_and_reads_it_back() -> None:
 def test_qa15g_1_the_records_schema_admits_every_uploader_field_and_kind() -> None:
     properties = record_schema["rule"]["properties"]
     assert {kind.value for kind in UploaderKind} <= set(properties["uploaderKind"]["enum"])
-    record, _ = attachment_documents("org-1", FILE, Uploader("p1", UploaderKind.SERVICE_ACCOUNT, "agent-7"), 1)
+    record, _ = attachment_documents("org-1", FILE, Uploader("p1", UploaderKind.SERVICE_ACCOUNT, "agent-7"), 1, tracked=True)
     assert set(record) - {"_key", "id"} <= set(properties)

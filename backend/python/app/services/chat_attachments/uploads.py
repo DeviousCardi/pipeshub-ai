@@ -5,6 +5,10 @@ to the org, because the person it acts for (a Slack user without an account,
 hydrated as a stable id per email) has no user node. Erasure must still know
 whose upload it is, so the record itself names the uploader: the person, and
 for a service account the agent it came through.
+
+These fields are new to the record schema, which an older release holds closed: rolled back to, it refuses any
+update of a record that carries one. So they are written only where the agent harness is switched on, whose
+erasure reads them (``uploads_tracked``); with it off an upload's record is exactly what it was before them.
 """
 
 from __future__ import annotations
@@ -15,6 +19,7 @@ from typing import TYPE_CHECKING, Any
 
 from app.config.constants.arangodb import CollectionNames, Connectors
 from app.core.org_context import org_of
+from app.utils.env_flags import AGENT_HARNESS_WORKER_ENABLED, env_flag
 from app.utils.record_access import service_account_upload_permission_edges
 
 if TYPE_CHECKING:
@@ -32,6 +37,7 @@ __all__ = [
     "attachment_documents",
     "mark_sent",
     "recorded_uploader",
+    "uploads_tracked",
     "write_attachment_graph",
 ]
 
@@ -79,6 +85,11 @@ class Uploader:
         return fields
 
 
+def uploads_tracked() -> bool:
+    """Whether a new upload's record names its uploader and awaits its message: only with the harness on."""
+    return env_flag(AGENT_HARNESS_WORKER_ENABLED)
+
+
 def recorded_uploader(record: Mapping[str, Any]) -> str | None:
     """The uploader's user id an upload's record names; None for an upload written before it was recorded."""
     value = record.get(UPLOADER_USER_FIELD)
@@ -97,9 +108,24 @@ class AttachmentFile:
 
 
 def attachment_documents(
-    org_id: str, file: AttachmentFile, uploader: Uploader, now: int, *, conversation_id: str | None = None,
+    org_id: str,
+    file: AttachmentFile,
+    uploader: Uploader,
+    now: int,
+    *,
+    tracked: bool,
+    conversation_id: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The RECORDS and FILES documents of one upload (same key), waiting for the message that sends it."""
+    """The RECORDS and FILES documents of one upload (same key); ``tracked`` (``uploads_tracked``) adds who
+    uploaded it, its conversation and the marker that it waits for the message that sends it."""
+    tracking: dict[str, Any] = {}
+    if tracked:
+        tracking = {
+            **uploader.record_fields(),
+            AWAITING_SEND_FIELD: True,
+            # Neo4j stores no null properties: an upload into a new chat has no field.
+            **({UPLOAD_CONVERSATION_FIELD: conversation_id} if conversation_id else {}),
+        }
     record = {
         "_key": file.record_id,
         "id": file.record_id,
@@ -122,10 +148,7 @@ def attachment_documents(
         "mimeType": file.mime_type,
         "sizeInBytes": file.size,
         "virtualRecordId": file.virtual_record_id,
-        **uploader.record_fields(),
-        AWAITING_SEND_FIELD: True,
-        # Neo4j stores no null properties: an upload into a new chat has no field.
-        **({UPLOAD_CONVERSATION_FIELD: conversation_id} if conversation_id else {}),
+        **tracking,
     }
     file_document = {
         "_key": file.record_id,
@@ -198,12 +221,15 @@ async def mark_sent(
 ) -> list[str]:
     """Marks the org's uploads a message now carries as sent, so the unsent collector never takes them.
 
-    Records that are not this org's chat attachments are skipped. Idempotent. Returns the ids marked.
+    Records that are not this org's chat attachments are skipped, and so is an upload written untracked (no
+    ``awaitingSend`` field), which gains no field here. Idempotent. Returns the ids marked.
     """
     marked: list[str] = []
     for record_id in dict.fromkeys(record_ids):
         record = await graph_provider.get_document(record_id, CollectionNames.RECORDS.value)
         if not record or org_of(record) != org_id or record.get("connectorName") != Connectors.ATTACHMENTS.value:
+            continue
+        if AWAITING_SEND_FIELD not in record:
             continue
         updates: dict[str, Any] = {}
         if record.get(AWAITING_SEND_FIELD) is True:

@@ -12,6 +12,7 @@ import pytest
 
 from app.services.chat_attachments.erasure import (
     AttachmentEraser,
+    AttachmentRef,
     UnsentUpload,
     list_unsent,
 )
@@ -36,7 +37,14 @@ async def _no_owner(user_id: str, record_ids: list[str]) -> set[str]:
 
 
 async def _upload(
-    graph: FakeGraphProvider, blobs: FakeBlobStore, org: str, key: str, *, at: int = NOW, conversation: str | None = None,
+    graph: FakeGraphProvider,
+    blobs: FakeBlobStore,
+    org: str,
+    key: str,
+    *,
+    at: int = NOW,
+    conversation: str | None = None,
+    tracked: bool = True,
 ) -> str:
     graph.add_user("u1", key="user-key-1")
     vr = f"vr-{key}"
@@ -50,6 +58,7 @@ async def _upload(
         ),
         PERSON,
         at,
+        tracked=tracked,
         conversation_id=conversation,
     )
     # The fake keeps edges in the generic from/to form; write_attachment_graph's real-provider path is
@@ -81,8 +90,8 @@ def test_cleanup_g5_an_upload_is_written_awaiting_a_message_and_names_its_conver
         record_id="r", virtual_record_id="v", file_name="a.txt", mime_type="text/plain", size=1, extension="txt",
         external_record_id="d",
     )
-    into, _ = attachment_documents("org-1", file, PERSON, 1, conversation_id="conv-1")
-    fresh, _ = attachment_documents("org-1", file, PERSON, 1)
+    into, _ = attachment_documents("org-1", file, PERSON, 1, tracked=True, conversation_id="conv-1")
+    fresh, _ = attachment_documents("org-1", file, PERSON, 1, tracked=True)
     assert (into[AWAITING_SEND_FIELD], into[UPLOAD_CONVERSATION_FIELD]) == (True, "conv-1")
     # A new chat has no conversation yet; Neo4j stores no nulls, so there is no field.
     assert fresh[AWAITING_SEND_FIELD] is True and UPLOAD_CONVERSATION_FIELD not in fresh
@@ -165,3 +174,69 @@ async def test_cleanup_g5_listing_pages_by_key_and_reads_a_bounded_number_of_pag
     assert (bounded.uploads, bounded.remaining, bounded.next) == ((), True, "recent-1")
     done = await list_unsent(graph, "org-1", NOW - HOUR_MS, 2, after="recent-4", page=1)
     assert (done.uploads, done.remaining, done.next) == ((), False, None)
+
+
+UPLOAD_FIELDS = {"awaitingSend", "uploadConversationId", "uploaderAgentKey", "uploaderKind", "uploaderUserId"}
+
+
+def test_with_the_harness_off_an_upload_is_written_without_the_upload_fields() -> None:
+    file = AttachmentFile(
+        record_id="r", virtual_record_id="v", file_name="a.txt", mime_type="text/plain", size=1, extension="txt",
+        external_record_id="d",
+    )
+    service = Uploader("p1", UploaderKind.SERVICE_ACCOUNT, "agent-7")
+    for uploader in (PERSON, service):
+        off, off_file = attachment_documents("org-1", file, uploader, 1, tracked=False, conversation_id="conv-1")
+        on, on_file = attachment_documents("org-1", file, uploader, 1, tracked=True, conversation_id="conv-1")
+        assert not UPLOAD_FIELDS & set(off)
+        assert {k: v for k, v in on.items() if k not in UPLOAD_FIELDS} == off
+        assert off_file == on_file
+
+
+@pytest.mark.parametrize(("raw", "expected"), [(None, False), ("", False), ("false", False), ("true", True)])
+def test_uploads_are_tracked_only_with_the_harness_switched_on(
+    monkeypatch: pytest.MonkeyPatch, raw: str | None, expected: bool,
+) -> None:
+    from app.services.chat_attachments.uploads import uploads_tracked
+
+    if raw is None:
+        monkeypatch.delenv("AGENT_HARNESS_WORKER_ENABLED", raising=False)
+    else:
+        monkeypatch.setenv("AGENT_HARNESS_WORKER_ENABLED", raw)
+    assert uploads_tracked() is expected
+
+
+@pytest.mark.asyncio
+async def test_with_the_harness_off_the_unsent_collector_and_conversation_sweep_leave_uploads_alone() -> None:
+    graph, blobs = FakeGraphProvider(), FakeBlobStore()
+    await _upload(graph, blobs, "org-1", "old", at=NOW - 30 * HOUR_MS, conversation="conv-1", tracked=False)
+    await _upload(graph, blobs, "org-1", "new-chat", at=NOW - 30 * HOUR_MS, tracked=False)
+    before = {key: dict(doc) for key, doc in graph.nodes["records"].items()}
+    documents = dict(blobs.documents)
+
+    page = await list_unsent(graph, "org-1", NOW, 50)
+    swept = await _eraser(graph, blobs).erase_conversation_uploads("org-1", "conv-1")
+    marked = await mark_sent(graph, "org-1", ["old", "new-chat"], "conv-1")
+
+    assert (page.uploads, page.remaining) == ((), False)
+    assert (swept.attachments, swept.blobs, swept.remaining) == (0, 0, False)
+    assert marked == []
+    assert graph.nodes["records"] == before, "nothing is written onto an untracked upload"
+    assert blobs.documents == documents
+
+
+@pytest.mark.asyncio
+async def test_with_the_harness_off_a_members_upload_is_erased_by_its_owner_edge_as_before() -> None:
+    graph, blobs = FakeGraphProvider(), FakeBlobStore()
+    await _upload(graph, blobs, "org-1", "mine", tracked=False)
+
+    async def owned_by(user_id: str, record_ids: list[str]) -> set[str]:
+        return set(record_ids) if user_id == "u1" else set()
+
+    eraser = AttachmentEraser(graph, blobs, owned_by)
+    refused = await eraser.erase("org-1", [AttachmentRef("mine", "someone-else")])
+    erased = await eraser.erase("org-1", [AttachmentRef("mine", "u1")])
+
+    assert (refused.attachments, refused.refused, refused.unrecorded) == (0, 1, 1)
+    assert (erased.attachments, erased.removed) == (1, ("mine",))
+    assert _gone(graph, blobs, "mine")

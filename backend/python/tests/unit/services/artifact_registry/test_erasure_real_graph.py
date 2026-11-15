@@ -296,6 +296,7 @@ async def _upload(
         ),
         uploader,
         NOW,
+        tracked=True,
         conversation_id=conversation_id,
     )
     record["isVLMOcrProcessed"] = False
