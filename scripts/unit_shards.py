@@ -51,7 +51,8 @@ SHARDS: dict[str, tuple[str, ...]] = {
         "tests/unit/connectors",
         "tests/unit/connectors/sources/google",
     ),
-    "agents": ("tests/unit/agents", "tests/unit/agent_loop_lib"),
+    # agents, and modules/transformers, which held modules a hair under the balance bound.
+    "agents": ("tests/unit/agents", "tests/unit/agent_loop_lib", "tests/unit/modules/transformers"),
     "services": (
         "tests/unit/services",
         "tests/unit/events",
