@@ -280,6 +280,16 @@ PYTHON_ADMIN_ROUTES: tuple[AdminRoute, ...] = (
         member_body={"enabled": False}, refusal_words="Only admins",
         admin=None, why_no_admin="turns the sample workspace on or off for the whole org"),
     _py("GET", f"{_MCP}/instances", "api/routes/mcp_servers.py::list_instances"),
+    # The MCP hub refuses every member before it looks the server up, so an admin's call aimed at a
+    # server that is not there answers 404 and changes nothing. The manifest body is one the gateway's
+    # approval flow does not read (no sha256 digest), so it is proxied as sent.
+    _py("GET", f"{_MCP}/instances/:instanceId/manifest", "api/routes/mcp_hub.py::get_manifest"),
+    _py("PUT", f"{_MCP}/instances/:instanceId/manifest", "api/routes/mcp_hub.py::approve_manifest",
+        member_body={"tools": [{"name": "it-admin-probe", "digest": "it-admin-probe"}]}),
+    _py("PUT", f"{_MCP}/instances/:instanceId/runner", "api/routes/mcp_hub.py::set_runner_settings",
+        member_body={"egressHosts": []}),
+    _py("PUT", f"{_MCP}/instances/:instanceId/boundary", "api/routes/mcp_hub.py::set_boundary",
+        member_body={"insideOrganization": True}),
     # An admin's request carries no usable spec, so the compiler stops it and nothing is saved.
     _py("POST", f"{_API_TOOLSETS}/validate", "api/routes/api_toolsets.py::validate_api_toolset_spec",
         member_body={"spec": "not a spec"}, admin="admin_body"),
@@ -455,6 +465,8 @@ SWITCHED_OFF: tuple[SwitchedOff, ...] = (
     # agent-harness/transport/harness-switch.ts: off unless the install sets AGENT_HARNESS_WORKER_ENABLED.
     SwitchedOff(_HARNESS, 404, "The agent harness is not enabled on this install.",
                 "the agent harness is off on this stack"),
+    # api/routes/mcp_hub.py: the manifest routes answer this before the admin check while MCP_HUB is off.
+    SwitchedOff(f"{_MCP}/instances/", 404, "The MCP hub is off", "the MCP hub is off on this stack"),
 )
 
 # Rows a downstream build adds (helper/suite_extensions.py). Last, so the
