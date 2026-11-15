@@ -499,7 +499,7 @@ export class AgentHarnessSessionController {
   ): Promise<void> => {
     try {
       const fields = uploadFieldsSchema.parse(req.body);
-      const files = (req.files ?? []) as Express.Multer.File[];
+      const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
       const paths = JSON.parse(fields.paths) as unknown;
       if (
         !Array.isArray(paths) ||

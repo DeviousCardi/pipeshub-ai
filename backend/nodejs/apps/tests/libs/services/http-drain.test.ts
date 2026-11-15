@@ -14,13 +14,13 @@ const serve = async () => {
   const held = new Promise<void>((resolve) => {
     release = resolve;
   });
-  const arrived: Record<string, () => void> = {};
+  const arrived = new Map<string, () => void>();
   const seen = (path: string): Promise<void> =>
     new Promise((resolve) => {
-      arrived[path] = resolve;
+      arrived.set(path, resolve);
     });
   const server = http.createServer((request, response) => {
-    arrived[request.url ?? '']?.();
+    arrived.get(request.url ?? '')?.();
     if (request.url === '/held') {
       void held.then(() => response.end('answered'));
     } else if (request.url === '/stream') {
