@@ -167,6 +167,11 @@ describe('security headers (SEC-D-07, ADR-WEB-01)', () => {
     expect(inlineScriptHashes(html)).to.deep.equal([sha('a()'), sha('b()')])
   })
 
+  it('ends a script where the browser does, at an end tag with whitespace or attributes', () => {
+    const html = `<script>a()</script\t\n bar><script>b()</SCRIPT ><script>c()</script-x>d()</script/>`
+    expect(inlineScriptHashes(html)).to.deep.equal([sha('a()'), sha('b()'), sha('c()</script-x>d()')])
+  })
+
   it("lets the sign-in page reach the third parties the shipped UI calls (the lane found GitHub's API blocked)", () => {
     const csp = documentCsp(securityHeaderPolicy({ PIPESHUB_HARDENED: 'true' }, { scriptSrc: [], connectSrc: [], frameSrc: [] }), '/login/', [])
     const connect = csp.split(';').map((d) => d.trim()).find((d) => d.startsWith('connect-src')) ?? ''

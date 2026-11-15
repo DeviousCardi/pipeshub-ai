@@ -203,7 +203,9 @@ export function apiDocsCsp(policy: SecurityHeaderPolicy, path: string): string {
   ]);
 }
 
-const INLINE_SCRIPT = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+// A script element ends at `</script` followed by whitespace, `/` or `>`, whatever comes before its `>`, as the
+// browser's tokenizer reads it: a narrower end tag would fold the next script into this one's hash.
+const INLINE_SCRIPT = /<script\b([^>]*)>([\s\S]*?)<\/script(?=[\s/>])[^>]*>/gi;
 
 /** 'sha256-…' of each inline script's text, as the browser hashes it. */
 export function inlineScriptHashes(html: string): string[] {
