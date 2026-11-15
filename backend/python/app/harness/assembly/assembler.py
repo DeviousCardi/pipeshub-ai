@@ -540,6 +540,12 @@ def _instance_of(tool_id: str) -> str | None:
     return rest.split("/", 1)[0] if source == MCP_SOURCE and "/" in rest else None
 
 
+def run_org_context(run: RunContext) -> OrgContext:
+    """The org and person a run's task acts as: what its knowledge tools pin their principal to
+    (``bound_org_id``), so a run built without it searches as no org and is refused."""
+    return OrgContext(run.org_id, run.actor_id or None, "user" if run.actor_id else "service", RUN_JOB_SOURCE, run.run_id)
+
+
 def _log(run: RunContext, claim: NodeClaim) -> HarnessLog:
     return HarnessLog.named(
         "app.harness.assembly",
@@ -609,9 +615,7 @@ class PipesHubRuntimeAssembler:
         run: RunContext = container.run_context()
         # Every org-scoped read of this attempt's task runs as the run's org and person (main #4703): the stores and
         # the vector filters fail closed without one, and a second org in the same task is refused.
-        set_request_context(
-            OrgContext(run.org_id, run.actor_id or None, "user" if run.actor_id else "service", RUN_JOB_SOURCE, run.run_id)
-        )
+        set_request_context(run_org_context(run))
         durable = container.bindings()
         log = _log(run, claim)
         _log_assembly(log, run)
@@ -1924,4 +1928,4 @@ def _transport_provider() -> str:
     return provider()
 
 
-__all__ = ["Catalog", "PipesHubRuntimeAssembler", "RunContainer", "build_catalog", "late_effect"]
+__all__ = ["Catalog", "PipesHubRuntimeAssembler", "RunContainer", "build_catalog", "late_effect", "run_org_context"]
