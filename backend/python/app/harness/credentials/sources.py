@@ -12,7 +12,9 @@ is a new version, and a handle issued earlier resolves the current record
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
+import secrets
 from typing import TYPE_CHECKING, Any, cast
 
 from app.harness.credentials.read_through import (
@@ -33,8 +35,15 @@ MCP_KIND = "mcp"
 MODEL_KIND = "model"
 
 
+# The version is logged with every handle issued. An unkeyed digest of the material would let anyone with the logs
+# test guesses of a weak stored password offline; the key lives only in this process, which is where the issued
+# handles and the versions they are compared with live.
+_VERSION_KEY = secrets.token_bytes(32)
+
+
 def _version(material: object) -> str:
-    return hashlib.sha256(json.dumps(material, sort_keys=True, default=str).encode()).hexdigest()[:16]
+    text = json.dumps(material, sort_keys=True, default=str).encode()
+    return hmac.new(_VERSION_KEY, text, hashlib.sha256).hexdigest()[:16]
 
 
 async def configured_llm_entries(config: Any, *, fresh: bool = False) -> list[dict[str, Any]]:  # noqa: ANN401

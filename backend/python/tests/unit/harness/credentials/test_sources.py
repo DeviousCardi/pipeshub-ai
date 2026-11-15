@@ -106,6 +106,24 @@ async def test_sr3_model_key_by_model_key() -> None:
     assert await source.read("org-1", CredentialScope(MODEL_KIND, "key-gone")) is None
 
 
+async def test_sr3_the_logged_version_is_not_a_plain_digest_of_the_secret() -> None:
+    import hashlib
+
+    weak = "hunter2"
+    entries = [{"modelKey": "key-1", "configuration": {"apiKey": weak, "model": "m"}}]
+    config = DictConfig({config_node_constants.AI_MODELS.value: {"llm": entries}})
+    source = ModelKeySource(config)
+    first = await source.read("org-1", CredentialScope(MODEL_KIND, "key-1"))
+    again = await source.read("org-1", CredentialScope(MODEL_KIND, "key-1"))
+    assert first is not None and again is not None and first.version == again.version
+    # credential.issued logs the version: a dictionary of sha256 guesses must not find the password in it.
+    assert first.version not in {hashlib.sha256(json.dumps(weak).encode()).hexdigest()[:16],
+                                 hashlib.sha256(weak.encode()).hexdigest()[:16]}
+    entries[0]["configuration"]["apiKey"] = weak + "!"
+    rotated = await source.read("org-1", CredentialScope(MODEL_KIND, "key-1"))
+    assert rotated is not None and rotated.version != first.version
+
+
 @pytest.mark.parametrize("source", [ToolsetSecretSource, McpSecretSource, ModelKeySource])
 async def test_sr4_read_only(source: type) -> None:
     with pytest.raises(CredentialReadOnly):

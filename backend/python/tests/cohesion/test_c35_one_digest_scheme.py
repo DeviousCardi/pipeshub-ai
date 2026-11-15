@@ -96,10 +96,6 @@ ALLOWED: dict[str, str] = {
     "app/harness/adapters/checkpoint_store.py:_arguments_hash": (
         "the legacy loop's checkpoint argument hash, stored with its checkpoints; retired with the legacy loop"
     ),
-    "app/harness/credentials/sources.py:_version": (
-        "a credential source's version tag over secret material, compared only within a run; CPD-8's bindings carry "
-        "a canonical secret version digest"
-    ),
     "harness_core/artifacts/types.py:publish_intent_id": (
         "publish intent ids already journaled and stored; a new scheme would not find a retried intent"
     ),
