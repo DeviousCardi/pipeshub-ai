@@ -194,3 +194,17 @@ def test_pr1_the_image_runtime_note_is_an_instructions_file() -> None:
     prompt when it exists (PR-2) and skips it when it does not (PR-3)."""
     assert _config()["instructions"] == [RUNTIME_NOTE]
     assert RUNTIME_NOTE == "/usr/share/pxh-engine/RUNTIME.md"
+
+
+def test_oc18_the_shell_outlasts_an_approval_hold() -> None:
+    """``ph git clone`` runs in the shell tool and its call may be held for approval up to ``APPROVAL_HOLD_S``. With
+    opencode's default shell timeout (120 s, the hold's own length) the shell killed ``ph`` before the held answer
+    came back, so the engine never learned the interaction and never called the clone again once it was approved."""
+    from harness_core.interactions.hold import APPROVAL_HOLD_S
+    from harness_engines.opencode.launch import BASH_TIMEOUT_ENV
+
+    launch = render_launch(_profile(), ENDPOINTS, "/skills")
+    shell_ms = int(launch.env[BASH_TIMEOUT_ENV])
+    assert BASH_TIMEOUT_ENV == "OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS"
+    assert shell_ms == ENDPOINTS.tool_timeout_s * 1000
+    assert shell_ms >= (APPROVAL_HOLD_S + 30) * 1000

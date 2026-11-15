@@ -60,6 +60,8 @@ BASE_PROMPT = (
     "and finish with the result of the task. " + AGENTS_POINTER
 )
 
+BASH_TIMEOUT_ENV = "OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS"
+
 # F4 env.locked.sh, minus the server password: open() adds a fresh one per sandbox.
 LOCKED_ENV: Mapping[str, str] = {
     "OPENCODE_DISABLE_MODELS_FETCH": "1",
@@ -233,6 +235,9 @@ def render_launch(
         TOKEN_ENV: endpoints.token_placeholder,
         TOOLS_TOKEN_ENV: endpoints.tools_placeholder,
         SKILLS_ENV: skills_dir,
+        # ``ph`` runs in the shell tool, and a call it makes may be held for approval up to the gateway's hold (120 s,
+        # opencode's own shell default): a shell killed first loses the held answer and the call is never made again.
+        BASH_TIMEOUT_ENV: str(endpoints.tool_timeout_s * 1000),
         # Key order is kept: opencode's permission rules are last-match-wins in declaration order.
         "OPENCODE_CONFIG_CONTENT": json.dumps(config, separators=(",", ":")),
     }
