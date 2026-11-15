@@ -167,7 +167,7 @@
       "error": {
         "code": "usage",
         "exit": 64,
-        "message": "ph: argument COMMAND: invalid choice: 'frobnicate' (choose from 'search', 'fetch', 'tools', 'describe', 'call', 'ask', 'publish', 'skill', 'policy', 'git', 'inputs'). See: ph --help"
+        "message": "ph: argument COMMAND: invalid choice: 'frobnicate' (choose from search, fetch, tools, describe, call, ask, publish, skill, policy, git, inputs). See: ph --help"
       }
     }
   },

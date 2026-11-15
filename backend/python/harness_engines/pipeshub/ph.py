@@ -1220,6 +1220,13 @@ class _Parser(argparse.ArgumentParser):
     def error(self, message: str) -> NoReturn:
         raise PhError(f"ph: {message}. See: ph --help", EX_USAGE)
 
+    def _check_value(self, action: argparse.Action, value: object) -> None:
+        # argparse's own wording changed in a 3.12 patch release (choices lost their quotes); the --json envelope
+        # is a contract, so ph words it the same whatever Python the image ships.
+        if action.choices is not None and value not in action.choices:
+            choices = ", ".join(map(str, action.choices))
+            raise argparse.ArgumentError(action, f"invalid choice: {value!r} (choose from {choices})")
+
 
 def _json_flag(command: argparse.ArgumentParser) -> None:
     command.add_argument("--json", dest="json_here", action="store_true", help="print one JSON object (as ph --json)")
