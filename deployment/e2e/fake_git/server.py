@@ -173,6 +173,7 @@ def main() -> None:
     Handler.requests.touch()
     server = ThreadingHTTPServer(("0.0.0.0", 443), Handler)
     tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    tls.minimum_version = ssl.TLSVersion.TLSv1_2
     tls.load_cert_chain(cert, key)
     server.socket = tls.wrap_socket(server.socket, server_side=True)
     (state / "ready").write_text("ok\n")

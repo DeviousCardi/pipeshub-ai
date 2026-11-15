@@ -2,8 +2,8 @@
 app container as the sign-in callbacks would leave them, and taken out again (the AI models and web search documents,
 which Node encrypts with its own key, are seckey_documents.js's).
 
-    python /e2e/pyrun.py /e2e/seckey_config.py plant <  {"orgId", "userId", "canaries": {name: value}, "oauthInstanceId"}
-    python /e2e/pyrun.py /e2e/seckey_config.py restore < {"orgId", "userId", "oauthInstanceId"}
+    python /e2e/pyrun.py /e2e/seckey_config.py plant <  {"orgId", "userId", "canaries": {name: value}, "mcpInstanceId"}
+    python /e2e/pyrun.py /e2e/seckey_config.py restore < {"orgId", "userId", "mcpInstanceId"}
     python /e2e/pyrun.py /e2e/seckey_config.py secrets < {}
 
 The canaries come on stdin, never on a command line (a process's arguments are readable by anyone on the host). Prints
@@ -128,7 +128,7 @@ async def main(action: str) -> None:
     plant = action == "plant"
     config = HarnessServices().config_service()
     wrote = await _toolsets(config, org, user, canaries, plant=plant)
-    wrote += await _oauth(config, org, user, str(body.get("oauthInstanceId") or ""), canaries if plant else None)
+    wrote += await _oauth(config, org, user, str(body.get("mcpInstanceId") or ""), canaries if plant else None)
     print(json.dumps({action: wrote}))
 
 

@@ -263,6 +263,7 @@ if __name__ == "__main__":
     tools = ThreadingHTTPServer(("0.0.0.0", 8097), ToolGateway)
     threading.Thread(target=tools.serve_forever, daemon=True).start()
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.load_cert_chain("/certs/server.pem", "/certs/server.key")
     server = ThreadingHTTPServer(("0.0.0.0", 443), Handler)
     server.socket = context.wrap_socket(server.socket, server_side=True)

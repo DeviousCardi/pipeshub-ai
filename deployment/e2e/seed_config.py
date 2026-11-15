@@ -68,17 +68,17 @@ async def write_github(org_id: str, user_id: str) -> None:
         }
         if not await config.set_config(INSTANCES_KEY, [*instances, found]):
             raise SystemExit(f"{INSTANCES_KEY} was not written")
-    auth_key = f"/services/toolsets/{found['_id']}/{user_id}"
+    toolset_path = f"/services/toolsets/{found['_id']}/{user_id}"
     auth = {
         "isAuthenticated": True, "instanceId": found["_id"], "toolsetType": "github", "orgId": org_id,
         "userId": user_id, "credentials": {"access_token": token, "token_type": "bearer"},
         "updatedAtTimestamp": int(time.time() * 1000),
     }
-    if not await config.set_config(auth_key, auth):
-        raise SystemExit(f"{auth_key} was not written")
-    stored = await config.get_config(auth_key, default=None, use_cache=False)
+    if not await config.set_config(toolset_path, auth):
+        raise SystemExit(f"{toolset_path} was not written")
+    stored = await config.get_config(toolset_path, default=None, use_cache=False)
     if not isinstance(stored, dict) or stored.get("isAuthenticated") is not True:
-        raise SystemExit(f"{auth_key} does not read back")
+        raise SystemExit(f"{toolset_path} does not read back")
     print(json.dumps({"github": {"instanceId": found["_id"], "userId": user_id}}))
 
 

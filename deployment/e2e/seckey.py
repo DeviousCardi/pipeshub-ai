@@ -286,7 +286,7 @@ def seed(stack: Any, run_dir: Path, canaries: dict[str, str], kinds: list[str]) 
         "aiModels": inv.model_entries(canaries, FAKE_LLM), "webSearch": inv.search_entries(canaries, FAKE_SAAS)}),
         "documents")
     stores = answered(in_app(stack, "seckey_config.py", "plant", {
-        "orgId": stack.org_id, "userId": admin_id(stack), "canaries": canaries, "oauthInstanceId": mcp["e2eoauth"]}),
+        "orgId": stack.org_id, "userId": admin_id(stack), "canaries": canaries, "mcpInstanceId": mcp["e2eoauth"]}),
         "plant")
     check("seed: every canary planted where the product keeps it (models, web search, toolsets, MCP sign-ins)",
           documents is not None and stores is not None, json.dumps([documents, stores]))
@@ -311,7 +311,7 @@ def admin_id(stack: Any) -> str:
 def restore(stack: Any, state: Json) -> None:
     documents = answered(in_app(stack, "seckey_documents.js", "restore", None), "documents")
     stores = answered(in_app(stack, "seckey_config.py", "restore", {
-        "orgId": stack.org_id, "userId": admin_id(stack), "oauthInstanceId": (state.get("mcp") or {}).get("e2eoauth")}),
+        "orgId": stack.org_id, "userId": admin_id(stack), "mcpInstanceId": (state.get("mcp") or {}).get("e2eoauth")}),
         "restore")
     check("restore: the planted models, search providers, toolsets and sign-in taken out",
           documents is not None and stores is not None, json.dumps([documents, stores]))
