@@ -768,6 +768,7 @@
         "backend/nodejs/apps/tests/modules/agent-harness/qa26-*.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/secaz07-*.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/support/cross-tenant-*.ts",
+        "backend/nodejs/apps/tests/modules/agent-harness/support/rig-secret-key.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/assist1-chat-turn.http.test.ts",
         "backend/nodejs/apps/tests/modules/agent-harness/ctl7-classic-choice.test.ts",
         "backend/nodejs/apps/tests/modules/enterprise_search/validators/es_validators.test.ts",
