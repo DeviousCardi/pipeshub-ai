@@ -199,7 +199,7 @@ jobs:
       matrix:
         # Must list exactly the shards in scripts/unit_shards.py, in its order;
         # scripts/test_unit_shards.py checks this.
-        shard: [connectors-a, connectors-b, connectors-c, agents, services, modules, core]
+        shard: [connectors-a, connectors-b, connectors-c, agents, services, modules, harness, harness-contracts, core]
 
     steps:
       - name: Checkout code

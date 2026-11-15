@@ -42,15 +42,14 @@ DURATIONS = Path(__file__).resolve().parent / "unit_shard_durations.json"
 MAX_OVER_MEAN = 1.35
 
 SHARDS: dict[str, tuple[str, ...]] = {
-    # The connector test files directly under sources/.
-    "connectors-a": ("tests/unit/connectors/sources/test_*.py",),
+    # The connector test files directly under sources/, and microsoft.
+    "connectors-a": ("tests/unit/connectors/sources/test_*.py", "tests/unit/connectors/sources/microsoft"),
     # web, localKB and the smaller connector directories.
     "connectors-b": ("tests/unit/connectors/sources",),
-    # google, microsoft, and connectors outside sources/.
+    # google, and connectors outside sources/.
     "connectors-c": (
         "tests/unit/connectors",
         "tests/unit/connectors/sources/google",
-        "tests/unit/connectors/sources/microsoft",
     ),
     "agents": ("tests/unit/agents", "tests/unit/agent_loop_lib"),
     "services": (
@@ -60,8 +59,17 @@ SHARDS: dict[str, tuple[str, ...]] = {
         "tests/unit/containers",
         "tests/unit/config",
         "tests/unit/telemetry",
+        "tests/unit/utils",
     ),
-    "modules": ("tests/unit/modules", "tests/unit/utils"),
+    "modules": ("tests/unit/modules",),
+    # The agent harness: its service tests and its engines.
+    "harness": ("tests/unit/harness", "tests/unit/harness_engines"),
+    # The harness kernel, its generated contracts and the control plane.
+    "harness-contracts": (
+        "tests/unit/harness_core",
+        "tests/unit/contracts_harness",
+        "tests/unit/control_plane",
+    ),
     # Top-level test files, api, sources, models and the rest.
     "core": (UNIT_ROOT,),
 }
