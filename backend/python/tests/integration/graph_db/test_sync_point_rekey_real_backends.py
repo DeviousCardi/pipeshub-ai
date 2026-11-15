@@ -116,7 +116,8 @@ async def test_rb2_the_step_reseals_delta_links_through_the_provider(
         assert (applied.moved, applied.current, applied.previous) == (3, 3, 0)
         after = await rekey(provider, ring, apply=False, orgs=only_this_org)
         assert (after.current, after.previous) == (3, 0)
-        retired = EncryptionService("aes-256-gcm", _hashed(new), logger)
+        # The ring writes under the new secret's HKDF key on a hardened install, not its SHA-256 key.
+        retired = EncryptionService("aes-256-gcm", ring.secret_key, logger)
         with for_org(org, job="test"):
             points = await provider.list_sync_points(org, SYNC_POINTS)
             sealed = {p["syncPointKey"]: p["deltaLink"] for p in points if p.get("deltaLink_encrypted") is True}
