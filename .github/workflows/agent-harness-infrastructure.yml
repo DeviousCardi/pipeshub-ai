@@ -112,6 +112,11 @@ jobs:
   sandbox-contract:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      # Compose names the image it builds from IMAGE_TAG; the contract tests and the steps below read the same
+      # name, so every step checks the image this job built and none a stale or pulled one.
+      IMAGE_TAG: local
+      SANDBOX_TEST_IMAGE: pipeshubai/pipeshub-sandbox:local
     steps:
       - name: Checkout code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -138,7 +143,7 @@ jobs:
 
       - name: Verify the sandbox Node dependency boundary
         run: |
-          docker run --rm --entrypoint sh pipeshubai/pipeshub-sandbox:local -lc '
+          docker run --rm --entrypoint sh "$SANDBOX_TEST_IMAGE" -lc '
             node --version | grep "^v22\." &&
             test ! -e /home/sandbox/node_modules/image-size &&
             cd /home/sandbox &&
@@ -156,9 +161,9 @@ jobs:
       - name: Assert no sandbox containers leaked
         if: always()
         run: |
-          leaked="$(docker ps -aq --filter ancestor=pipeshubai/pipeshub-sandbox:local)"
+          leaked="$(docker ps -aq --filter "ancestor=$SANDBOX_TEST_IMAGE")"
           if [ -n "$leaked" ]; then
-            docker ps -a --filter ancestor=pipeshubai/pipeshub-sandbox:local
+            docker ps -a --filter "ancestor=$SANDBOX_TEST_IMAGE"
             exit 1
           fi
 
