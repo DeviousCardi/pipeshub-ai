@@ -103,6 +103,23 @@ class TestScrubber:
         once = scrubber.text(" ".join(_texts().values()) + " ann@corp.example")
         assert scrubber.text(once) == once
 
+    def test_the_canary_scan_names_what_it_found_without_printing_it(self) -> None:
+        # The findings reach CI logs and exception messages: the secret they caught must not ride along.
+        texts = _texts()
+        found = find_secrets([*texts.values(), "mail ann.person@corp.example"])
+        assert found
+        report = "; ".join(found)
+        for secret in [*SECRETS.values(), "s3cr3tPass", "hunter22", "topsecretvalue", "abcDEF123456789xyz",
+                       "zzz999", "ann.person"]:
+            assert secret not in report, secret
+        assert "email: …@corp.example" in found
+
+    def test_the_golden_case_check_masks_personal_data(self) -> None:
+        from harness_core.testing.replay.trace_redactor import leftovers
+
+        found = leftovers([{"type": "x", "text": "call me on +1 415 555 0134 tomorrow"}])
+        assert found and all("555 0134" not in f for f in found), found
+
     def test_a_planted_canary_blocks_the_recording(self) -> None:
         recording = _recording(final="the launch code is CANARY-51")
         with pytest.raises(SecretLeftBehind, match="CANARY-51"):

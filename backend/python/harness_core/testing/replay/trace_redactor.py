@@ -45,7 +45,7 @@ from harness_core.kernel.fold import FoldIncompatible, fold_run
 from harness_core.provenance.ledger import ProvenanceLedger
 from harness_core.security.personal_data import redact_personal
 from harness_core.security.secrets import SECRET_KEY_NAME
-from harness_core.testing.replay.scrub import Scrubber, find_secrets
+from harness_core.testing.replay.scrub import Scrubber, find_secrets, masked_preview
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
@@ -382,7 +382,7 @@ def leftovers(events: Sequence[Mapping[str, JsonValue]], canaries: Iterable[str]
         found.extend(find_secrets(text, planted))
         kinds: set[str] = set()
         _ = redact_personal(text, kinds)
-        found.extend(f"{kind}: {text[:40]}" for kind in sorted(kinds) if not _PSEUDONYM.search(text))
+        found.extend(f"{kind}: {masked_preview(text)}" for kind in sorted(kinds) if not _PSEUDONYM.search(text))
     return found
 
 

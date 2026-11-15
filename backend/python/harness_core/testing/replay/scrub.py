@@ -114,25 +114,32 @@ def _walk_strings(value: JsonValue, visit: Callable[[str], None]) -> None:
             _walk_strings(v, visit)
 
 
+def masked_preview(found: str) -> str:
+    """What a finding shows of the text it found: enough to tell findings apart, never the value. Findings reach
+    CI logs and exception messages, so the scan must not print the secret it caught."""
+    return f"{found[:4]}… ({len(found)} chars)"
+
+
 def find_secrets(value: JsonValue, canaries: Iterable[str] = ()) -> list[str]:
-    """Every secret-shaped string, email or planted canary still in ``value``."""
+    """Every secret-shaped string, email or planted canary still in ``value``, each masked (``masked_preview``; an
+    email keeps only its domain). A planted canary is the test's own marker and is named in full."""
     planted = [c for c in canaries if c]
     found: list[str] = []
 
     def visit(text: str) -> None:
         for p in REDACTION_PATTERNS:
-            found.extend(f"{p.kind}: {m.group(0)[:40]}" for m in p.pattern.finditer(text))
+            found.extend(f"{p.kind}: {masked_preview(m.group(0))}" for m in p.pattern.finditer(text))
         found.extend(
-            f"userinfo: {m.group(0)[:40]}" for m in _URL_USERINFO.finditer(text)
+            f"userinfo: {masked_preview(m.group(0))}" for m in _URL_USERINFO.finditer(text)
         )
         found.extend(
-            f"query: {m.group(0)[:40]}"
+            f"query: {masked_preview(m.group(0))}"
             for m in _QUERY_SECRET.finditer(text)
             if "<redacted" not in m.group(0)
         )
-        found.extend(f"kv: {m.group(0)[:40]}" for m in _KV_SECRET.finditer(text))
+        found.extend(f"kv: {masked_preview(m.group(0))}" for m in _KV_SECRET.finditer(text))
         found.extend(
-            f"email: {m.group(0)}"
+            f"email: …@{m.group(0).rpartition('@')[2]}"
             for m in _EMAIL.finditer(text)
             if not m.group(0).lower().endswith("@" + _PSEUDONYM_DOMAIN)
         )
@@ -170,5 +177,6 @@ __all__ = [
     "Scrubber",
     "SecretLeftBehind",
     "find_secrets",
+    "masked_preview",
     "scrub_recording",
 ]
