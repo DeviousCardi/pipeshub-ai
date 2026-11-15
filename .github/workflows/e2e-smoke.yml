@@ -106,8 +106,11 @@ jobs:
         working-directory: deployment/docker-compose
         run: docker compose -f docker-compose.integration.neo4j.yml build
 
+      # A fresh install runs the hardened header set; browser-security-headers.spec.ts checks the UI works under it.
       - name: Start services
         working-directory: deployment/docker-compose
+        env:
+          STRICT_MODE: 'true'
         run: docker compose -f docker-compose.integration.neo4j.yml up -d
 
       # Core services first (API, Mongo, Redis, the graph), then the Python

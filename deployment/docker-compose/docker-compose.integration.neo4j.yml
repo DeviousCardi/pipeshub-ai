@@ -90,6 +90,8 @@ services:
       - NOTION_API_BASE_URL=${NOTION_CONNECTOR_BASE_URL:-}
       # The test Nextcloud (nextcloud-source) has no TLS.
       - PIPESHUB_NEXTCLOUD_ALLOW_INSECURE_HTTP=true
+      # The compatibility profile only reports the CSP; STRICT_MODE=true sends the hardened header set the e2e smoke checks.
+      - STRICT_MODE=${STRICT_MODE:-false}
       # The session-revocation checks look within seconds of a sign-out; the product default is 30s.
       - SESSION_CHECK_CACHE_SECONDS=${SESSION_CHECK_CACHE_SECONDS:-2}
       # The pinned Zammad (6.4) can't count tickets; list them every sync so a delete lands.
