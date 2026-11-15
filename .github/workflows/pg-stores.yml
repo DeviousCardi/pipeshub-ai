@@ -45,6 +45,11 @@ jobs:
         image: mongo:7.0.48@sha256:9896df581dfd0718b7abe112f4c37598d0986c54060e4ec1384997e6503c8c71
         ports:
           - 27017:27017
+      # The operator CLI itest (test:pg-harness) runs the migrations against a real KV store.
+      redis:
+        image: redis:7.4.12-bookworm@sha256:2e3eb11462c4e3759e6972678dd051d150ff54b1e60714b3c33b701260172a90
+        ports:
+          - 6379:6379
     env:
       CI: 'true'
     steps:
@@ -98,6 +103,7 @@ jobs:
           PG_TEST_PGBOUNCER: /usr/sbin/pgbouncer
           PG_TEST_MIGRATE_PYTHON: ${{ runner.temp }}/migrate-venv/bin/python
           PG_TEST_WORK: ${{ runner.temp }}
+          REDIS_IT_URL: redis://127.0.0.1:6379
         run: npm run test:pg-harness -- --reporter xunit --reporter-option output="$RUNNER_TEMP/pg-harness-junit.xml"
 
       - name: Count the fingerprint tests defined for the PostgreSQL leg

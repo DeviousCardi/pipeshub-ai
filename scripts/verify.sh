@@ -225,8 +225,10 @@ has_pg_binaries() {
     [[ -n "${!v:-}" ]] || { echo "set PG_TEST_BINS, PG_TEST_PGBOUNCER and PG_TEST_MIGRATE_PYTHON (local PostgreSQL 17 and PgBouncer)"; return 1; }
   done
 }
+# The operator CLI itest among them runs its migrations against a Redis KV store.
+has_redis_it() { [[ -n "${REDIS_IT_URL:-}" ]] || { echo "set REDIS_IT_URL (a local Redis, e.g. redis://127.0.0.1:6379)"; return 1; }; }
 run node "node postgresql stores (coverage floor)" \
-  'exists backend/nodejs/apps/node_modules && have npm && has_pg_binaries' \
+  'exists backend/nodejs/apps/node_modules && have npm && has_pg_binaries && has_redis_it' \
   bash -c "cd backend/nodejs/apps && npm run --silent test:pg-harness"
 
 # The MongoDB -> PostgreSQL move on a migrated PostgreSQL: table and column coverage, the copy and verify of every
