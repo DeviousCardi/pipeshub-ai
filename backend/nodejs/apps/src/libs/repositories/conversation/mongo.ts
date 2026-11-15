@@ -1735,7 +1735,7 @@ export class MongoConversationRepository implements ConversationRepository {
       orgId: String(session.orgId),
       sessionId: String(session._id),
       requestedAt: Number(session.erasureRequestedAt),
-      ...(session.deletedBy !== undefined && session.deletedBy !== null
+      ...(session.deletedBy != null
         ? { deletedBy: String(session.deletedBy) }
         : {}),
     }));

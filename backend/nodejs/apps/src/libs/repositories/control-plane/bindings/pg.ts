@@ -188,8 +188,9 @@ export class PgBindingStore implements BindingStore {
         let matched: number;
         try {
           // A live status may collide with the owner's other live binding: caught without losing the unit.
-          matched = await k.savepoint('cp_binding_update', async () =>
-            Number(
+          matched = await k.savepoint(
+            'cp_binding_update',
+            async () =>
               (
                 await k.query(
                   `/* pipeshub:harness.cp_binding_update */ UPDATE harness.cp_bindings
@@ -199,7 +200,6 @@ export class PgBindingStore implements BindingStore {
                   [...values, expectedRevision],
                 )
               ).rowCount ?? 0,
-            ),
           );
         } catch (error) {
           if (error instanceof UniqueConstraintError) throw taken();

@@ -50,13 +50,12 @@ export class MongoAbandonedForks implements AbandonedForks<Tx> {
       .batchSize(listed.size)
       .session(tx)
       .lean();
-    const gone = found
-      .map((record) => listed.get(record._id))
-      .filter(
-        (fork, index): fork is AbandonedFork =>
-          fork !== undefined &&
-          fork.forkSessionId === found[index]!.forkSessionId,
-      );
+    const gone = found.flatMap((record) => {
+      const fork = listed.get(record._id);
+      return fork !== undefined && fork.forkSessionId === record.forkSessionId
+        ? [fork]
+        : [];
+    });
     if (gone.length === 0) return [];
     await AgentSessionForkModel.deleteMany(
       { _id: { $in: gone.map((fork) => fork.recordId) }, ...stillAbandoned },

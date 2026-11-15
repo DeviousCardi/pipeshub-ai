@@ -51,7 +51,7 @@ export class MongoDataKeyStore implements DataKeyStore {
     const document = await AgentHarnessDataKeyModel.findOneAndUpdate(
       { _id: kid, orgId },
       { $inc: { seals: count } },
-      { new: true, projection: { seals: 1 }, ...MAJORITY_WRITE },
+      { returnDocument: 'after', projection: { seals: 1 }, ...MAJORITY_WRITE },
     ).lean();
     return document === null ? null : (document.seals ?? count);
   }

@@ -37,7 +37,6 @@ import {
   admittedJournalAppend,
   HarnessRun,
   nodeAppend,
-  RunInputSnapshot,
 } from '../../../../modules/agent-harness/domain/execution';
 import {
   assertReferencesChecked,

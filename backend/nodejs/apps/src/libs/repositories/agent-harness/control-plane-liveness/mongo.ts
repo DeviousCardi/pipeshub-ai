@@ -45,7 +45,12 @@ export class MongoControlPlaneLiveness implements ControlPlaneLiveness {
           },
         },
       ],
-      { updatePipeline: true, upsert: true, new: true, ...MAJORITY_WRITE },
+      {
+        updatePipeline: true,
+        upsert: true,
+        returnDocument: 'after',
+        ...MAJORITY_WRITE,
+      },
     ).lean();
     return {
       now: document.seenAt,

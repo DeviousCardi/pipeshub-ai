@@ -87,8 +87,7 @@ export class HarnessChatSessionRepository implements ChatSessionRepository<Tx> {
       .select('+sessionType +harnessVersion projectId')
       .lean();
     if (session === null) return null;
-    const inProject =
-      session.projectId !== undefined && session.projectId !== null;
+    const inProject = session.projectId != null;
     return {
       inProject,
       ...(inProject ? { projectId: String(session.projectId) } : {}),
@@ -161,7 +160,7 @@ export class HarnessChatSessionRepository implements ChatSessionRepository<Tx> {
           lastActivityAt: now,
         },
       },
-      { new: true, session: tx },
+      { returnDocument: 'after', session: tx },
     )
       .select(
         '+sessionType +harnessVersion +nextSeq +harnessLedger userId isShared sharedWith',

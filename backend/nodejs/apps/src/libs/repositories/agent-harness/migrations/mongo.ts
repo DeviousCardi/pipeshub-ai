@@ -581,7 +581,13 @@ export const SANDBOX_SNAPSHOTS_MIGRATION = indexMigration('sandbox-snapshots', [
   },
 ]);
 
-const runCopy = (d: Document) => ({
+const runCopy = (
+  d: Document,
+): {
+  orgId: string;
+  context: { runId: string };
+  input: StoredQueryInput | null | undefined;
+} => ({
   orgId: d['orgId'] as string,
   context: { runId: d['runId'] as string },
   input: d['input'] as StoredQueryInput | null | undefined,

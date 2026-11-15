@@ -31,9 +31,8 @@ export class PgControlPlaneLiveness implements ControlPlaneLiveness {
         throw new InternalServerError('the liveness record did not answer');
       return {
         now: Number(row.seen_at),
-        previousSeenAt:
-          row.previous_seen_at === null ? null : Number(row.previous_seen_at),
-        holdoffUntil: Number(row.holdoff_until),
+        previousSeenAt: row.previous_seen_at,
+        holdoffUntil: row.holdoff_until,
       };
     });
   }

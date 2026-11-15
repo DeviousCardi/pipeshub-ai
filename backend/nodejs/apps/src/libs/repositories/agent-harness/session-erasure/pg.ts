@@ -246,7 +246,8 @@ export class PgErasureJobStore implements ErasureJobStore<Tx> {
     orgId: string,
     sessionIds: readonly string[],
   ): Promise<Map<string, ErasureJob>> {
-    if (sessionIds.length === 0) return Promise.resolve(new Map());
+    if (sessionIds.length === 0)
+      return Promise.resolve(new Map<string, ErasureJob>());
     return orgOrJobsUnit(
       undefined,
       orgId,

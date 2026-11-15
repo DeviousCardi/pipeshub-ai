@@ -115,7 +115,7 @@ export class PgScheduleStore implements ScheduleStore, ScheduleEraser {
   }
 
   async get(orgId: string | null, id: string): Promise<AgentSchedule | null> {
-    const read = (k: PgKernelTx) =>
+    const read = (k: PgKernelTx): Promise<ScheduleDocument[]> =>
       this.scheduleDocs(
         k,
         `/* pipeshub:harness.schedules_get */ SELECT doc FROM harness.schedules

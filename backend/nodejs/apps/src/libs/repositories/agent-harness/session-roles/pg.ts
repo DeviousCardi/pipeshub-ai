@@ -3,12 +3,16 @@ import {
   SessionRole,
   sessionRoleOf,
 } from '../../../../modules/agent-harness/domain/session-roles';
+import type { HarnessSessionRow } from '../../conversation/types';
 import type { SessionExecutionScope } from '../../../../modules/agent-harness/ports/chat-session-repository';
 import type { SessionRoleLookup } from '../../../../modules/agent-harness/ports/session-roles';
 import { hasValidIds, sessionIs } from '../chat-session-repository/pg';
 import { inBoundOrgUnit } from '../durable-transaction/bound-org';
 
-const read = (orgId: string, sessionId: string) =>
+const read = (
+  orgId: string,
+  sessionId: string,
+): Promise<HarnessSessionRow | null> =>
   inBoundOrgUnit(orgId, () =>
     getConversationRepository().findHarnessSession(sessionId, orgId),
   );

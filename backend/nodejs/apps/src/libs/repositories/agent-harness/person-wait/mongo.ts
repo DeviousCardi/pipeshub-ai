@@ -117,15 +117,16 @@ export async function rootScheduled(
   const session = asMongoSession(sessionHandle);
   let current: Record<string, unknown> | null = document;
   for (let depth = 0; depth <= CHILD_MAX_DEPTH; depth += 1) {
-    const parentRunId = (current['parent'] as { runId?: string } | undefined)
-      ?.runId;
+    const parentRunId: string | undefined = (
+      current['parent'] as { runId?: string } | undefined
+    )?.runId;
     if (parentRunId === undefined) return current['trigger'] != null;
     current = await AgentRunModel.findOne(
       { orgId: String(current['orgId']), runId: parentRunId },
       { orgId: 1, runId: 1, parent: 1, trigger: 1 },
     )
       .session(session)
-      .lean();
+      .lean<Record<string, unknown>>();
     if (current === null) return false;
   }
   return false;

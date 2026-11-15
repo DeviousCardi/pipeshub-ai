@@ -46,7 +46,7 @@ export class MongoJournalStore implements JournalStore<Tx> {
       allocated !== undefined
         ? { lastSeq: allocated.lastSeq + count, ts: allocated.ts }
         : // The driver directly (PERF-E3): Mongoose's cast of a pipeline update is per-commit CPU and casts nothing here.
-          await SessionStreamCounterModel.collection.findOneAndUpdate(
+          ((await SessionStreamCounterModel.collection.findOneAndUpdate(
             filter,
             [
               {
@@ -59,7 +59,7 @@ export class MongoJournalStore implements JournalStore<Tx> {
               },
             ],
             { upsert: true, returnDocument: 'after', session },
-          );
+          )) as { lastSeq: number; ts: Date } | null);
     // An upsert that returns the document after it always returns one.
     if (counter === null)
       throw new Error('Stream counter upsert returned no document');

@@ -2027,7 +2027,7 @@ export class PgConversationRepository
           WHERE s.org_id = $1 AND s.id = ANY($2::text[]) AND s.harness_seen ? $3::text`,
         [k.orgId, valid, userId],
       );
-      return new Map(rows.map((row) => [String(row.id), Number(row.seen)]));
+      return new Map(rows.map((row) => [row.id, Number(row.seen)]));
     });
   }
 

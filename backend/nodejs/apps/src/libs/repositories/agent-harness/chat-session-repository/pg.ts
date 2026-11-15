@@ -126,10 +126,10 @@ export class PgHarnessChatSessionRepository implements ChatSessionRepository<Tx>
       return null;
     }
     const projectId = row.session.projectId;
-    const inProject = projectId !== undefined && projectId !== null;
+    const inProject = projectId != null;
     return {
       inProject,
-      ...(inProject ? { projectId: String(projectId) } : {}),
+      ...(inProject ? { projectId } : {}),
       durable: sessionIs.durable(row),
     };
   }
@@ -158,9 +158,7 @@ export class PgHarnessChatSessionRepository implements ChatSessionRepository<Tx>
           : { sessionType: 'chat' as const }),
         harnessVersion: 'durable-v1',
         harnessLedger: EMPTY_LEDGER,
-        ...(session.model !== undefined
-          ? { modelInfo: session.model as Record<string, unknown> }
-          : {}),
+        modelInfo: session.model as Record<string, unknown>,
       },
       tx,
     );

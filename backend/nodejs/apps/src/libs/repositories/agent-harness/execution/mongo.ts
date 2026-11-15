@@ -12,6 +12,7 @@ import { recordedRunFieldsOf } from '../../../../modules/agent-harness/domain/re
 import type { ResolvedRunConfig } from '../../../../modules/control-plane';
 import type { CommitFence } from '../../../../modules/agent-harness/ports/commit-fence';
 import { ClientSession } from 'mongoose';
+import type { ObjectId } from 'mongodb';
 import type { PinnedEngineProfile } from '../../../../modules/agent-harness/contracts/generated/core/engine-profile';
 import { consumedInputs } from '../../../../modules/agent-harness/domain/steering';
 import {
@@ -88,7 +89,6 @@ import {
   PreparedJournalAppend,
   PreparedJournalEvent,
 } from '../../../../modules/agent-harness/domain/journal';
-import type { RunSurface } from '../../../../modules/agent-harness/domain/admission';
 import {
   PinnedRunSpec,
   RunVia,
@@ -227,6 +227,17 @@ function isDuplicateKeyError(error: unknown): boolean {
 /** Where a commit's transaction read finds its command's receipt next to the run (`runWithReceipt`). */
 const PRIOR_RECEIPT = '__priorReceipt';
 
+/** The stored run as the driver hands a commit's update back: the fields the commit reads after it. */
+type CommittedRun = Record<string, unknown> & {
+  _id: ObjectId;
+  updatedAt: number;
+  revision: number;
+  workLeftMs?: number | null;
+};
+
+/** A lean read skips schema defaults: a run admitted before `via` was recorded has none, and came in with a session. */
+const viaOf = (via: RunVia | undefined): RunVia => via ?? 'session';
+
 export class MongoExecutionStore
   implements ExecutionStore, ActorRuns, OperatorRuns, RunLists
 {
@@ -321,8 +332,7 @@ export class MongoExecutionStore
       gates: plain(document.gates ?? null),
       answered: plain(document.answered ?? null),
       modelAccess: plain(document.modelAccess ?? null),
-      // Runs admitted before `via` was recorded came in with a session.
-      via: document.via ?? 'session',
+      via: viaOf(document.via),
       surface: document.surface ?? null,
       audience: plain(document.audience ?? null),
       trigger: plain(document.trigger ?? null),
@@ -392,7 +402,7 @@ export class MongoExecutionStore
             },
           },
         ],
-        { updatePipeline: true, new: true, session },
+        { updatePipeline: true, returnDocument: 'after', session },
       ).lean();
       if (run === null) return null;
       const claimedRun = this.toRun(run);
@@ -901,7 +911,7 @@ export class MongoExecutionStore
             },
           },
         ],
-        { updatePipeline: true, new: true, session },
+        { updatePipeline: true, returnDocument: 'after', session },
       ).lean();
       if (run === null) return null;
       await this.dispatches.enqueue(
@@ -1011,7 +1021,7 @@ export class MongoExecutionStore
               },
             },
           ],
-          { updatePipeline: true, new: true, session },
+          { updatePipeline: true, returnDocument: 'after', session },
         ).lean();
         if (updated === null) return false;
         await this.dispatches.enqueue(
@@ -1058,7 +1068,7 @@ export class MongoExecutionStore
           },
         },
       ],
-      { updatePipeline: true, new: true, ...MAJORITY_WRITE },
+      { updatePipeline: true, returnDocument: 'after', ...MAJORITY_WRITE },
     ).lean();
     if (run === null) {
       await this.throwAttemptFailure(command.orgId, command.runId);
@@ -1130,7 +1140,7 @@ export class MongoExecutionStore
               status === 'paused' && effects.suspendedFor === 'join';
             // The driver directly (PERF-E3): every value here is already its stored type, and Mongoose's cast of a
             // pipeline update walks the run's whole schema on every commit.
-            const updated = await AgentRunModel.collection.findOneAndUpdate(
+            const updated = (await AgentRunModel.collection.findOneAndUpdate(
               {
                 orgId: command.orgId,
                 runId: command.runId,
@@ -1222,7 +1232,7 @@ export class MongoExecutionStore
                 },
               ],
               { returnDocument: 'after', session },
-            );
+            )) as CommittedRun | null;
             if (!updated) throw await this.ownershipFailure(current);
             const now = updated.updatedAt;
             if (joining) {
@@ -1231,7 +1241,7 @@ export class MongoExecutionStore
                 const fields = joinDeadline(
                   current,
                   deadlines,
-                  updated.updatedAt as number,
+                  updated.updatedAt,
                 );
                 await AgentRunModel.collection.updateOne(
                   { _id: updated._id },
@@ -1273,7 +1283,12 @@ export class MongoExecutionStore
               const counter = await AgentEventCounterModel.findOneAndUpdate(
                 { orgId: command.orgId, sessionId: current.sessionId },
                 { $inc: { nextEventSeq: count } },
-                { upsert: true, new: true, setDefaultsOnInsert: true, session },
+                {
+                  upsert: true,
+                  returnDocument: 'after',
+                  setDefaultsOnInsert: true,
+                  session,
+                },
               ).lean();
               lastEventSeq = counter.nextEventSeq;
               const allocatedFirstEventSeq = lastEventSeq - count + 1;
@@ -1643,7 +1658,7 @@ export class MongoExecutionStore
                 },
               },
             ],
-            { updatePipeline: true, new: true, session },
+            { updatePipeline: true, returnDocument: 'after', session },
           ).lean();
           if (!updated) {
             throw new HarnessConflictError(
@@ -1683,7 +1698,12 @@ export class MongoExecutionStore
           const counter = await AgentEventCounterModel.findOneAndUpdate(
             { orgId: command.orgId, sessionId: current.sessionId },
             { $inc: { nextEventSeq: 1 } },
-            { upsert: true, new: true, setDefaultsOnInsert: true, session },
+            {
+              upsert: true,
+              returnDocument: 'after',
+              setDefaultsOnInsert: true,
+              session,
+            },
           ).lean();
           const eventSeq = counter.nextEventSeq;
           await AgentEventModel.create(
@@ -2039,7 +2059,7 @@ export class MongoExecutionStore
             },
           },
         ],
-        { updatePipeline: true, new: true, session },
+        { updatePipeline: true, returnDocument: 'after', session },
       ).lean();
       if (!updated) return 'lost';
       const now = updated.updatedAt;
@@ -2050,7 +2070,12 @@ export class MongoExecutionStore
       const counter = await AgentEventCounterModel.findOneAndUpdate(
         { orgId: current.orgId, sessionId: current.sessionId },
         { $inc: { nextEventSeq: 1 } },
-        { upsert: true, new: true, setDefaultsOnInsert: true, session },
+        {
+          upsert: true,
+          returnDocument: 'after',
+          setDefaultsOnInsert: true,
+          session,
+        },
       ).lean();
       await AgentEventModel.create(
         [

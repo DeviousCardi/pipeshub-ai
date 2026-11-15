@@ -121,6 +121,7 @@ export function encodeDoc(value: unknown): unknown {
 }
 
 /** The document `encodeDoc` stored. */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- callers name the document type they stored
 export function decodeDoc<T = unknown>(value: unknown): T {
   return decode(value) as T;
 }

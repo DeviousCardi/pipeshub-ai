@@ -1,7 +1,6 @@
 import { EnvelopeCipher } from '../../../../modules/agent-harness/application/envelope-cipher';
 import { platformRunKeyDigest } from '../../../../modules/agent-harness/adapters/crypto/platform-run-key-digest';
 import {
-  JournalEvent,
   journalPayloadSealContext,
   journalSealContext,
 } from '../../../../modules/agent-harness/domain/journal';
@@ -280,8 +279,8 @@ export class PgSessionStoreEraser implements SessionStoreEraser {
         if (event.sealed !== undefined)
           strings(await this.openData(event), keep);
       }
-      if (rows.length < SCAN_BATCH) return ids;
-      const last = rows[rows.length - 1]!;
+      const last = rows.at(-1);
+      if (rows.length < SCAN_BATCH || last === undefined) return ids;
       after = { stream: last.stream_id, seq: Number(last.seq) };
     }
   }

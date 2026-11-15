@@ -74,7 +74,7 @@ export class MongoPayloadStore
           : {}),
       },
     };
-    const write = () =>
+    const write = (): Promise<unknown> =>
       AgentJournalPayloadModel.updateOne(filter, update, {
         upsert: true,
         ...options,

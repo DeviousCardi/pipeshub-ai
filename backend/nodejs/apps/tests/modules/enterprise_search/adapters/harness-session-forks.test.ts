@@ -75,7 +75,7 @@ describe('HarnessSessionForkStore', () => {
       });
       expect(options).to.deep.include({
         upsert: true,
-        new: true,
+        returnDocument: 'after',
         writeConcern: { w: 'majority' },
       });
     });

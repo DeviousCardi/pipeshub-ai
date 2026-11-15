@@ -89,7 +89,7 @@ describe('HarnessChatSessionRepository', () => {
         lastActivityAt: 1_000,
       },
     });
-    expect(options).to.deep.equal({ new: true, session: tx });
+    expect(options).to.deep.equal({ returnDocument: 'after', session: tx });
     expect(
       select.calledWith('+sessionType +harnessVersion +nextSeq +harnessLedger userId isShared sharedWith'),
     ).to.equal(true);
@@ -124,7 +124,7 @@ describe('HarnessChatSessionRepository', () => {
     expect(filter!.sharedWith).to.deep.equal({
       $elemMatch: { userId: scope.actorId, accessLevel: 'write' },
     });
-    expect(options).to.deep.equal({ new: true, session: tx });
+    expect(options).to.deep.equal({ returnDocument: 'after', session: tx });
   });
 
   it('fails closed before querying for malformed authority identifiers', async () => {

@@ -33,7 +33,12 @@ export class MongoLeaderLease implements LeaderLease {
           },
         },
       ],
-      { updatePipeline: true, upsert: true, new: true, ...MAJORITY_WRITE },
+      {
+        updatePipeline: true,
+        upsert: true,
+        returnDocument: 'after',
+        ...MAJORITY_WRITE,
+      },
     ).lean();
     return lease.holder === holder;
   }

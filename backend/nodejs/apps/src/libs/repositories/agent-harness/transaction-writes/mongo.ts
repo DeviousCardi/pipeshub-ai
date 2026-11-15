@@ -24,6 +24,7 @@ export interface QueuedUpdate {
 // What Mongoose's own `Connection.bulkWrite` casts its updates with (in place); its typings leave it out.
 
 const { cast: castUpdate } =
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- a Mongoose internal with no typings or ESM entry
   require('mongoose/lib/helpers/model/castBulkWrite') as {
     cast: Record<
       QueuedUpdate['name'],
@@ -94,6 +95,7 @@ export class TransactionWrites {
    * it wrote, as it left it). Undefined without a batch open: a retried
    * attempt starts with nothing kept.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- the caller names the shape it kept under the key
   recall<T>(session: ClientSession, key: string): T | undefined {
     return this.kept.get(session)?.get(key) as T | undefined;
   }

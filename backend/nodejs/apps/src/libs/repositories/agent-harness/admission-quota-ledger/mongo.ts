@@ -146,7 +146,7 @@ export class MongoAdmissionQuotaLedger implements AdmissionQuotaLedger {
         },
         { $unset: ['lapsed', 'mine', 'counted', 'granted', 'twin'] },
       ],
-      { updatePipeline: true, upsert: true, new: true },
+      { updatePipeline: true, upsert: true, returnDocument: 'after' },
     ).lean();
     return reservationOf(
       {

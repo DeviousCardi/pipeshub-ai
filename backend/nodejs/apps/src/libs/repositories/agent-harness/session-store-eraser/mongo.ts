@@ -1,7 +1,6 @@
 import { escapeRegExp } from '../../../../utils/escape-regexp';
 import { EnvelopeCipher } from '../../../../modules/agent-harness/application/envelope-cipher';
 import {
-  JournalEvent,
   journalPayloadSealContext,
   journalSealContext,
 } from '../../../../modules/agent-harness/domain/journal';

@@ -42,6 +42,16 @@ const idsOf = (selection: Selection): Array<string | ObjectId> =>
 const orgIdsOf = (selection: Selection): Array<string | ObjectId> =>
   selection.org === null ? [selection.orgId] : [selection.orgId, selection.org];
 
+/** A session's own document in a legacy chat collection, under its id as a string or as an ObjectId. */
+const sessionDocuments = (selection: Selection): Filter<Document> => {
+  // The driver types `_id` as an ObjectId alone; these collections hold either form.
+  const filter = {
+    _id: { $in: idsOf(selection) },
+    orgId: { $in: orgIdsOf(selection) },
+  };
+  return filter as Filter<Document>;
+};
+
 /** In order: later selectors read what earlier ones found (run ids, stream ids, citation ids). */
 const SELECTORS: ReadonlyArray<[string, (s: Selection) => Filter<Document>]> = [
   ['agentRuns', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
@@ -53,34 +63,13 @@ const SELECTORS: ReadonlyArray<[string, (s: Selection) => Filter<Document>]> = [
       orgId: { $in: orgIdsOf(s) },
     }),
   ],
-  [
-    'chatSessions',
-    (s) =>
-      ({
-        _id: { $in: idsOf(s) },
-        orgId: { $in: orgIdsOf(s) },
-      }) as Filter<Document>,
-  ],
+  ['chatSessions', sessionDocuments],
   [
     'citations',
     (s) => ({ _id: { $in: s.citationIds }, 'metadata.orgId': s.orgId }),
   ],
-  [
-    'conversations',
-    (s) =>
-      ({
-        _id: { $in: idsOf(s) },
-        orgId: { $in: orgIdsOf(s) },
-      }) as Filter<Document>,
-  ],
-  [
-    'agentconversations',
-    (s) =>
-      ({
-        _id: { $in: idsOf(s) },
-        orgId: { $in: orgIdsOf(s) },
-      }) as Filter<Document>,
-  ],
+  ['conversations', sessionDocuments],
+  ['agentconversations', sessionDocuments],
   ['agentNextRuns', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
   ['agentEvents', (s) => ({ orgId: s.orgId, sessionId: s.sessionId })],
   [
@@ -256,10 +245,12 @@ export class MongoSessionBackup {
       if (ORG_STORES.has(name)) {
         // The org's keys may already be there (an earlier restore, the same org): never overwrite one.
         for (const document of documents) {
+          // The driver types `_id` as an ObjectId; a document kept under a string id is matched by it the same.
+          const id = document['_id'] as ObjectId;
           await this.db
             .collection(name)
             .updateOne(
-              { _id: document['_id'] },
+              { _id: id },
               { $setOnInsert: document },
               { upsert: true },
             );
@@ -291,7 +282,10 @@ export class MongoSessionBackup {
               (doc['citations'] as
                 Array<{ citationId?: unknown }> | undefined) ?? []
             ).flatMap((citation) =>
-              citation.citationId ? [String(citation.citationId)] : [],
+              // An ObjectId or a string: either prints as the id.
+              citation.citationId
+                ? [String(citation.citationId as { toString(): string })]
+                : [],
             ),
           ),
         ),

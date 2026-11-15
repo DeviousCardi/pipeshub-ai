@@ -24,7 +24,7 @@ export class PgHarnessConversationReader implements ConversationReader {
         limit: 20,
       });
       const answer = newest.find((row) =>
-        ANSWER_TYPES.has(String(row.dto.messageType)),
+        ANSWER_TYPES.has(row.dto.messageType),
       )?.dto;
       return (await attachPopulatedCitations(
         conversation,

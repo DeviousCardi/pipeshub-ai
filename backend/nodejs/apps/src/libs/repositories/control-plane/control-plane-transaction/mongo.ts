@@ -93,7 +93,12 @@ export class MongoControlPlaneTransaction implements ControlPlaneTransaction {
         const head = await CpOrgHeadModel.findOneAndUpdate(
           { _id: ctx.orgId },
           { $inc: { revision: 1 }, $set: { updatedAt: new Date() } },
-          { upsert: true, new: true, session, projection: { revision: 1 } },
+          {
+            upsert: true,
+            returnDocument: 'after',
+            session,
+            projection: { revision: 1 },
+          },
         ).lean();
         // An upsert returning the new document always yields one; Mongoose 9 types the result as nullable.
         if (!head)

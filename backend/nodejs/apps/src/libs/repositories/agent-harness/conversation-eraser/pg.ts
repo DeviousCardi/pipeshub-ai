@@ -76,7 +76,7 @@ export class PgHarnessConversationEraser
         ...new Set(
           messages.flatMap((message) =>
             (message.citations ?? []).flatMap((citation) =>
-              citation.citationId ? [String(citation.citationId)] : [],
+              citation.citationId ? [citation.citationId] : [],
             ),
           ),
         ),

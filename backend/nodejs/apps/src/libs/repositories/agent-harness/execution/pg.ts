@@ -88,7 +88,6 @@ import {
   PreparedJournalAppend,
   PreparedJournalEvent,
 } from '../../../../modules/agent-harness/domain/journal';
-import type { RunPolicyFields } from '../../../../modules/agent-harness/domain/run-policy-fields';
 import type { RunSurface } from '../../../../modules/agent-harness/domain/admission';
 import {
   PinnedRunSpec,
@@ -703,7 +702,7 @@ export class PgExecutionStore
               sessionId,
               runId: row.run_id,
               status: row.status,
-              endedAt: Number(row.updated_at),
+              endedAt: row.updated_at,
             },
           ];
     });
@@ -1713,7 +1712,7 @@ export class PgExecutionStore
         [orgId, [...new Set(candidates.map((run) => run.sessionId))]],
       );
       const newest = new Map(
-        rows.map((row) => [row.session_id, Number(row.created_at)]),
+        rows.map((row) => [row.session_id, row.created_at]),
       );
       return candidates.filter(
         (run) => newest.get(run.sessionId) === run.createdAt,

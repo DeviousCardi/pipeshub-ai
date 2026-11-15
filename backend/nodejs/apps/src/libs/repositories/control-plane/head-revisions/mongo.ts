@@ -11,6 +11,9 @@ import { CpOrgHeadModel } from '../org-heads/schema/org-heads.schema';
 export const DEPLOYMENT_HEAD_ID = '$deployment';
 
 /** What the head reads ask of mongoose's connection. */
+/** `readyState` is a plain number on the connections this watches (and their fakes). */
+const CONNECTED: number = ConnectionStates.connected;
+
 export interface WatchedConnection {
   readonly readyState: number;
   once(event: 'connected', listener: () => void): unknown;
@@ -31,8 +34,7 @@ export function connectedWithin(
   connection: WatchedConnection,
   graceMs: number = RECONNECT_GRACE_MS,
 ): Promise<void> {
-  if (connection.readyState === ConnectionStates.connected)
-    return Promise.resolve();
+  if (connection.readyState === CONNECTED) return Promise.resolve();
   return new Promise((resolve, reject) => {
     const connected = (): void => {
       clearTimeout(timer);

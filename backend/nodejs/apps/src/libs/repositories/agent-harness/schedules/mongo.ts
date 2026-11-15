@@ -18,7 +18,6 @@ import {
   RunInputSeal,
   UNSEALED_RUN_INPUT,
 } from '../../../../modules/agent-harness/application/run-input-seal';
-import type { StoredQueryInput } from '../../../../modules/agent-harness/application/run-input-seal';
 import {
   inMongoTransaction,
   MAJORITY_WRITE,
@@ -235,7 +234,7 @@ export class MongoScheduleStore implements ScheduleStore, ScheduleEraser {
           updatedAt: now,
         },
       },
-      { new: true, ...MAJORITY_WRITE },
+      { returnDocument: 'after', ...MAJORITY_WRITE },
     ).lean<ScheduleDocument>();
     return updated === null ? null : toSchedule(this.inputs, updated);
   }
@@ -254,7 +253,7 @@ export class MongoScheduleStore implements ScheduleStore, ScheduleEraser {
         status: { $ne: 'disabled' },
       },
       { $set: { agentVersion, updatedAt: now } },
-      { new: true, ...MAJORITY_WRITE },
+      { returnDocument: 'after', ...MAJORITY_WRITE },
     ).lean<ScheduleDocument>();
     return updated === null ? null : toSchedule(this.inputs, updated);
   }
@@ -425,7 +424,7 @@ export class MongoScheduleStore implements ScheduleStore, ScheduleEraser {
           leaseUntil: { $lte: now },
         },
         { $inc: { attempts: 1 }, $set: { leaseUntil: now + leaseMs } },
-        { new: true, ...MAJORITY_WRITE },
+        { returnDocument: 'after', ...MAJORITY_WRITE },
       ).lean<ScheduleFiringDocument>();
       if (won !== null) taken.push(toFiring(won));
     }
@@ -579,7 +578,7 @@ export class MongoScheduleStore implements ScheduleStore, ScheduleEraser {
     const fixed = await AgentScheduleFiringModel.findOneAndUpdate(
       { _id: firingId, orgId, context: { $exists: false } },
       { $set: { context } },
-      { new: true, ...MAJORITY_WRITE },
+      { returnDocument: 'after', ...MAJORITY_WRITE },
     ).lean<ScheduleFiringDocument>();
     if (fixed?.context !== undefined) return fixed.context;
     const existing = await AgentScheduleFiringModel.findOne({
@@ -607,7 +606,7 @@ export class MongoScheduleStore implements ScheduleStore, ScheduleEraser {
         $set: { updatedAt: windowStart, expiresAt: new Date(expiresAt) },
         $setOnInsert: { orgId },
       },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     ).lean<{ count: number }>();
     // An upsert answering the new document always has one.
     return counted.count;
@@ -627,7 +626,7 @@ export class MongoScheduleStore implements ScheduleStore, ScheduleEraser {
         $set: { updatedAt: at, expiresAt: new Date(expiresAt) },
         $setOnInsert: { orgId },
       },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     ).lean<{ count: number }>();
     return seen.count === 1;
   }

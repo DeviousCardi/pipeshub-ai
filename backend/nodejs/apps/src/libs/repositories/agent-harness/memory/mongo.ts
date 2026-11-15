@@ -16,7 +16,7 @@ const DUPLICATE_KEY = 11000;
 
 const entryOf = (document: MemoryDocument): MemoryEntry => {
   const { _id: _ignored, ...entry } = document;
-  return structuredClone(entry) as MemoryEntry;
+  return structuredClone<MemoryEntry>(entry);
 };
 
 /** `MemoryStore` over `agentMemories` (indexes: migrations `memories` and `memory-settlement`). */
@@ -96,7 +96,7 @@ export class MongoMemoryStore implements MemoryStore, MemoryEraser {
         ...(expected !== undefined ? { status: expected } : {}),
       },
       { $set: set },
-      { new: true },
+      { returnDocument: 'after' },
     ).lean();
     return updated === null ? null : entryOf(updated);
   }

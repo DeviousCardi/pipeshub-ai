@@ -18,7 +18,6 @@ import { AgentSessionForkModel } from './schema/session-forks.schema';
 import {
   ForkCitationData,
   ForkCitationLink,
-  ForkedMessageFields,
   ForkKey,
   forkRecordId,
   ForkResult,
@@ -94,10 +93,12 @@ export function sourceMessage(message: Json): ForkSourceMessage {
         : {}),
     });
   }
-  const sender = message['senderId'];
+  // An ObjectId or a string: either prints as the id.
+  const sender = message['senderId'] as
+    { toString(): string } | null | undefined;
   return {
     messageType: String(message['messageType']),
-    senderId: sender === undefined || sender === null ? null : String(sender),
+    senderId: sender == null ? null : String(sender),
     content: typeof message['content'] === 'string' ? message['content'] : '',
     citations,
     fields: fields,
@@ -155,7 +156,7 @@ export class HarnessSessionForkStore implements SessionForkStore<Tx> {
           completedAt: null,
         },
       },
-      { upsert: true, new: true, ...MAJORITY_WRITE },
+      { upsert: true, returnDocument: 'after', ...MAJORITY_WRITE },
     ).lean();
     return recordOf(record);
   }

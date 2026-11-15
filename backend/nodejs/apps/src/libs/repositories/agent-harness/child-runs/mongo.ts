@@ -91,7 +91,7 @@ export async function joinParent(
         },
       },
     ],
-    { updatePipeline: true, new: true, session },
+    { updatePipeline: true, returnDocument: 'after', session },
   ).lean();
   if (updated === null) return;
   const parent = runFromDocument(updated);
@@ -246,7 +246,12 @@ export class MongoChildRunStore implements ChildRunStore {
             journalFeatures: { $each: sessionChildFeatures(command.roleModel) },
           },
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true, session },
+        {
+          upsert: true,
+          returnDocument: 'after',
+          setDefaultsOnInsert: true,
+          session,
+        },
       ).lean();
       const child = childRunDocument(parent, command, now, this.runKeys);
       child.requires = {

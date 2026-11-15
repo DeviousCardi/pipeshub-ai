@@ -400,7 +400,13 @@ export class PgWorkspaceKeyStore implements WorkspaceKeyStore {
       { write: true },
       async (k) => {
         for (let attempt = 0; attempt < 3; attempt += 1) {
-          const prior = await this.read(k, orgId, sessionId, true);
+          // A stored key document is JSON written by older code too: any field may be missing.
+          const prior: Partial<KeyDocument> | null = await this.read(
+            k,
+            orgId,
+            sessionId,
+            true,
+          );
           if (prior === null) {
             const tombstone: KeyDocument = {
               keyId: '',

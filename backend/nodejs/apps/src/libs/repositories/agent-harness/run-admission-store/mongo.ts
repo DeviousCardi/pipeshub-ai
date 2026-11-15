@@ -7,7 +7,6 @@ import { memoryPin } from '../../../../modules/agent-harness/domain/memory';
 import {
   AnsweredRun,
   answeredRunFrom,
-  StoredAskingRun,
 } from '../../../../modules/agent-harness/domain/answered-run';
 import mongoose, { ClientSession, Types } from 'mongoose';
 import {
@@ -49,7 +48,6 @@ import {
   admittedJournalAppend,
   HarnessRun,
   nodeAppend,
-  RunInputSnapshot,
 } from '../../../../modules/agent-harness/domain/execution';
 import {
   assertReferencesChecked,
@@ -639,7 +637,7 @@ export class MongoRunAdmissionStore
           },
           {
             upsert: true,
-            new: true,
+            returnDocument: 'after',
             setDefaultsOnInsert: true,
             session: mongoSession,
           },
@@ -830,7 +828,7 @@ export class MongoRunAdmissionStore
     const touched = await AgentRunModel.findOneAndUpdate(
       { orgId: active.orgId, runId: active.runId, status: active.status },
       { $inc: { nextRunsQueued: 1 } },
-      { new: true, session },
+      { returnDocument: 'after', session },
     ).lean();
     if (!touched) {
       throw new HarnessConflictError(
@@ -1001,7 +999,7 @@ export class MongoRunAdmissionStore
           },
         },
       ],
-      { updatePipeline: true, new: true, session },
+      { updatePipeline: true, returnDocument: 'after', session },
     ).lean();
     if (!updated) throw steeringConflict('cancelling');
     const queued = runFromDocument(updated);

@@ -18,7 +18,7 @@ export class PgHarnessAttachmentCarriers implements AttachmentCarriers {
     recordIds: readonly string[],
   ): Promise<Map<string, string>> {
     if (!hasValidIds(orgId) || recordIds.length === 0)
-      return Promise.resolve(new Map());
+      return Promise.resolve(new Map<string, string>());
     return inBoundOrgUnit(orgId, () =>
       getConversationRepository().findAttachmentCarriers(orgId, recordIds),
     );

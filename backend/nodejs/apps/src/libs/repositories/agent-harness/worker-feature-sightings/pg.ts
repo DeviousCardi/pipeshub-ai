@@ -31,7 +31,7 @@ export class PgWorkerFeatureSightings implements WorkerFeatureSightings {
       );
       const seenAt = rows[0]?.seen_at;
       return {
-        seenAt: seenAt == null ? null : Number(seenAt),
+        seenAt: seenAt ?? null,
         now: await this.time.now(k),
       };
     });

@@ -68,7 +68,7 @@ export class PgHarnessConversationWriter implements ConversationWriter<Tx> {
     tx: Tx,
     accounted?: AccountedConversation,
   ): Promise<string> {
-    const message = {
+    const message: NewMessage = {
       ...buildUserQueryMessage(
         turn.query,
         turn.appliedFilters,
@@ -79,7 +79,7 @@ export class PgHarnessConversationWriter implements ConversationWriter<Tx> {
         turn.command,
       ),
       ...(turn.senderId !== undefined ? { senderId: turn.senderId } : {}),
-    } as IMessage;
+    };
     const known = accounted ?? (await lockAccounted(ref, tx));
     if (known === null) {
       throw new NotFoundError(
@@ -231,9 +231,11 @@ export class PgHarnessConversationWriter implements ConversationWriter<Tx> {
     const accounted = await lockAccounted(refOf(run), tx, durableSession(run));
     if (accounted === null) return false;
     const data = completion as unknown as IAIResponse;
+    // A completion is the engine's record, not a checked IAIResponse: it may carry no citations.
+    const recorded: { citations?: IAIResponse['citations'] } = data;
     const modelInfo = run.input?.model as IAIModel | undefined;
     const citations = await getConversationRepository().createCitations(
-      (data.citations ?? []).map((citation) => ({
+      (recorded.citations ?? []).map((citation) => ({
         content: citation.content,
         chunkIndex: citation.chunkIndex,
         citationType: citation.citationType,

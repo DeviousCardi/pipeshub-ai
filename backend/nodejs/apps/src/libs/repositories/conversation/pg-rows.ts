@@ -264,11 +264,8 @@ export function storedMessage(m: NewMessage): StoredMessage {
     tools,
     reasoning,
     parts,
-    senderId:
-      m.senderId !== undefined && m.senderId !== null
-        ? String(m.senderId)
-        : null,
-    label: m.label !== undefined && m.label !== null ? clean(m.label) : null,
+    senderId: m.senderId != null ? String(m.senderId) : null,
+    label: m.label != null ? clean(m.label) : null,
     harness: clean(shapeHarnessFields(m)),
   };
 }

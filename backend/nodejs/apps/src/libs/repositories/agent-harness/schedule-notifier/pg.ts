@@ -18,9 +18,7 @@ export const pgScheduleNoticeRecords: ScheduleNoticeRecords = {
         order: 'desc',
         limit: 20,
       });
-      const answer = found.find((m) =>
-        ANSWER_TYPES.has(String(m.dto.messageType)),
-      );
+      const answer = found.find((m) => ANSWER_TYPES.has(m.dto.messageType));
       return typeof answer?.dto.content === 'string'
         ? answer.dto.content
         : null;

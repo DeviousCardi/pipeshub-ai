@@ -228,8 +228,10 @@ export class HarnessConversationWriter implements ConversationWriter<Tx> {
   ): Promise<boolean> {
     const tx = asMongoSession(txHandle);
     const data = completion as unknown as IAIResponse;
+    // A completion is the engine's record, not a checked IAIResponse: it may carry no citations.
+    const recorded: { citations?: IAIResponse['citations'] } = data;
     const modelInfo = run.input?.model as IAIModel | undefined;
-    const citations = (data.citations ?? []).map(
+    const citations = (recorded.citations ?? []).map(
       (citation) =>
         new Citation({
           content: citation.content,
@@ -342,9 +344,7 @@ const modelFields = (model?: IAIModel): Record<string, unknown> =>
   Object.fromEntries(
     MODEL_FIELDS.flatMap((field) => {
       const value = model?.[field];
-      return value === undefined || value === null
-        ? []
-        : [[`modelInfo.${field}`, value]];
+      return value == null ? [] : [[`modelInfo.${field}`, value]];
     }),
   );
 

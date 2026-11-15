@@ -133,11 +133,13 @@ export class HarnessStoreUnavailableError extends Error {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- the caller names the store interface the proxy stands in for
 function unavailableStore<T extends object>(name: string): T {
-  return new Proxy({} as T, {
+  const target: object = {};
+  return new Proxy(target, {
     get(_target, prop) {
       if (prop === 'then') return undefined;
       return () => Promise.reject(new HarnessStoreUnavailableError(name));
     },
-  });
+  }) as T;
 }

@@ -108,7 +108,7 @@ const TABLES: ReadonlyArray<{
       'harness.workspace_heads': 'agentWorkspaceHeads',
       'harness.workspace_writers': 'agentWorkspaceWriters',
     }[table],
-    select: (s) => ({
+    select: (s: Selection) => ({
       where: `(workspace_id = $2 OR workspace_id LIKE $3 ESCAPE '\\')`,
       values: [s.workspace, `${likeEscape(s.workspace)}:%`],
     }),

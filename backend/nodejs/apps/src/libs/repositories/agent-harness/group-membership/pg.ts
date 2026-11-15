@@ -20,7 +20,7 @@ export class PgGroupMembership implements ActorGroupMembership {
     const groups = await inBoundOrgUnit(orgId, () =>
       getGroupRepository().groupsOfUser(orgId, userId),
     );
-    return groups.some((group) => wanted.has(String(group._id)));
+    return groups.some((group) => wanted.has(group._id));
   }
 
   /** The ids that are not live groups of the org (deleted, another org's, never existed), in the order given. */
@@ -49,6 +49,6 @@ export class PgGroupMembership implements ActorGroupMembership {
     const found = await inBoundOrgUnit(orgId, () =>
       getGroupRepository().listLiveByIds(orgId, ids),
     );
-    return new Map(found.map((group) => [String(group._id), group.name]));
+    return new Map(found.map((group) => [group._id, group.name]));
   }
 }

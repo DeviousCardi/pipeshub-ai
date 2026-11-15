@@ -56,7 +56,7 @@ export function messageProvenance(message: IMessage): TurnLabel | null {
       complete: true,
       sources: (message.attachments ?? []).map((attachment) => ({
         kind: 'attachment',
-        recordId: String(attachment.recordId),
+        recordId: attachment.recordId,
       })),
     });
   }

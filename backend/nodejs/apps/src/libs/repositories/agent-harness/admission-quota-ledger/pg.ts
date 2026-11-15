@@ -23,7 +23,7 @@ export { AdmissionQuotaHold } from './hold';
 /** The org a quota key names (`orgQuotaKey`, `userQuotaKey`: a JSON array with the org second). */
 export function quotaKeyOrg(key: string): string {
   const parsed = JSON.parse(key) as unknown;
-  const orgId = Array.isArray(parsed) ? parsed[1] : undefined;
+  const orgId: unknown = Array.isArray(parsed) ? parsed[1] : undefined;
   if (typeof orgId !== 'string')
     throw new InternalServerError('an admission quota key names no org');
   return orgId;
@@ -49,7 +49,7 @@ async function lockState(
   return row === undefined
     ? null
     : {
-        windowStart: Number(row.window_start),
+        windowStart: row.window_start,
         count: row.count,
         holds: decodeDoc<QuotaLedgerState['holds']>(row.holds),
       };
