@@ -875,7 +875,11 @@ export class ExecutionService {
             outcome: 'failed',
           }),
         );
-        await this.failRun(claimed, JOURNAL_PAYLOAD_MISSING, claimed.attemptId ?? undefined);
+        await this.failRun(
+          claimed,
+          JOURNAL_PAYLOAD_MISSING,
+          claimed.attemptId ?? undefined,
+        );
       } else if (claimed.attemptId !== null && claimed.workerId !== null) {
         await this.release({
           orgId: claimed.orgId,
@@ -2641,7 +2645,15 @@ export class ExecutionService {
             }),
           ]
         : [];
-    if (!(await this.store.failRun(run.orgId, run.runId, errorType, journal, holder))) {
+    if (
+      !(await this.store.failRun(
+        run.orgId,
+        run.runId,
+        errorType,
+        journal,
+        holder,
+      ))
+    ) {
       return false;
     }
     this.ended(run, { ...run, status: 'failed' });

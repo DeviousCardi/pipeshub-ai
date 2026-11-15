@@ -1404,7 +1404,9 @@ export class MongoExecutionStore
           $expr: {
             $or: [
               { $not: [this.isAfterNow('leaseExpiresAt')] },
-              ...(holder !== undefined ? [{ $eq: ['$attemptId', holder] }] : []),
+              ...(holder !== undefined
+                ? [{ $eq: ['$attemptId', holder] }]
+                : []),
             ],
           },
         }

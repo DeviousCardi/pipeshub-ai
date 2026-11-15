@@ -1977,7 +1977,8 @@ export class PgExecutionStore
             leaseExpiresAt: after(doc['leaseExpiresAt'], now)
               ? (doc['leaseExpiresAt'] as number)
               : null,
-            attemptId: typeof doc['attemptId'] === 'string' ? doc['attemptId'] : null,
+            attemptId:
+              typeof doc['attemptId'] === 'string' ? doc['attemptId'] : null,
           },
           now,
           lease.holder,
