@@ -2,8 +2,8 @@
  "generatedBy": "scripts/harness_test_inventory.py",
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2063,
- "claimedTestFiles": 3897,
- "claimedTests": 41154,
+ "claimedTestFiles": 3898,
+ "claimedTests": 41169,
  "claimedFilesByLevel": {
   "cohesion": 64,
   "component": 48,
@@ -18,7 +18,7 @@
   "live": 6,
   "perf": 3,
   "replay": 16,
-  "unit": 3160
+  "unit": 3161
  },
  "components": [
   {
@@ -26,7 +26,7 @@
    "name": "Control-plane catalog",
    "status": "target (CPD-2 in flight)",
    "files": 19,
-   "tests": 201,
+   "tests": 202,
    "filesByLevel": {
     "cohesion": 1,
     "contract": 2,
@@ -37,7 +37,7 @@
     "cohesion": 3,
     "contract": 16,
     "integration": 3,
-    "unit": 179
+    "unit": 180
    },
    "markers": {},
    "unmatchedTestGlobs": [
@@ -139,7 +139,7 @@
      "path": "backend/python/tests/unit/agents/mcp/test_registry.py",
      "level": "unit",
      "markers": [],
-     "tests": 32
+     "tests": 33
     },
     {
      "path": "backend/python/tests/unit/agents/test_toolset_registry.py",
@@ -7978,7 +7978,7 @@
    "name": "MCP hub and runners",
    "status": "built, flags off (MCP_HUB, MCP_STDIO_RUNNERS)",
    "files": 130,
-   "tests": 1870,
+   "tests": 1872,
    "filesByLevel": {
     "contract": 2,
     "e2e-browser": 1,
@@ -7989,7 +7989,7 @@
     "contract": 30,
     "e2e-browser": 1,
     "integration-docker": 22,
-    "unit": 1817
+    "unit": 1819
    },
    "markers": {
     "docker": 2,
@@ -8184,7 +8184,7 @@
      "path": "backend/python/tests/unit/agents/mcp/test_registry.py",
      "level": "unit",
      "markers": [],
-     "tests": 32
+     "tests": 33
     },
     {
      "path": "backend/python/tests/unit/agents/mcp/test_sdk2_shapes.py",
@@ -8654,7 +8654,7 @@
      "path": "frontend/app/(main)/workspace/mcp-servers/__tests__/mcp-server-icon.test.tsx",
      "level": "unit",
      "markers": [],
-     "tests": 21
+     "tests": 22
     },
     {
      "path": "frontend/app/(main)/workspace/mcp-servers/__tests__/mcp-tool-rules-dialog.test.tsx",
@@ -17104,15 +17104,15 @@
    "id": "LEG",
    "name": "Legacy query path (today's loop)",
    "status": "built (reference and kill-switch target)",
-   "files": 694,
-   "tests": 16257,
+   "files": 695,
+   "tests": 16271,
    "filesByLevel": {
     "contract": 5,
     "integration": 2,
     "integration-docker": 1,
     "live": 6,
     "replay": 1,
-    "unit": 679
+    "unit": 680
    },
    "testsByLevel": {
     "contract": 86,
@@ -17120,7 +17120,7 @@
     "integration-docker": 12,
     "live": 39,
     "replay": 7,
-    "unit": 16098
+    "unit": 16112
    },
    "markers": {
     "ai_agents": 6,
@@ -20158,7 +20158,7 @@
      "path": "backend/python/tests/unit/agents/mcp/test_registry.py",
      "level": "unit",
      "markers": [],
-     "tests": 32
+     "tests": 33
     },
     {
      "path": "backend/python/tests/unit/agents/mcp/test_sdk2_shapes.py",
@@ -21010,7 +21010,7 @@
      "path": "backend/python/tests/unit/api/routes/test_retrieve.py",
      "level": "unit",
      "markers": [],
-     "tests": 17
+     "tests": 18
     },
     {
      "path": "backend/python/tests/unit/api/routes/test_route_modules_import_alone.py",
@@ -21227,6 +21227,12 @@
      "level": "unit",
      "markers": [],
      "tests": 2
+    },
+    {
+     "path": "backend/python/tests/unit/api/test_record_internal_fields_in_responses.py",
+     "level": "unit",
+     "markers": [],
+     "tests": 12
     },
     {
      "path": "backend/python/tests/unit/api/test_route_auth_policy.py",
@@ -24909,14 +24915,14 @@
    "name": "Frontend workspace and admin surfaces",
    "status": "built",
    "files": 310,
-   "tests": 2164,
+   "tests": 2165,
    "filesByLevel": {
     "e2e-browser": 17,
     "unit": 293
    },
    "testsByLevel": {
     "e2e-browser": 62,
-    "unit": 2102
+    "unit": 2103
    },
    "markers": {},
    "unmatchedTestGlobs": [],
@@ -26216,7 +26222,7 @@
      "path": "frontend/app/(main)/workspace/mcp-servers/__tests__/mcp-server-icon.test.tsx",
      "level": "unit",
      "markers": [],
-     "tests": 21
+     "tests": 22
     },
     {
      "path": "frontend/app/(main)/workspace/mcp-servers/__tests__/mcp-tool-rules-dialog.test.tsx",
