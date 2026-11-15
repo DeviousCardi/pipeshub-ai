@@ -16,16 +16,6 @@ if TYPE_CHECKING:
     )
     from app.services.graph_db.neo4j.neo4j_provider import Neo4jProvider  # noqa: F401
 
-# The edition's services, each imported when first read: a process that asks this module only for its harness hooks
-# (the sandbox broker's image check) loaded the Neo4j driver, pandas and the connectors' token services with them,
-# about 110 MiB of the idle broker (R25OPS-FU-1).
-_LAZY_SERVICES = {
-    "TokenRefreshService": "app.connectors.core.base.token_service.token_refresh_service",
-    "ToolsetTokenRefreshService": "app.connectors.core.base.token_service.toolset_token_refresh_service",
-    "MCPTokenRefreshService": "app.connectors.core.base.token_service.mcp_token_refresh_service",
-    "get_oauth_config_registry": "app.connectors.core.registry.oauth_config_registry",
-    "Neo4jProvider": "app.services.graph_db.neo4j.neo4j_provider",
-}
 # Which indexing lane a connector is given on Redis Streams, whether an
 # administrator may move it, and which pool of lanes an org belongs in. An
 # edition can replace any of them: pin a connector to a lane of its own, weight
@@ -39,6 +29,17 @@ from app.services.messaging.lanes.assignment_policy import (
 from app.services.messaging.lanes.assignment_policy import (
     lane_pool_for_org as lane_pool_for_org,
 )
+
+# The edition's services, each imported when first read: a process that asks this module only for its harness hooks
+# (the sandbox broker's image check) loaded the Neo4j driver, pandas and the connectors' token services with them,
+# about 110 MiB of the idle broker (R25OPS-FU-1).
+_LAZY_SERVICES = {
+    "TokenRefreshService": "app.connectors.core.base.token_service.token_refresh_service",
+    "ToolsetTokenRefreshService": "app.connectors.core.base.token_service.toolset_token_refresh_service",
+    "MCPTokenRefreshService": "app.connectors.core.base.token_service.mcp_token_refresh_service",
+    "get_oauth_config_registry": "app.connectors.core.registry.oauth_config_registry",
+    "Neo4jProvider": "app.services.graph_db.neo4j.neo4j_provider",
+}
 
 
 def __getattr__(name: str) -> Any:
@@ -96,7 +97,9 @@ async def pre_sync_hook(app_container, logger) -> None:
 
 def get_data_entities_processor_cls():
     """Return the DataSourceEntitiesProcessor class for this edition."""
-    from app.connectors.core.base.data_processor.data_source_entities_processor import DataSourceEntitiesProcessor
+    from app.connectors.core.base.data_processor.data_source_entities_processor import (
+        DataSourceEntitiesProcessor,
+    )
     return DataSourceEntitiesProcessor
 
 

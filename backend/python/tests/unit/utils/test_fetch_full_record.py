@@ -36,7 +36,6 @@ class _Readable:
 
 
 ALLOW = _Readable()
-from app.services.graph_db.interface.graph_db_provider import AccessCheck
 
 
 class TestFetchFullRecordArgs:

@@ -19,7 +19,6 @@ from app.control_plane.testing.contracts import (
     ItemRuntimeContract,
     ItemRuntimeRegistryContract,
     LiveLayerCacheContract,
-    digest,
     pinned_binding,
 )
 from app.control_plane.testing.memory import (

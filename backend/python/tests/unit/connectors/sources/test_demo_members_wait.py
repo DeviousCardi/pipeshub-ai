@@ -12,7 +12,6 @@ and that instance still has to end up with its records.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 
 import pytest

@@ -24,6 +24,14 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator
 
+from harness_core.effects.flow import (
+    FlowRule,  # noqa: TC001 - pydantic resolves the field type at runtime
+)
+from harness_core.security.secrets import EMPTY_SECRETS
+from harness_core.tool_identity import (
+    ToolBinding,  # noqa: TC001 - pydantic resolves the field type at runtime
+)
+
 if TYPE_CHECKING:
     from app.services.artifact_registry.models import Actor
 
@@ -41,13 +49,6 @@ def _tool_approval_answer(raw: Any) -> Any:  # noqa: ANN401
     except ValidationError:
         return None
 
-from harness_core.effects.flow import (
-    FlowRule,  # noqa: TC001 - pydantic resolves the field type at runtime
-)
-from harness_core.security.secrets import EMPTY_SECRETS
-from harness_core.tool_identity import (
-    ToolBinding,  # noqa: TC001 - pydantic resolves the field type at runtime
-)
 
 if TYPE_CHECKING:
     from app.harness.credentials.tool_credentials import ToolCredentials

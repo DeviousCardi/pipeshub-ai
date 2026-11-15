@@ -120,13 +120,13 @@ from app.modules.agents.knowledge_scope import (
     resolve_agent_filters,
 )
 from app.modules.agents.qna.router import (
-    RouteDecision,
+    RouteDecision,  # noqa: F401 - re-exported for backward-compat imports (see below)
 )
 from app.modules.agents.qna.router import (
-    build_capability_context as _build_agent_capability_context,
+    build_capability_context as _build_agent_capability_context,  # noqa: F401
 )
 from app.modules.agents.qna.router import (
-    build_prior_routing_messages as _build_prior_routing_messages,
+    build_prior_routing_messages as _build_prior_routing_messages,  # noqa: F401
 )
 from app.modules.retrieval.filter_schema import validate_request_filters
 from app.modules.retrieval.selection_scope import (
@@ -141,7 +141,7 @@ from app.modules.retrieval.selection_scope import (
     within_connection,
 )
 from app.modules.transformers.blob_storage import (
-    BlobStorage,
+    BlobStorage,  # noqa: F401 - re-exported, see above
 )
 from app.schema.node_validator import SchemaValidationError
 from app.services.graph_db.common.utils import (

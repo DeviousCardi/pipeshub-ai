@@ -12,7 +12,6 @@
 
 from __future__ import annotations
 
-import shutil
 from typing import TYPE_CHECKING
 
 import pytest
@@ -27,7 +26,6 @@ from harness_core.testing.engines.durable import EngineWorld, engine_run_spec
 from harness_core.testing.sandbox.fake import FAKE_PROGRAMS
 
 if TYPE_CHECKING:
-    from pathlib import Path
 
     from pydantic import JsonValue
 

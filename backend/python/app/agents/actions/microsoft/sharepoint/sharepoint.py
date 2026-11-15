@@ -5,9 +5,6 @@ from collections.abc import Awaitable, Callable
 from http import HTTPStatus
 from typing import Any, Optional
 
-# JSON-serializable value produced by _serialize_response (avoids Any)
-_JsonSerValue = dict[str, object] | list[object] | str | int | float | bool | None
-
 from kiota_serialization_json.json_serialization_writer import (
     JsonSerializationWriter,  # type: ignore
 )
@@ -49,6 +46,9 @@ from app.sources.external.microsoft.sharepoint.sharepoint import (
 )
 
 logger = logging.getLogger(__name__)
+
+# JSON-serializable value produced by _serialize_response (avoids Any)
+_JsonSerValue = dict[str, object] | list[object] | str | int | float | bool | None
 
 _MAX_FILE_CONTENT_BYTES = 50 * 1024 * 1024  # 50 MB — matches OneDrive
 _NOTEBOOK_PAGE_SIZE = 50

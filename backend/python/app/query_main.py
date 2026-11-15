@@ -43,18 +43,18 @@ from app.utils.logger import install_log_redaction
 from app.utils.request_context import set_service_suffix
 
 set_service_suffix("-qs")
-from app.agent_loop_lib import composition as agent_loop_composition
+from app.agent_loop_lib import composition as agent_loop_composition  # noqa: E402 - after set_service_suffix(), like the imports around it
 from app.api.routes.code_graph import router as code_graph_router  # noqa: E402 - after set_service_suffix(), like the imports around it
 from app.api.routes.control_plane_drivers import router as control_plane_drivers_router  # noqa: E402
 from app.api.routes.graph_view import router as graph_view_router  # noqa: E402
 from app.api.routes.harness import router as harness_router  # noqa: E402 - after set_service_suffix(), like the imports around it
 from app.api.routes.health import router as health_router
-from app.api.routes.knowledge_publications import (
+from app.api.routes.knowledge_publications import (  # noqa: E402 - after set_service_suffix(), like the imports around it
     router as knowledge_publications_router,
 )
 from app.api.routes.knowledge_search import router as knowledge_search_router  # noqa: E402 - after set_service_suffix(), like the imports around it
 from app.api.routes.openai_models import router as openai_models_router
-from app.api.routes.record_access import router as record_access_router
+from app.api.routes.record_access import router as record_access_router  # noqa: E402 - after set_service_suffix(), like the imports around it
 from app.api.routes.skills import router as skills_router
 from app.api.routes.speech import router as speech_router
 from app.api.routes.toolsets import router as toolsets_router

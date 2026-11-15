@@ -104,7 +104,7 @@ from app.services.messaging.utils import MessagingUtils
 from app.telemetry.flag import telemetry_enabled  # noqa: E402 - like the imports around it, after set_service_suffix()
 from app.telemetry.modules.connector_metrics import set_connector_active
 from app.telemetry.setup import setup_telemetry
-from app.utils.pdf_stream_conversion import document_conversion_available
+from app.utils.pdf_stream_conversion import document_conversion_available  # noqa: E402 - after set_service_suffix(), like the imports around it
 from app.utils.process_hardening import mark_process_non_dumpable
 from app.utils.time_conversion import get_epoch_timestamp_in_ms
 

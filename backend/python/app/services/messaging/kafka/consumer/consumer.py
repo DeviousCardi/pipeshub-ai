@@ -1,6 +1,5 @@
 import asyncio
 import json
-import ssl
 import time
 from collections import deque
 from logging import Logger

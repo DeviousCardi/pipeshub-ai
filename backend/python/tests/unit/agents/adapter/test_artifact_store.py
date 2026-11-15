@@ -26,7 +26,7 @@ from app.agent_loop_lib.core.messages import (
 )
 from app.agents.agent_loop.artifact_store import RegistryBackedStore
 from app.services.artifact_registry.models import Actor, ArtifactMetadata
-from app.models.entities import ArtifactType, ArtifactVisibility, LifecycleStatus
+from app.models.entities import ArtifactType, ArtifactVisibility
 from app.services.artifact_registry.registry import ArtifactRegistryService
 from tests.unit.services.artifact_registry.fakes import FakeBlobStore, FakeGraphProvider
 

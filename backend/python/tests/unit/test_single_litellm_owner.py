@@ -8,7 +8,6 @@ catch any other distribution that starts writing into litellm/.
 """
 
 import importlib.metadata
-import os
 import re
 import shutil
 import subprocess

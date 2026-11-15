@@ -10,7 +10,6 @@ from unittest.mock import patch
 import pytest
 
 from app.core import org_context
-from app.modules.transformers import entity_vectorstore as module
 from app.modules.transformers.entity_vectorstore import EntityVectorStore
 from app.services.vector_db.models import VectorDBCapabilities, VectorPoint
 from tests.support.embedding_config import config_service

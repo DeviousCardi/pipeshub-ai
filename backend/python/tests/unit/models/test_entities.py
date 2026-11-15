@@ -11,14 +11,12 @@ import pytest
 
 from app.config.constants.arangodb import CollectionNames, Connectors, MimeTypes, OriginTypes, ProgressStatus, RecordRelations
 from app.schema.node_schema_registry import get_node_schema
-from app.models.blocks import Block, BlockGroup, BlocksContainer, BlockType, GroupType, BlockGroupChildren, IndexRange
 from app.models.entities import (
     CodeFileRecord,
     DealRecord,
     FileRecord,
     LinkPublicStatus,
     LinkRecord,
-    LlmTextContent,
     MailRecord,
     MessageRecord,
     ProductRecord,
