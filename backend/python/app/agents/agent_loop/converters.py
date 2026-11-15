@@ -344,6 +344,9 @@ def _strip_line_fences(raw: str) -> str:
     that regex retried its ``\\s*`` from every position of a whitespace run, so a
     runaway of whitespace in a truncated tool call cost quadratic CPU on the event
     loop (80,000 characters: 5 s; DUR1-F7)."""
+    if "```" not in raw:
+        # No fence to drop, and no per-line Python work over a long run of newlines.
+        return raw
     return "\n".join(_strip_fence(line) for line in raw.split("\n"))
 
 
