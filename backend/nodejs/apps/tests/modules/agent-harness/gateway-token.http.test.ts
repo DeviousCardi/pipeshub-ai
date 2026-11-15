@@ -4,7 +4,7 @@
  */
 import 'reflect-metadata';
 import { expect } from 'chai';
-import express, { Response } from 'express';
+import express from 'express';
 import { AddressInfo } from 'node:net';
 import { Server } from 'node:http';
 import { Container } from 'inversify';
