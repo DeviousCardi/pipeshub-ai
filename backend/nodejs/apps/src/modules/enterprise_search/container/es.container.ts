@@ -134,7 +134,7 @@ const loggerConfig = {
 };
 
 export class EnterpriseSearchAgentContainer {
-  protected static instance: Container;
+  protected static instance: Container | null = null;
   protected static logger: Logger = Logger.getInstance(loggerConfig);
 
   static async initialize(

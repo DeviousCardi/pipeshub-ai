@@ -775,7 +775,10 @@ export const resolveChatAttachmentMimeType = (
   if (dot < 0) return null;
   const extension = name.slice(dot + 1).toLowerCase();
   // Own keys only: a file named "x.constructor" would otherwise resolve to Object.
-  return Object.prototype.hasOwnProperty.call(CHAT_ATTACHMENT_MIME_BY_EXTENSION, extension)
+  return Object.prototype.hasOwnProperty.call(
+    CHAT_ATTACHMENT_MIME_BY_EXTENSION,
+    extension,
+  )
     ? (CHAT_ATTACHMENT_MIME_BY_EXTENSION[extension] ?? null)
     : null;
 };
@@ -2898,11 +2901,12 @@ export const getConversationById =
               hasNextPage: skip > 0,
               hasPrevPage: skip + effectiveLimit < totalMessages,
             },
-            conversationWithMessages?.messages || [],
+            (conversationWithMessages as { messages?: IMessage[] }).messages ||
+              [],
           ),
           req,
           checks,
-          { orgId: String(orgId), sessionId: String(sessionId) },
+          { orgId: String(orgId), sessionId },
         ),
         orgId,
       );
@@ -2985,11 +2989,11 @@ async function stopDeletedChatRun(
   if (stopper === undefined) return;
   try {
     await stopper.stop(orgId, sessionId, userId);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.warn('Deleted chat run not stopped; erasure stops it', {
       requestId,
       conversationId: sessionId,
-      errorType: error?.name ?? typeof error,
+      errorType: error instanceof Error ? error.name : typeof error,
     });
   }
 }
@@ -3118,7 +3122,9 @@ export const deleteConversationByIdWith =
   ): Promise<void> =>
     deleteConversation(appConfig, req, res, next, erasures, stopper);
 
-export const deleteConversationById = (appConfig: AppConfig) =>
+export const deleteConversationById = (
+  appConfig: AppConfig,
+): ReturnType<typeof deleteConversationByIdWith> =>
   deleteConversationByIdWith(appConfig);
 
 /**
@@ -5128,6 +5134,11 @@ export const forkAgentConversation =
 /** G-15: where a rating finds its run and agent version, and the rated-answer sink is told of it. */
 export type FeedbackRuns = Pick<RunFeedbackService, 'link' | 'record'>;
 
+/** A feedback request body as its validator passed it. */
+type FeedbackBody = Record<string, unknown> & {
+  metrics?: { userInteractionTime?: unknown; feedbackSessionId?: unknown };
+};
+
 /** The question the rated answer answered: the conversation's last question before it. */
 async function questionBefore(
   message: { sessionId: string; orgId: string; seq: number },
@@ -5160,12 +5171,16 @@ async function performFeedbackUpdate(params: {
   conversationId: string;
   orgId: string;
   messageId: string;
-  userId: string;
-  body: any;
+  // `req.user.userId` as it came: not always a string, so the sink's copy is converted.
+  userId: unknown;
+  body: FeedbackBody;
   userAgent: string | undefined;
   tx?: Tx;
   runs?: FeedbackRuns | undefined;
-}): Promise<{ updatedConversation: any; feedbackEntry: any }> {
+}): Promise<{
+  updatedConversation: ChatSessionDto;
+  feedbackEntry: Record<string, unknown>;
+}> {
   const { scope, messageId, userId, body, userAgent, tx, runs } = params;
 
   const conversation = await convRepo().findForFeedback(
@@ -5192,8 +5207,8 @@ async function performFeedbackUpdate(params: {
     throw new BadRequestError('Feedback is only allowed for bot responses');
   }
 
-  const orgId = String(conversation.orgId);
-  const sessionId = String(conversation._id);
+  const orgId = conversation.orgId;
+  const sessionId = conversation._id;
   const link =
     runs !== undefined
       ? await runs.link(orgId, sessionId, runIdOfMessage(message))
@@ -5208,7 +5223,7 @@ async function performFeedbackUpdate(params: {
       link,
       body: { ...body },
       question: () => questionBefore(message, tx),
-      answer: message.content ?? '',
+      answer: message.content,
     });
   }
 
@@ -5248,22 +5263,26 @@ async function performFeedbackUpdate(params: {
 
 export const updateFeedbackWith =
   (runs?: FeedbackRuns) =>
-  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     const requestId = req.context?.requestId;
     const startTime = Date.now();
     try {
       const { conversationId, messageId } = req.params;
-      const userId = req.user?.userId;
-      const orgId = req.user?.orgId;
+      const userId: unknown = req.user?.userId;
+      const orgId: unknown = req.user?.orgId;
 
-    logger.debug('Attempting to update conversation feedback', {
-      requestId,
-      message: 'Attempting to update conversation feedback',
-      conversationId: req.params.conversationId,
-      userId,
-      feedback: req.body.feedback,
-      timestamp: new Date().toISOString(),
-    });
+      logger.debug('Attempting to update conversation feedback', {
+        requestId,
+        message: 'Attempting to update conversation feedback',
+        conversationId: req.params.conversationId,
+        userId,
+        feedback: req.body.feedback,
+        timestamp: new Date().toISOString(),
+      });
 
       const { updatedConversation, feedbackEntry } = await unitOfWork.run(
         (tx) =>
@@ -5272,44 +5291,44 @@ export const updateFeedbackWith =
             conversationId: conversationId!,
             orgId: String(orgId),
             messageId: messageId!,
-            userId: userId!,
-            body: req.body,
+            userId,
+            body: req.body as FeedbackBody,
             userAgent: req.headers['user-agent'],
             tx,
             runs,
           }),
       );
 
-    logger.debug('Feedback updated successfully', {
-      requestId,
-      conversationId,
-      messageId,
-      duration: Date.now() - startTime,
-    });
-
-    const response = {
-      conversationId: updatedConversation._id,
-      messageId,
-      feedback: feedbackEntry,
-      meta: {
+      logger.debug('Feedback updated successfully', {
         requestId,
-        timestamp: new Date().toISOString(),
+        conversationId,
+        messageId,
         duration: Date.now() - startTime,
-      },
-    };
+      });
 
-    res.status(200).json(response);
-  } catch (error: any) {
-    logger.error('Error updating conversation feedback', {
-      requestId,
-      message: 'Error updating conversation feedback',
-      error: error.message,
-      stack: error.stack,
-      duration: Date.now() - startTime,
-    });
-    next(error);
-  }
-};
+      const response = {
+        conversationId: updatedConversation._id,
+        messageId,
+        feedback: feedbackEntry,
+        meta: {
+          requestId,
+          timestamp: new Date().toISOString(),
+          duration: Date.now() - startTime,
+        },
+      };
+
+      res.status(200).json(response);
+    } catch (error: any) {
+      logger.error('Error updating conversation feedback', {
+        requestId,
+        message: 'Error updating conversation feedback',
+        error: error.message,
+        stack: error.stack,
+        duration: Date.now() - startTime,
+      });
+      next(error);
+    }
+  };
 
 export const updateFeedback = updateFeedbackWith();
 
@@ -6973,7 +6992,11 @@ const AGENT_VERSION_ACTIONS: Record<
  */
 export const agentVersions =
   (appConfig: AppConfig, action: AgentVersionAction) =>
-  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     const route = AGENT_VERSION_ACTIONS[action];
     try {
       if (!getCurrentOrgId() || !req.user?.userId) {
@@ -6981,25 +7004,24 @@ export const agentVersions =
       }
       const agentKey = encodeURIComponent(req.params.agentKey as string);
       const aiResponse = await new AIServiceCommand({
-        uri: `${appConfig.aiBackend}/api/v1/agent/${agentKey}${route.path(String(req.params.version ?? ''))}`,
+        uri: `${appConfig.aiBackend}/api/v1/agent/${agentKey}${route.path(req.params.version ?? '')}`,
         method: route.method,
-        ...(route.method === HttpMethod.POST ? { body: req.body ?? {} } : {}),
+        ...(route.method === HttpMethod.POST
+          ? { body: (req.body as unknown) ?? {} }
+          : {}),
         headers: {
           ...(req.headers as Record<string, string>),
           'Content-Type': 'application/json',
         },
       }).execute();
-      if (!aiResponse) {
-        throw new InternalServerError('Failed to get response from AI service');
-      }
       if (aiResponse.statusCode !== 200 && aiResponse.statusCode !== 201) {
         throw handleBackendError(aiResponse, route.label);
       }
       res.status(aiResponse.statusCode).json(aiResponse.data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(`Error: ${route.label}`, {
         requestId: req.context?.requestId,
-        error: error.message,
+        error: error instanceof Error ? error.message : undefined,
       });
       next(handleBackendError(error, route.label));
     }
@@ -7011,11 +7033,15 @@ export const deleteAgent =
     agentData: AgentDataEraser | null = null,
     retries: AgentErasureQueue | null = null,
   ) =>
-  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     const requestId = req.context?.requestId;
     try {
-      const orgId = req.user?.orgId;
-      const userId = req.user?.userId;
+      const orgId = req.user?.orgId as string | undefined;
+      const userId = req.user?.userId as string | undefined;
       const agentKey = req.params.agentKey as string;
       if (!orgId) {
         throw new BadRequestError('Organization ID is required');
@@ -9020,11 +9046,12 @@ export const getAgentConversationById =
             hasNextPage: skip > 0,
             hasPrevPage: skip + effectiveLimit < totalMessages,
           },
-          conversationWithMessages?.messages || [],
+          (conversationWithMessages as { messages?: IMessage[] }).messages ||
+            [],
         ),
         req,
         checks,
-        { orgId: String(orgId), sessionId: String(sessionId) },
+        { orgId: String(orgId), sessionId },
       );
       // The recipient list is the owner's business: a viewer is told who shared
       // the chat, never who else can read it.
@@ -9176,7 +9203,9 @@ export const deleteAgentConversationByIdWith =
   ): Promise<void> =>
     deleteAgentConversationOf(appConfig, req, res, next, erasures, stopper);
 
-export const deleteAgentConversationById = (appConfig: AppConfig) =>
+export const deleteAgentConversationById = (
+  appConfig: AppConfig,
+): ReturnType<typeof deleteAgentConversationByIdWith> =>
   deleteAgentConversationByIdWith(appConfig);
 
 export const archiveAgentConversation = async (
@@ -9505,22 +9534,26 @@ export const updateAgentConversationTitle = async (
 
 export const updateAgentFeedbackWith =
   (runs?: FeedbackRuns) =>
-  async (req: AuthenticatedUserRequest, res: Response, next: NextFunction) => {
+  async (
+    req: AuthenticatedUserRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     const requestId = req.context?.requestId;
     const startTime = Date.now();
     try {
       const { agentKey, conversationId, messageId } = req.params;
-      const userId = req.user?.userId;
-      const orgId = req.user?.orgId;
+      const userId: unknown = req.user?.userId;
+      const orgId: unknown = req.user?.orgId;
 
-    logger.debug('Attempting to update agent conversation feedback', {
-      requestId,
-      message: 'Attempting to update agent conversation feedback',
-      conversationId,
-      agentKey,
-      userId,
-      timestamp: new Date().toISOString(),
-    });
+      logger.debug('Attempting to update agent conversation feedback', {
+        requestId,
+        message: 'Attempting to update agent conversation feedback',
+        conversationId,
+        agentKey,
+        userId,
+        timestamp: new Date().toISOString(),
+      });
 
       const { updatedConversation, feedbackEntry } = await unitOfWork.run(
         (tx) =>
@@ -9529,44 +9562,44 @@ export const updateAgentFeedbackWith =
             conversationId: conversationId!,
             orgId: String(orgId),
             messageId: messageId!,
-            userId: userId!,
-            body: req.body,
+            userId,
+            body: req.body as FeedbackBody,
             userAgent: req.headers['user-agent'],
             tx,
             runs,
           }),
       );
 
-    logger.debug('Agent feedback updated successfully', {
-      requestId,
-      conversationId,
-      messageId,
-      duration: Date.now() - startTime,
-    });
-
-    const response = {
-      conversationId: updatedConversation._id,
-      messageId,
-      feedback: feedbackEntry,
-      meta: {
+      logger.debug('Agent feedback updated successfully', {
         requestId,
-        timestamp: new Date().toISOString(),
+        conversationId,
+        messageId,
         duration: Date.now() - startTime,
-      },
-    };
+      });
 
-    res.status(200).json(response);
-  } catch (error: any) {
-    logger.error('Error updating agent conversation feedback', {
-      requestId,
-      message: 'Error updating agent conversation feedback',
-      error: error.message,
-      stack: error.stack,
-      duration: Date.now() - startTime,
-    });
-    next(error);
-  }
-};
+      const response = {
+        conversationId: updatedConversation._id,
+        messageId,
+        feedback: feedbackEntry,
+        meta: {
+          requestId,
+          timestamp: new Date().toISOString(),
+          duration: Date.now() - startTime,
+        },
+      };
+
+      res.status(200).json(response);
+    } catch (error: any) {
+      logger.error('Error updating agent conversation feedback', {
+        requestId,
+        message: 'Error updating agent conversation feedback',
+        error: error.message,
+        stack: error.stack,
+        duration: Date.now() - startTime,
+      });
+      next(error);
+    }
+  };
 
 export const updateAgentFeedback = updateAgentFeedbackWith();
 

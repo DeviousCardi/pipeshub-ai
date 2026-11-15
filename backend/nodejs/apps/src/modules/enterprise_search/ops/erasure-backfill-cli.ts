@@ -156,11 +156,11 @@ export async function connectBackfill(
   uri: string | undefined,
   dbName: string | undefined,
 ): Promise<BackfillCliBackend> {
-  const { close } = await openCliDocStore('erasure-backfill-cli', {
+  const store = await openCliDocStore('erasure-backfill-cli', {
     uri,
     db: dbName,
   });
-  return { ...backfillBackend(), close };
+  return { ...backfillBackend(), close: () => store.close() };
 }
 
 export async function runErasureBackfillCli(

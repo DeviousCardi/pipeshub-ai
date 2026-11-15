@@ -219,7 +219,9 @@ import { rejectClientConversationHistory } from '../utils/client-history-guard';
 const CHAT_ATTACHMENT_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 
 /** `/review` and `/init`, PipesHub's own prompt commands (SLASH2), expanded before SLASH1's user commands. */
-const pipeshubCommandsOf = (container: Container) =>
+const pipeshubCommandsOf = (
+  container: Container,
+): ReturnType<typeof pipeshubCommandsFor> =>
   pipeshubCommandsFor(
     pipeshubPromptCommands(() =>
       container.isBound(AGENT_HARNESS_SESSION_WORKSPACES)
@@ -231,7 +233,9 @@ const pipeshubCommandsOf = (container: Container) =>
   );
 
 /** A regenerate of a `/review` answer reviews the workspace again (LC2FIX): its message keeps only what was typed. */
-const regenerateCommandOf = (container: Container) =>
+const regenerateCommandOf = (
+  container: Container,
+): ReturnType<typeof regenerateChatCommand> =>
   regenerateChatCommand(storedRegenerateCommand, pipeshubCommandsOf(container));
 
 export function createConversationalRouter(container: Container): Router {

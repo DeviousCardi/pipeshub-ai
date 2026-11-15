@@ -43,7 +43,8 @@ export function refuseNonOwnerTurns(
     _res: Response,
     next: NextFunction,
   ): Promise<void> {
-    const actorId = req.user?.userId;
+    const userId: unknown = req.user?.userId;
+    const actorId = typeof userId === 'string' ? userId : undefined;
     const orgId = getCurrentOrgId();
     const sessionId = req.params['conversationId'];
     if (!actorId || !orgId || !sessionId) {

@@ -94,7 +94,7 @@ const hydrateSlackCaller = async (
   const orgId = await resolveSoleOrgId();
   // The bot names the org it serves; disagreement means the bot and this gateway are out of step, so the turn is refused.
   const claimedOrgId = (req as AuthenticatedServiceRequest).tokenPayload?.orgId;
-  if (claimedOrgId !== undefined && String(claimedOrgId) !== String(orgId)) {
+  if (claimedOrgId !== undefined && String(claimedOrgId) !== orgId) {
     throw new UnauthorizedError(
       'Slack token org does not match the organisation this bot serves',
     );
@@ -117,7 +117,7 @@ const slackAgentConfigs = async (
   req: AuthenticatedServiceRequest | AuthenticatedUserRequest,
   keyValueStoreService?: KeyValueStoreService,
 ): Promise<readonly SlackAgentConfig[]> =>
-  req.params?.agentKey && keyValueStoreService
+  req.params.agentKey && keyValueStoreService
     ? (await getSlackBotStore(keyValueStoreService)).configs
     : [];
 

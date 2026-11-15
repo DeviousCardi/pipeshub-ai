@@ -492,7 +492,10 @@ export const attachMessages = (session: any, messages: any[]): any => {
   return {
     ...withoutErrorStacks(cleanSession as object),
     messages: (messages || []).map((message: any) => {
-      const { sessionId, orgId, seq, ...rest } = message;
+      const { sessionId, orgId, seq, ...rest } = message as Record<
+        string,
+        unknown
+      >;
       return rest.parts === undefined
         ? rest
         : { ...rest, parts: withSavedEngineLines(rest.parts) };
@@ -930,11 +933,26 @@ const turnAskToolResults = (
 /** Why a history turn is not a whole answer: the user stopped it, or the turn failed before one. */
 type HistoryTurnStatus = 'stopped' | 'failed';
 
+/** One turn of the history sent to the AI service; a type alias, not an interface, so it stays assignable to a plain record. */
+export type HistoryTurn = {
+  content: IMessage['content'];
+  role: IMessage['messageType'];
+  sender?: string;
+  attachments?: NonNullable<IMessage['attachments']>;
+  referenceData?: NonNullable<IMessage['referenceData']>;
+  tool_results?: PreviousToolResult[];
+  status?: HistoryTurnStatus;
+  modelKey?: string;
+  modelName?: string;
+  reasoningEffort?: IAIModel['reasoningEffort'];
+  modelNote?: string;
+};
+
 const historyTurn = (
   msg: IMessage,
   parts: IMessagePart[] | undefined,
   askResults: PreviousToolResult[] = [],
-) => {
+): HistoryTurn => {
   const toolResults =
     msg.messageType === 'bot_response'
       ? [...toolResultsFromParts(parts), ...askResults]
@@ -944,10 +962,10 @@ const historyTurn = (
     role: msg.messageType,
     // Whose turn it is when not the owner's (SS2): history read for another
     // actor stubs it.
-    ...(msg.senderId !== undefined &&
-      msg.senderId !== null && {
-        sender: historySender(String(msg.senderId)),
-      }),
+    // A stored row may carry a null sender, which the message type does not admit.
+    ...(msg.senderId != null && {
+      sender: historySender(String(msg.senderId)),
+    }),
     ...(msg.attachments &&
       msg.attachments.length > 0 && {
         attachments: msg.attachments,
@@ -963,7 +981,7 @@ const historyTurn = (
     ...(toolResults.length > 0 && { tool_results: toolResults }),
     // A reply the user stopped did not finish its card's work, so the card can be answered again.
     ...(msg.messageType === 'bot_response' &&
-      msg.status === 'stopped' && { status: 'stopped' as HistoryTurnStatus }),
+      msg.status === 'stopped' && { status: 'stopped' }),
     // Which model wrote each answer, for the AI service.
     ...(msg.messageType === 'bot_response' &&
       msg.modelInfo?.modelKey && {
@@ -978,8 +996,6 @@ const historyTurn = (
       }),
   };
 };
-
-export type HistoryTurn = ReturnType<typeof historyTurn>;
 
 /** Whether the turn at `index` still gets an answer before the next question. */
 const answerFollows = (messages: IMessage[], index: number): boolean => {
@@ -1077,8 +1093,7 @@ export const formatPreviousConversations = (messages: IMessage[]) => {
           role: 'bot_response',
           content: '',
           status: 'failed',
-          ...(asker !== undefined &&
-            asker !== null && { sender: historySender(String(asker)) }),
+          ...(asker != null && { sender: historySender(String(asker)) }),
         });
         openQuestion = undefined;
       }

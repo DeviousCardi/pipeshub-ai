@@ -345,7 +345,10 @@ async function withCopiedCitations(
   );
   // createCitations answers in the order it was given.
   const copyOf = new Map(
-    stored.map((source, i) => [String(source._id), created[i]!._id]),
+    stored.flatMap((source, i) => {
+      const copy = created[i];
+      return copy === undefined ? [] : [[source._id, copy._id] as const];
+    }),
   );
   return messages.map((message) =>
     Array.isArray(message.citations) && message.citations.length > 0
