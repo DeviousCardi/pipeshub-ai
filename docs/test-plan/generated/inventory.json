@@ -3,7 +3,7 @@
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2062,
  "claimedTestFiles": 3894,
- "claimedTests": 41122,
+ "claimedTests": 41123,
  "claimedFilesByLevel": {
   "cohesion": 63,
   "component": 48,
@@ -13060,7 +13060,7 @@
    "name": "Engines and engine controller",
    "status": "built (opencode, Codex and Claude Code released; ACP driver with opencode's ACP server, Gemini CLI, Goose, Qwen Code and DeepSeek Harness (WP-105), opt-in per org, profiles unsigned until OB-1)",
    "files": 355,
-   "tests": 2456,
+   "tests": 2457,
    "filesByLevel": {
     "component": 2,
     "contract": 6,
@@ -13077,7 +13077,7 @@
     "gate-slow": 28,
     "integration": 6,
     "integration-docker": 234,
-    "unit": 2133
+    "unit": 2134
    },
    "markers": {
     "docker": 63,
@@ -15084,7 +15084,7 @@
      "path": "backend/python/tests/unit/harness_engines/opencode/test_launch.py",
      "level": "unit",
      "markers": [],
-     "tests": 11
+     "tests": 12
     },
     {
      "path": "backend/python/tests/unit/harness_engines/opencode/test_mapper.py",
