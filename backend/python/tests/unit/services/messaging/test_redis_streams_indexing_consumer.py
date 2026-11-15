@@ -486,7 +486,7 @@ class TestWaitForActiveFutures:
 
         waits: list[tuple[set, float]] = []
 
-        def one_wait(fs, timeout=None):
+        def one_wait(fs, timeout=None) -> tuple[set[Future], set[Future]]:
             waits.append((set(fs), timeout))
             return set(), set(fs)
 

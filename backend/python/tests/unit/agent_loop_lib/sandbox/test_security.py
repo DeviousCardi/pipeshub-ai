@@ -262,7 +262,7 @@ class TestDockerContainerIsolation:
         assert kwargs.get("nano_cpus")
         assert kwargs.get("pids_limit")
 
-    def test_container_drops_privilege_escalation_paths(self, tmp_path):
+    def test_container_drops_privilege_escalation_paths(self, tmp_path) -> None:
         kwargs = self._run_kwargs(tmp_path, allow_network=False, request_network=False)
         assert kwargs["user"] == "sandbox"
         assert kwargs["cap_drop"] == ["ALL"]
@@ -270,7 +270,7 @@ class TestDockerContainerIsolation:
         assert kwargs["init"] is True
         assert "nosuid" in kwargs["tmpfs"]["/tmp"]
 
-    def test_container_is_labelled_with_its_sandbox_and_owner(self, tmp_path):
+    def test_container_is_labelled_with_its_sandbox_and_owner(self, tmp_path) -> None:
         from app.agent_loop_lib.sandbox.coding.docker import (
             SANDBOX_ID_LABEL,
             SANDBOX_OWNER_PID_LABEL,

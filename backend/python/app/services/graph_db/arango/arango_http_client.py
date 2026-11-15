@@ -669,7 +669,7 @@ class ArangoHTTPClient:
         batch_size: int = 1000,
         options: dict | None = None,
         max_runtime: float | None = None,
-    ) -> List[Any]:
+    ) -> list[Any]:
         """``_execute_aql``, bounded on a run's tool call by the call's remaining time (ERR-UX)."""
         return await bounded_read(
             "graph", self._execute_aql(query, bind_vars, txn_id, batch_size, options, max_runtime)
@@ -678,7 +678,7 @@ class ArangoHTTPClient:
     async def _execute_aql(
         self,
         query: str,
-        bind_vars: Optional[Dict] = None,
+        bind_vars: Optional[dict] = None,
         txn_id: Optional[str] = None,
         batch_size: int = 1000,
         options: dict | None = None,

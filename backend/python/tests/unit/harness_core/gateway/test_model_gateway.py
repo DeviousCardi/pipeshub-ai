@@ -9,7 +9,7 @@ import math
 import subprocess
 import sys
 from dataclasses import replace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -21,7 +21,7 @@ from harness_core.access.errors import (
     ProviderUnsupported,
     RouteNotConfigured,
 )
-from harness_core.access.ports import SpendKey
+from harness_core.access.ports import ResolvedRoute, SpendKey
 from harness_core.access.spend import OutputAllowance, cache_read_weight, usage_spend
 from harness_core.access.types import (
     ENGINE_MODEL_ID,
@@ -34,7 +34,15 @@ from harness_core.access.types import (
     route_digest,
 )
 from harness_core.budget.errors import BudgetUnavailable
-from harness_core.budget.types import ZERO, Amount, LedgerUsage, RunAccountRef
+from harness_core.budget.types import (
+    ZERO,
+    Amount,
+    LedgerUsage,
+    Remaining,
+    Reservation,
+    RunAccountRef,
+    Settlement,
+)
 from harness_core.gateway.cut_calls import DEFAULT_HOLD_TTL_S
 from harness_core.gateway.errors import (
     BindingMismatch,
@@ -66,12 +74,18 @@ from harness_core.testing.model_gateway import (
     reply_events,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from harness_core.budget.memory import InMemoryBudgetLedger
+    from harness_core.gateway.types import RunAttemptBinding
+
 ANTHROPIC_KEY = "sk-ant-api03-" + "A" * 40
 OPENAI_KEY = "sk-proj-" + "B" * 40
 GOOGLE_KEY = "AIza" + "C" * 35
 
 
-def body(**extra: Any) -> dict[str, Any]:
+def body(**extra: object) -> dict[str, Any]:
     return {"model": ENGINE_MODEL_ID, "messages": [{"role": "user", "content": "hi"}], **extra}
 
 
@@ -143,7 +157,9 @@ async def test_mg3_models_lists_exactly_the_grant(rig: GatewayRig) -> None:
         (lambda rig, b: rig.token(b, claims={"aud": "pipeshub-agent-harness/attempt"}), "token_audience"),
     ],
 )
-async def test_mg4_bad_tokens_are_refused_before_anything(rig: GatewayRig, make: Any, reason: str) -> None:
+async def test_mg4_bad_tokens_are_refused_before_anything(
+    rig: GatewayRig, make: Callable[[GatewayRig, RunAttemptBinding], str | None], reason: str
+) -> None:
     binding = rig.pin()
     with pytest.raises(TokenRefused) as refused:
         await chat(rig, make(rig, binding), body())
@@ -284,7 +300,9 @@ async def test_mg13_resolver_refusals_pass_through_without_fallback(
 ) -> None:
     binding = rig.pin()
 
-    async def refuse(tenant: str, route: PinnedRoute, *, run_id: str | None = None, need: object = None) -> Any:
+    async def refuse(
+        tenant: str, route: PinnedRoute, *, run_id: str | None = None, need: object = None
+    ) -> ResolvedRoute:
         raise refusal
 
     rig.gateway._resolver = type("R", (), {"resolve": staticmethod(refuse)})()
@@ -301,7 +319,9 @@ async def test_ma4_the_route_is_resolved_for_the_tokens_run(rig: GatewayRig) -> 
     inner = rig.gateway._resolver
     runs: list[str | None] = []
 
-    async def spy(tenant: str, route: PinnedRoute, *, run_id: str | None = None, need: object = None) -> Any:
+    async def spy(
+        tenant: str, route: PinnedRoute, *, run_id: str | None = None, need: object = None
+    ) -> ResolvedRoute:
         runs.append(run_id)
         return await inner.resolve(tenant, route, run_id=run_id)
 
@@ -316,7 +336,9 @@ async def test_ad11_the_resolver_is_told_who_calls_from_which_engine_on_which_ap
     inner = rig.gateway._resolver
     needs: list[ModelNeed | None] = []
 
-    async def spy(tenant: str, route: PinnedRoute, *, run_id: str | None = None, need: ModelNeed | None = None) -> Any:
+    async def spy(
+        tenant: str, route: PinnedRoute, *, run_id: str | None = None, need: ModelNeed | None = None
+    ) -> ResolvedRoute:
         needs.append(need)
         return await inner.resolve(tenant, route, run_id=run_id)
 
@@ -515,32 +537,32 @@ GPT = PinnedRoute("openai", "gpt-5.4", config_key="key-g", config_model="gpt-5.4
 class _Spy:
     """Wraps the rig's ledger and records what the gateway asked, in order."""
 
-    def __init__(self, inner: Any) -> None:
+    def __init__(self, inner: InMemoryBudgetLedger) -> None:
         self.inner = inner
         self.asked: list[tuple[str, Any]] = []
         self.fail: Exception | None = None
 
-    async def reserve(self, account: RunAccountRef, key: str, requested: Amount, **kw: Any) -> Any:
+    async def reserve(self, account: RunAccountRef, key: str, requested: Amount, **kw: object) -> Reservation:
         self.asked.append(("reserve", (requested, kw["minimum"], kw["credential"] is not None)))
         if self.fail is not None:
             raise self.fail
         return await self.inner.reserve(account, key, requested, **kw)
 
-    async def commit(self, reservation: Any, actual: Amount, **kw: Any) -> Any:
+    async def commit(self, reservation: Reservation, actual: Amount, **kw: object) -> Settlement:
         self.asked.append(("commit", actual))
         if self.fail is not None:
             raise self.fail
         return await self.inner.commit(reservation, actual, **kw)
 
-    async def release(self, reservation: Any, **kw: Any) -> Any:
+    async def release(self, reservation: Reservation, **kw: object) -> Settlement:
         self.asked.append(("release", reservation.granted))
         return await self.inner.release(reservation, **kw)
 
-    async def remaining(self, account: RunAccountRef, **kw: Any) -> Any:
+    async def remaining(self, account: RunAccountRef, **kw: object) -> Remaining:
         return await self.inner.remaining(account, **kw)
 
 
-def spied(**rig_options: Any) -> tuple[GatewayRig, _Spy]:
+def spied(**rig_options: object) -> tuple[GatewayRig, _Spy]:
     rig = GatewayRig(**rig_options)
     spy = _Spy(rig.ledger)
     rig.gateway._budget = spy  # pyright: ignore[reportPrivateUsage, reportAttributeAccessIssue]
@@ -609,9 +631,7 @@ async def test_ev10_the_ledger_holds_the_call_when_the_last_chunk_is_yielded(rig
     binding = rig.pin()
     outcome = await chat(rig, rig.token(binding), body(stream=True))
     assert isinstance(outcome, ChatStream)
-    seen: list[LedgerUsage] = []
-    async for _chunk in outcome.chunks:
-        seen.append((await rig.ledger.remaining(account())).used)
+    seen: list[LedgerUsage] = [(await rig.ledger.remaining(account())).used async for _chunk in outcome.chunks]
     assert seen[-1] == LedgerUsage(40, 3)
     assert len([u for u in seen if u == LedgerUsage(40, 3)]) < len(seen), "the call was settled before it began"
 
@@ -645,7 +665,7 @@ async def test_gw5_concurrent_calls_of_one_run_cannot_overshoot_together() -> No
     gate = asyncio.Event()
 
     class Slow(RecordedTransport):
-        async def complete(self, *args: Any, **kwargs: Any) -> ModelResponse:
+        async def complete(self, *args: object, **kwargs: object) -> ModelResponse:
             await gate.wait()
             return await super().complete(*args, **kwargs)
 
@@ -709,7 +729,7 @@ async def test_gw9_a_failed_commit_is_logged_and_the_reservation_expires(caplog:
     binding = rig.pin()
     caplog.set_level(logging.INFO)
 
-    async def broken(reservation: Any, actual: Amount, **kw: Any) -> Any:
+    async def broken(reservation: Reservation, actual: Amount, **kw: object) -> Settlement:
         spy.asked.append(("commit", actual))
         raise ConnectionError("node down")
 

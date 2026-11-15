@@ -335,7 +335,7 @@ async def test_ga24_under_a_node_that_does_not_name_priority_preemption_nothing_
 def test_preemption_settings_parse_and_fall_back(
     monkeypatch: pytest.MonkeyPatch, raw: str | None, overcommit: int, slice_s: float
 ) -> None:
-    for name, value in ((OVERCOMMIT_ENV, raw), (MIN_SLICE_ENV, {"0": "0", "3": "2.5", "x": "-1"}.get(raw or "", None))):
+    for name, value in ((OVERCOMMIT_ENV, raw), (MIN_SLICE_ENV, {"0": "0", "3": "2.5", "x": "-1"}.get(raw or ""))):
         if value is None:
             monkeypatch.delenv(name, raising=False)
         else:

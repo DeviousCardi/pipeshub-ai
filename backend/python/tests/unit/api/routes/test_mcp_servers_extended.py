@@ -259,7 +259,7 @@ class TestHandleOAuthCallbackClientConfigChanged:
 @pytest.mark.usefixtures("_instance_in_callers_org")
 class TestRefreshOAuthToken:
     @pytest.fixture(autouse=True)
-    def _own_instance(self):
+    def _own_instance(self) -> Iterator[None]:
         with patch("app.api.routes.mcp_servers._get_org_instance", new=AsyncMock(return_value={"_id": "inst-1", "orgId": "o1"})):
             yield
 
@@ -404,7 +404,7 @@ class TestRefreshOAuthToken:
 @pytest.mark.usefixtures("_instance_in_callers_org")
 class TestGetOAuthConfig:
     @pytest.fixture(autouse=True)
-    def _own_instance(self):
+    def _own_instance(self) -> Iterator[None]:
         with patch("app.api.routes.mcp_servers._get_org_instance", new=AsyncMock(return_value={"_id": "inst-1", "orgId": "o1"})):
             yield
 

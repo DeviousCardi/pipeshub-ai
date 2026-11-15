@@ -681,7 +681,7 @@ class TestLoggingInAgain:
     minutes by default), after which every call is rejected."""
 
     @pytest.fixture
-    def make_store(self):
+    def make_store(self) -> Callable[..., tuple]:
         from app.config.providers.etcd.etcd3_store import Etcd3DistributedKeyValueStore
 
         def make(*clients) -> tuple:
@@ -1018,7 +1018,7 @@ class TestComponentScopedSubscription:
     watches that key alone; a watch of every key ("/") would be refused by etcd."""
 
     @pytest.fixture
-    def make_store(self):
+    def make_store(self) -> Callable[..., tuple]:
         from app.config.providers.etcd.etcd3_store import Etcd3DistributedKeyValueStore
 
         def make(*clients) -> tuple:

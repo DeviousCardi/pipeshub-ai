@@ -84,7 +84,6 @@ class _Graph:
 
     async def get_document(self, doc_id: str, collection: str) -> None:
         """No artifact document carries recorded provenance here."""
-        return None
 
 
 class _Auth:

@@ -6117,7 +6117,6 @@ async def chat_stream(request: Request, agent_id: str) -> StreamingResponse:
                     "credentialOwner": credential_lookup_id,
                     "artifact_owner_user_id": artifact_owner_user_id,
                     "isPlaceholderAgent": is_placeholder,
-                    "agentKey": None if is_placeholder else agent_id,
                     "modelName": model_name,
                     "modelKey": model_key,
                     "webSearch": web_search_provider,

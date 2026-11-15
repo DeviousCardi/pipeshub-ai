@@ -52,6 +52,8 @@ from tests.unit.harness_core.gateway.test_responses_gateway import WIRES
 if TYPE_CHECKING:
     from harness_core.gateway.binding import RunAttemptBinding
 
+    from harness_core.budget.types import Reservation
+
 VECTORS = Path(__file__).resolve().parents[6] / "contracts/harness/vectors"
 TABLE: dict[str, Any] = json.loads((VECTORS / "model-roles.json").read_text(encoding="utf-8"))
 
@@ -196,7 +198,7 @@ async def test_mrole_4_the_worker_and_gateway_send_the_role_with_each_charge() -
     assert [body.get("modelRole") for body in seen] == ["compaction", None]
 
 
-def _reservation() -> Any:
+def _reservation() -> Reservation:
     from datetime import UTC, datetime
 
     from harness_core.budget.types import Reservation
@@ -260,7 +262,7 @@ class _Summariser:
     def __init__(self) -> None:
         self.roles: list[str | None] = []
 
-    async def complete(self, messages: list[Any], *args: Any, **kwargs: Any) -> ModelResponse:
+    async def complete(self, messages: list[Any], *args: object, **kwargs: object) -> ModelResponse:
         self.roles.append(current_charge_role())
         return ModelResponse(
             message=AssistantMessage(content=[TextPart(text="summary")]),

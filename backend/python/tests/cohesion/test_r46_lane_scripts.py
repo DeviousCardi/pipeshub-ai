@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import signal
 import subprocess
@@ -92,10 +93,8 @@ def test_r46lane_fu1_a_stop_drains_the_worker_and_query_first_then_stops_the_res
             proc.kill()
         for line in _events(events):
             if line.startswith("start "):
-                try:
+                with contextlib.suppress(ProcessLookupError, ValueError):
                     os.kill(int(line.split()[2]), signal.SIGKILL)
-                except (ProcessLookupError, ValueError):
-                    pass
 
     seen = _events(events)
     for mod in modules:

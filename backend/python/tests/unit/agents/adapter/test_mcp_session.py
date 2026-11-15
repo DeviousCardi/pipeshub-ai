@@ -130,7 +130,7 @@ class _FakeClientManagerFactory:
         self.queued_responses: list[list[Any]] = []
 
     def __call__(
-        self, config: Any, env: dict | None = None, headers: dict | None = None, runner: object = None,
+        self, config: object, env: dict | None = None, headers: dict | None = None, runner: object = None,
     ) -> _FakeClientManager:
         manager = _FakeClientManager(config, env=env, headers=headers)
         if self.queued_responses:

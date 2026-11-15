@@ -303,8 +303,8 @@
             "format": "skill-bundle/1",
             "files": {
               "scripts/check_layout.py": {
-                "sha256": "a69c9860bf026c6b478f071410f2b64f81237821797a109decce660d5cce2b1c",
-                "size": 16588
+                "sha256": "4dd2447297e3f064198cd2576e48ef1c74887c67b4e8b72ce3ec762224cf547f",
+                "size": 16703
               },
               "scripts/pack.py": {
                 "sha256": "47afda5eb22b79a356b79951a95f312a163f29428d1c22929d7d777e5326858e",
@@ -319,11 +319,11 @@
                 "size": 5161
               }
             },
-            "digest": "sha256:8d2b1a303f0bf6e627f30ba5a93a0e4c61c64302d099280a7af20c2ebd4cbce4"
+            "digest": "sha256:e325952f3c9762bd75274b67ac0668a1a2028d06b2d226b5c815a85fa1979cd1"
           }
         ]
       },
-      "descriptorSetDigest": "sha256:ee9b653514cf83024b832be4fb9db77c155038f3a132b5f0d37220abd815f1f7",
+      "descriptorSetDigest": "sha256:97903d07428e92cbc366fb6bed737c5aa89a8d739bd49ea631d47ada27ac7394",
       "deprecated": false,
       "createdAt": 0
     },

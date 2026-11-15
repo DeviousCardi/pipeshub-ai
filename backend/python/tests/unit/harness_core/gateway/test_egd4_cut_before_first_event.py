@@ -99,7 +99,10 @@ async def _caller_leaves_while_held(rig: GatewayRig, transport: HoldingTransport
 
 
 async def _settled(rig: GatewayRig) -> None:
-    while (await rig.ledger.remaining(RunAccountRef("org-1", "run-1"))).committed.usd_micros == 0:
+    # The ledger has no commit signal to wait on, so its state is polled; the caller bounds the wait.
+    while True:
+        if (await rig.ledger.remaining(RunAccountRef("org-1", "run-1"))).committed.usd_micros:
+            return
         await asyncio.sleep(0.01)
 
 

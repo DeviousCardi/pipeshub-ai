@@ -144,7 +144,7 @@ class FakeGraphProvider:
                 matches = [d for d in matches if (d.get("_key") or d.get("id")) > after_key]
         return matches[skip:skip + limit]
 
-    async def get_nodes_by_filters(self, collection: str, filters: dict[str, Any], **_ignored: Any) -> list[dict]:
+    async def get_nodes_by_filters(self, collection: str, filters: dict[str, Any], **_ignored: object) -> list[dict]:
         self._raise_if_failing("get_nodes_by_filters")
         return [dict(doc) for doc in self.nodes[collection].values() if all(doc.get(k) == v for k, v in filters.items())]
 

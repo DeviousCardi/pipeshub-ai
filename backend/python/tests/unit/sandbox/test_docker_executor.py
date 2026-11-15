@@ -983,7 +983,7 @@ class TestRunContainerTimeout:
         container.kill.assert_called()
 
     @pytest.mark.asyncio
-    async def test_x1_cancellation_kills_the_container_and_propagates(self, executor, tmp_path):
+    async def test_x1_cancellation_kills_the_container_and_propagates(self, executor, tmp_path) -> None:
         """A cancelled run (Stop, drain) is not a timeout: the container is killed and the task stays cancelled."""
         client, tracker, container = _make_mock_run_client()
         work_dir = str(tmp_path / "work")
@@ -992,7 +992,7 @@ class TestRunContainerTimeout:
         os.makedirs(src_dir, exist_ok=True)
         os.makedirs(output_dir, exist_ok=True)
 
-        async def _cancelled(*args, **kwargs):
+        async def _cancelled(*args, **kwargs) -> None:
             raise asyncio.CancelledError()
 
         with patch("docker.from_env", return_value=client):

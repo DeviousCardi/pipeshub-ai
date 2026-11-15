@@ -10,7 +10,7 @@ agent, stays unreadable.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -23,6 +23,9 @@ from app.utils.record_access import (
     attachment_reader_id,
 )
 from tests.support.record_access import InMemoryRecordAccess
+
+if TYPE_CHECKING:
+    from app.harness.assembly.context import Attachment
 
 ORG = "org-1"
 ACCOUNT = "sa-agent-1"
@@ -72,7 +75,7 @@ def _world(*, org_edge_on: tuple[str, ...] = ()) -> tuple[Any, dict[str, dict[st
     return graph, records
 
 
-def _service_account_chat(graph: Any, caller: str | None, attachments: list[dict[str, Any]]) -> AgentContext:
+def _service_account_chat(graph: AsyncMock, caller: str | None, attachments: list[dict[str, Any]]) -> AgentContext:
     """The context a service-account agent's run builds: it acts as the account; the person is ``callerUserId``."""
     user_info: dict[str, Any] = {"userId": ACCOUNT, "orgId": ORG}
     if caller is not None:
@@ -144,7 +147,7 @@ def test_the_reader_is_the_person_behind_a_service_account_and_otherwise_the_use
 # --- the fallback: a file still not read is named in the answer (ADR-RUN-03 D5) ------------------------------------
 
 
-def _named(name: str, vrid: str | None, mime: str = "text/plain") -> Any:
+def _named(name: str, vrid: str | None, mime: str = "text/plain") -> Attachment:
     from app.harness.assembly.context import Attachment
 
     return Attachment(record_id=f"rec-{vrid}", record_name=name, mime_type=mime, virtual_record_id=vrid)

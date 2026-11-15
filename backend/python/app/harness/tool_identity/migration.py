@@ -60,7 +60,7 @@ class _Graph(Protocol):
 
 class _Config(Protocol):
     async def get_config(
-        self, key: str, default: object = None, use_cache: bool = False, *, raise_on_error: bool = False
+        self, key: str, default: object = None, *, use_cache: bool = False, raise_on_error: bool = False
     ) -> object: ...
 
     async def set_config(self, key: str, value: object) -> bool: ...

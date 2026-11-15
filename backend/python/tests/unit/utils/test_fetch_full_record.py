@@ -1194,7 +1194,7 @@ class TestColdPathAccessControl:
 
     @pytest.mark.parametrize("access", [True, False])
     @pytest.mark.asyncio
-    async def test_records_already_in_the_map_are_re_checked(self, access):
+    async def test_records_already_in_the_map_are_re_checked(self, access) -> None:
         """H1 (P2.13 FW-4): more than an ACL-filtered search writes the map, and an
         entry outlives a revocation, so a map hit is checked as a miss is."""
         from app.utils import fetch_full_record as ffr

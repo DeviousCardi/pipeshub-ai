@@ -124,6 +124,7 @@ from harness_core.mime import mime_for
 _OUTPUT_DIR_NAME = "output"
 
 if TYPE_CHECKING:
+    from app.agent_loop_lib.hooks.middleware.pipeline import Middleware, Next
     from app.agent_loop_lib.hooks.registry import HookRegistry
     from app.agent_loop_lib.tools.registry import ToolRegistry
     from app.agents.agent_loop.context import AgentContext
@@ -467,10 +468,10 @@ def register_coding_sandbox_hooks(
     hooks.on(HookEvent.POST_AGENT).use(coding_sandbox_result_propagation(context, manager))
 
 
-def coding_sandbox_workspace_staging(context: "AgentContext"):
+def coding_sandbox_workspace_staging(context: "AgentContext") -> Middleware[ToolCallContext]:
     """Project the run's VFS into the sandbox for exactly one tool call."""
 
-    async def _middleware(_ctx: ToolCallContext, next_fn) -> None:
+    async def _middleware(_ctx: ToolCallContext, next_fn: Next) -> None:
         vfs = context.virtual_filesystem
         if vfs is None:
             await next_fn()

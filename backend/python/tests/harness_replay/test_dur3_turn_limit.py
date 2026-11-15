@@ -119,6 +119,6 @@ async def test_dur3_a4_no_answer_and_no_narration_answers_with_what_was_gathered
 @pytest.mark.parametrize("narrate", [True])
 async def test_dur3_a4_a_last_turn_without_tool_calls_takes_no_extra_turn(narrate: bool) -> None:
     """The answer-only turn is only for a last turn that called tools: a text reply ends the run in its turn."""
-    turns = _tool_turns(narrate)[: MAX_TURNS - 1] + [Turn(reply=Reply(text="PROJ-42 is the login error ticket."))]
+    turns = [*_tool_turns(narrate)[: MAX_TURNS - 1], Turn(reply=Reply(text="PROJ-42 is the login error ticket."))]
     _, durable = await _both(ModelScript(id="dur3-in-budget", turns=turns))
     assert len(durable.requests) == MAX_TURNS

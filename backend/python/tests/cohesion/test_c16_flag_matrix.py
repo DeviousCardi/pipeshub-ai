@@ -447,9 +447,12 @@ def literal_labs_defaults(paths: Iterable[Path], labs_flags: set[str], root: Pat
             continue
         tree = ast.parse(source)
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in LABS_FLAG_READERS - {"is_feature_enabled"}:
-                if any(a.arg == "default" for a in (*node.args.args, *node.args.kwonlyargs)):
-                    found.append(f"{path.relative_to(root)}:{node.lineno} {node.name} takes a default")
+            if (
+                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.name in LABS_FLAG_READERS - {"is_feature_enabled"}
+                and any(a.arg == "default" for a in (*node.args.args, *node.args.kwonlyargs))
+            ):
+                found.append(f"{path.relative_to(root)}:{node.lineno} {node.name} takes a default")
             if not isinstance(node, ast.Call) or _called_name(node) not in LABS_FLAG_READERS or not node.args:
                 continue
             first = node.args[0]

@@ -324,26 +324,25 @@ def check(path: str | Path, pages_dir: str | Path | None = None, margin: float =
     return report
 
 
-def _print(report: Report) -> None:
-    print(f"{report.path}: {report.pages} page(s)")
-    print("checked: " + "; ".join(report.checked))
-    for png in report.rendered:
-        print(f"rendered: {png}")
+def _render(report: Report) -> str:
+    lines = [f"{report.path}: {report.pages} page(s)", "checked: " + "; ".join(report.checked)]
+    lines += [f"rendered: {png}" for png in report.rendered]
     if not report.faults:
-        print("layout: clean")
-        return
+        lines.append("layout: clean")
+        return "\n".join(lines) + "\n"
     kinds: dict[str, list[Fault]] = {}
     for fault in report.faults:
         kinds.setdefault(fault.kind, []).append(fault)
-    print(f"layout: {len(report.faults)} fault(s): " + ", ".join(f"{k} x{len(v)}" for k, v in sorted(kinds.items())))
+    lines.append(f"layout: {len(report.faults)} fault(s): " + ", ".join(f"{k} x{len(v)}" for k, v in sorted(kinds.items())))
     for kind, faults in sorted(kinds.items()):
         for fault in faults[:MAX_LISTED]:
             where = f"page {fault.page}" if fault.page else "document"
             at = f" at {fault.bbox}" if fault.bbox else ""
-            print(f"  {kind}: {where}: {fault.detail}{at}")
+            lines.append(f"  {kind}: {where}: {fault.detail}{at}")
         if len(faults) > MAX_LISTED:
-            print(f"  {kind}: ... and {len(faults) - MAX_LISTED} more")
-        print(f"  fix: {HINTS[kind]}")
+            lines.append(f"  {kind}: ... and {len(faults) - MAX_LISTED} more")
+        lines.append(f"  fix: {HINTS[kind]}")
+    return "\n".join(lines) + "\n"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -356,12 +355,12 @@ def main(argv: list[str] | None = None) -> int:
     try:
         report = check(args.file, args.pages_dir, args.margin)
     except Exception as error:  # any read failure is the same answer: fix the file first
-        print(f"cannot check {args.file}: {error}", file=sys.stderr)
+        sys.stderr.write(f"cannot check {args.file}: {error}\n")
         return 2
     if args.json:
-        print(json.dumps(asdict(report), indent=2))
+        sys.stdout.write(json.dumps(asdict(report), indent=2) + "\n")
     else:
-        _print(report)
+        sys.stdout.write(_render(report))
     return 1 if report.faults else 0
 
 

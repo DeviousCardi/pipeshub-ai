@@ -122,8 +122,7 @@ def _strip_llm_authored_markers(answer: str) -> str:
     stripped = _LLM_ARTIFACT_NO_URL_MARKER_RE.sub("", stripped)
     stripped = _LLM_ARTIFACT_SHORT_MARKER_RE.sub("", stripped)
     stripped = _LLM_DOWNLOAD_MARKER_RE.sub("", stripped)
-    stripped = _flatten_unusable_markdown_links(stripped)
-    return stripped
+    return _flatten_unusable_markdown_links(stripped)
 
 
 def strip_llm_authored_markers_in_parts(parts: list | None) -> None:

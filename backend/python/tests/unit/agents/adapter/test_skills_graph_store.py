@@ -895,7 +895,7 @@ class _NullIndex:
 
 class TestSkillWriteAuthorization:
     @pytest.mark.asyncio
-    async def test_hidden_name_cannot_overwrite_another_users_skill(self):
+    async def test_hidden_name_cannot_overwrite_another_users_skill(self) -> None:
         graph = FakeGraphProvider()
         owner = GraphSkillStore(graph, "org-1", "owner")
         await owner.create_skill("deploy-service", _SKILL_MD)
@@ -907,7 +907,7 @@ class TestSkillWriteAuthorization:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("operation", ["update", "delete", "write_resource", "remove_resource", "rollback"])
-    async def test_unscoped_read_does_not_grant_write(self, operation):
+    async def test_unscoped_read_does_not_grant_write(self, operation) -> None:
         graph = FakeGraphProvider()
         owner = GraphSkillStore(graph, "org-1", "owner")
         await owner.create_skill("deploy-service", _SKILL_MD)
@@ -923,7 +923,7 @@ class TestSkillWriteAuthorization:
             await calls[operation]()
 
     @pytest.mark.asyncio
-    async def test_builtin_write_requires_explicit_seeder_capability(self):
+    async def test_builtin_write_requires_explicit_seeder_capability(self) -> None:
         graph = FakeGraphProvider()
         content = _SKILL_MD.replace("description:", "metadata:\n  agent-loop:\n    source: builtin\ndescription:")
         ordinary = GraphSkillStore(graph, "org-1", "user")

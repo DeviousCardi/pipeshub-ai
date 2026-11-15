@@ -1475,7 +1475,7 @@ class TestComponentSubscription:
     """R38IDENT-FU-9: on the sandbox plane the change subscription names the component's own keys, which is all its
     etcd role (and its Redis ACL user) may read."""
 
-    def test_a_component_subscribes_to_its_own_document_only(self):
+    def test_a_component_subscribes_to_its_own_document_only(self) -> None:
         store = AsyncMock()
         store.store = None
         store.subscribe_changes = AsyncMock(return_value="handle-1")

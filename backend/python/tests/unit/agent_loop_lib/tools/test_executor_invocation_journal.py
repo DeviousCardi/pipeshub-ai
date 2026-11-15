@@ -16,6 +16,7 @@ from app.agent_loop_lib.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:
     from app.agent_loop_lib.hooks.middleware.context import ToolResultContext
+    from app.agent_loop_lib.hooks.middleware.pipeline import Next
 
 
 class _CountingTool(Tool):
@@ -41,7 +42,7 @@ class _CountingTool(Tool):
     def parameters(self) -> list[ToolParameter]:
         return [ToolParameter(name="value", type=ParameterType.STRING, description="value")]
 
-    async def execute(self, **kwargs: Any) -> ToolOutput:
+    async def execute(self, **kwargs: object) -> ToolOutput:
         self.calls += 1
         return ToolOutput(success=True, data=kwargs["value"])
 
@@ -51,7 +52,7 @@ class _Journal:
         self.result: dict[str, Any] | None = None
         self.interruptions = 0
 
-    async def begin(self, **_kwargs: Any) -> InvocationStart:
+    async def begin(self, **_kwargs: object) -> InvocationStart:
         return InvocationStart(invocation_id="invocation-1", cached_result=self.result)
 
     async def finish(
@@ -70,7 +71,7 @@ class _Journal:
         self.interruptions += 1
 
 
-def _scope() -> Any:
+def _scope() -> SimpleNamespace:
     identity = SimpleNamespace(run_id="run-1")
     return SimpleNamespace(
         tool_path="",
@@ -88,7 +89,7 @@ async def test_journal_caches_only_fully_post_processed_result() -> None:
     kernel = HookRegistry()
     post_calls = 0
 
-    async def post(ctx: ToolResultContext, next_fn: Any) -> None:
+    async def post(ctx: ToolResultContext, next_fn: Next) -> None:
         nonlocal post_calls
         post_calls += 1
         ctx.tool_response = ToolOutput(success=True, data="post-processed")
@@ -118,7 +119,7 @@ async def test_post_hook_cancellation_marks_started_invocation_unknown() -> None
     journal = _Journal()
     kernel = HookRegistry()
 
-    async def fail_post(_ctx: ToolResultContext, _next_fn: Any) -> None:
+    async def fail_post(_ctx: ToolResultContext, _next_fn: Next) -> None:
         raise asyncio.CancelledError
 
     kernel.on(HookEvent.POST_TOOL_USE).use(fail_post)

@@ -456,7 +456,7 @@ def withdrawn_tools(run: RunContext, sourced: Sequence[SourcedTool], answered: M
     return withdrawn
 
 
-def without_unset_web_search(run: RunContext, unset: bool, log: HarnessLog | None = None) -> RunContext:
+def without_unset_web_search(run: RunContext, *, unset: bool, log: HarnessLog | None = None) -> RunContext:
     """``run`` without its web search grant when the org has no web search provider (main #5722).
 
     Admission pins the grant from the chat mode alone; with no provider set up the tools never load, and failing
@@ -1198,7 +1198,7 @@ async def load_run_tools(
         run = without_tools(run, withheld)
         if log is not None:
             log.info("run.tools_withheld", tools=sorted(withheld), servers=sorted(set(withheld.values())))
-    run = without_unset_web_search(run, env.context.web_search_unset, log)
+    run = without_unset_web_search(run, unset=env.context.web_search_unset, log=log)
     catalog = build_catalog(run, registry, sourced, missing_skills, sign_in_rejected=rejected, withheld=withheld)
     descriptors: ToolDescriptorSource = container.tool_descriptors()
     if mcp is not None and pinned_live:

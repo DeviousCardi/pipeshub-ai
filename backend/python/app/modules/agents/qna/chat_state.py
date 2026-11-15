@@ -246,7 +246,6 @@ class ChatState(TypedDict):
     has_ui_client: bool  # True when the client can show and answer a question card; gates UI-only tools like ask_user_question
     # Per-tool approvals (`app/agents/agent_loop/tool_approvals.py`).
     client_name: str | None
-    agent_key: str | None
     is_assistant_chat: bool
     chat_streaming: bool
     tool_approval: dict[str, Any] | None
@@ -727,7 +726,6 @@ def build_initial_state(chat_query: dict[str, Any], user_info: dict[str, Any], l
         # Service account flag
         "is_service_account": bool(chat_query.get("is_service_account", False)),
         "credential_owner": chat_query.get("credentialOwner"),
-        "agent_key": chat_query.get("agentKey"),
         "history_label": chat_query.get("historyLabel"),
         "resolved_flow_rules": chat_query.get("resolvedFlowRules"),
         "is_placeholder_agent": bool(

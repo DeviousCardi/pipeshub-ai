@@ -372,6 +372,7 @@ async def _identity(
     agent: dict[str, Any] | None,
     graph: Any,  # noqa: ANN401
     logger: Any,  # noqa: ANN401
+    *,
     user_context_enabled: bool | None = None,
 ) -> tuple[dict[str, Any], bool]:
     """The user info the tools act as, and whether it is the agent's service account. ``user_context_enabled``:

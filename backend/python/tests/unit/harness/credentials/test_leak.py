@@ -123,7 +123,7 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> Iterator[_Seen]:
     async def opened(self: MCPClientManager) -> None:
         record.headers.append(dict(self.headers or {}))
 
-    async def called(self: MCPClientManager, name: str, arguments: dict[str, Any], **_: Any) -> dict[str, Any]:
+    async def called(self: MCPClientManager, name: str, arguments: dict[str, Any], **_: object) -> dict[str, Any]:
         return {"content": [{"type": "text", "text": "no open pull requests"}]}
 
     from app.harness.assembly import teardown

@@ -254,14 +254,14 @@ class TestClose:
 class TestTwoEventLoops:
     """QA6-F10: ConfigurationService's watch thread runs its own event loop on the manager the service's loop uses."""
 
-    def test_two_loops_connecting_at_once_both_get_the_one_client(self):
+    def test_two_loops_connecting_at_once_both_get_the_one_client(self) -> None:
         import asyncio
         import threading
 
         mgr = Etcd3ConnectionManager(ConnectionConfig(hosts=["localhost"]))
         client, entered, release, created = MagicMock(), threading.Event(), threading.Event(), []
 
-        def slow_create():
+        def slow_create() -> MagicMock:
             created.append(1)
             entered.set()
             assert release.wait(10)

@@ -19,7 +19,7 @@ from app.harness.assembly.model_policy import compaction_model, compaction_route
 from harness_core.logs import HarnessLog
 
 
-def _run(roles: object) -> Any:
+def _run(roles: object) -> SimpleNamespace:
     dimensions = {} if roles is None else {"models.roles": SimpleNamespace(value=roles)}
     resolved = SimpleNamespace(effective_config=SimpleNamespace(dimensions=dimensions))
     run = SimpleNamespace(resolved=resolved, model=SimpleNamespace(provider="openai", model="gpt-6-sol"))
@@ -54,7 +54,7 @@ def test_mrole_7_the_pin_maps_the_compaction_role() -> None:
 class _Resolver:
     seen: list[Any] = field(default_factory=list)
 
-    async def __call__(self, routed: Any, _services: Any) -> Any:
+    async def __call__(self, routed: SimpleNamespace, _services: object) -> SimpleNamespace:
         self.seen.append(routed.model)
         return SimpleNamespace(name=f"resolved:{routed.model.model_key}", transport=None)
 
@@ -63,7 +63,7 @@ async def test_mrole_7_the_mapped_model_is_the_configured_one_reached_and_metere
     resolve, metered = _Resolver(), []
     services = SimpleNamespace(config_service=lambda: None)
 
-    def meter(model: Any, routed: Any) -> Any:
+    def meter(model: SimpleNamespace, routed: SimpleNamespace) -> SimpleNamespace:
         metered.append((model.name, routed.model.model))
         return SimpleNamespace(name=f"metered:{model.name}")
 

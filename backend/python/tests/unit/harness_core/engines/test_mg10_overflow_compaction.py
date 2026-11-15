@@ -180,7 +180,7 @@ async def test_mg10_a_turn_stopped_while_compacting_is_not_retried() -> None:
     assert _contiguous(events)
 
 
-@pytest.mark.parametrize("attempt", [answered, lambda: overflowed()[:1] + [TurnCompleted(_meta(1), "failed")]])
+@pytest.mark.parametrize("attempt", [answered, lambda: [*overflowed()[:1], TurnCompleted(_meta(1), "failed")]])
 async def test_mg10_an_end_not_retried_is_handed_on_while_the_engines_turn_is_still_open(
     attempt: Callable[[], list[EngineEvent]],
 ) -> None:

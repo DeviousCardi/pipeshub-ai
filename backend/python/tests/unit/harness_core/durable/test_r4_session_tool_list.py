@@ -174,7 +174,7 @@ async def _second_run_calling_lookup(world: World) -> list[str]:
     _admit_next(world)
     _, port = scripted(reply("", ("lookup", {"q": "z"})), reply("done"))
     assert (await world.run(world.kernel(port, shaper=GrowingShaper(world)), NEXT)).status == "completed"
-    outcomes = [e for e in world.events("tool.outcome", run_id=NEXT)]
+    outcomes = list(world.events("tool.outcome", run_id=NEXT))
     assert len(outcomes) == 1
     return [json.dumps(e.data) for e in outcomes]
 

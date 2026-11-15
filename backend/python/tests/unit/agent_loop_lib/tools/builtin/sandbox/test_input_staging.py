@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -16,6 +17,9 @@ from app.agent_loop_lib.tools.builtin.sandbox.input_staging import (
     set_staged_workspace_files_for_task,
     stage_input_files,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @pytest.fixture(autouse=True)
@@ -40,7 +44,7 @@ def _reset_staged_input_files():
 
 
 @pytest.fixture(autouse=True)
-def _reset_staged_workspace_files():
+def _reset_staged_workspace_files() -> Iterator[None]:
     token = input_staging._staged_workspace_files.set(None)
     yield
     input_staging._staged_workspace_files.reset(token)

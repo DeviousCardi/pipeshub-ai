@@ -127,7 +127,7 @@ def create_web_search_tool(
         }
         return json.dumps({**paused, "attempts": []})
 
-    def settle(productive: bool) -> None:
+    def settle(*, productive: bool) -> None:
         nonlocal unproductive, pause_s, resume_at
         if productive:
             unproductive, pause_s, resume_at = 0, FIRST_PAUSE_S, None

@@ -184,7 +184,7 @@ def _context(*app_ids: str) -> EntityAccessContext:
 class _Access(InMemoryRecordAccess):
     """The shared fake, counting its batch checks; every answer is the shared rule's."""
 
-    async def filter_accessible_record_ids(self, record_ids, user_id, org_id, *, transaction=None):
+    async def filter_accessible_record_ids(self, record_ids, user_id, org_id, *, transaction=None) -> set[str]:
         self.batches.append((list(record_ids), user_id, org_id))
         return await super().filter_accessible_record_ids(record_ids, user_id, org_id, transaction=transaction)
 

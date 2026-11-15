@@ -172,7 +172,8 @@ def _gemini_signed(
                 for call in message.tool_calls
                 for block in signature_block(call.id, signatures.get(call.id), provided=call.id in provided)
             ]
-            message = with_state(message, GEMINI_GENERATE_CONTENT, blocks)
+            out.append(with_state(message, GEMINI_GENERATE_CONTENT, blocks))
+            continue
         out.append(message)
     return out
 

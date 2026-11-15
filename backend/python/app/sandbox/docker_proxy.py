@@ -1059,7 +1059,7 @@ def main() -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
     upstream = os.environ.get("DOCKER_PROXY_UPSTREAM", "/var/run/docker.sock")
-    if upstream.startswith("/") or upstream.startswith("unix://"):
+    if upstream.startswith(("/", "unix://")):
         drop_root(upstream.removeprefix("unix://"))
     asyncio.run(serve(
         os.environ.get("DOCKER_PROXY_HOST", "0.0.0.0"),

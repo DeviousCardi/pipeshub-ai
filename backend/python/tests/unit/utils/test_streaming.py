@@ -473,13 +473,13 @@ class TestAppendTaskMarkers:
         result = _append_task_markers(text, None)
         assert "[see details](/knowledge-base/123)" in result
 
-    def test_flattens_relative_link_that_is_no_app_route(self):
+    def test_flattens_relative_link_that_is_no_app_route(self) -> None:
         """CHAT-TL R2: `[out/12_jokes.pdf](out/12_jokes.pdf)` resolved to /chat/out/12_jokes.pdf, a dead page."""
         assert _flatten_unusable_markdown_links("[out/x.pdf](out/x.pdf)") == "out/x.pdf"
         assert _flatten_unusable_markdown_links("[x](./x.pdf)") == "x"
         assert _flatten_unusable_markdown_links("[top](#answer)") == "[top](#answer)"
 
-    def test_keeps_citation_refs_the_finalizer_resolves_later(self):
+    def test_keeps_citation_refs_the_finalizer_resolves_later(self) -> None:
         """CTL-2 regression (golden journals): the sanitizer runs before citations are normalized, so `[source](ref1)`
         must survive it to become a cited link."""
         for text in ("[source](ref1)", "[source](ref1, ref2)", "[1](ref12)"):
@@ -590,27 +590,27 @@ class TestLinkWorkspaceFiles:
 
     FILES = {"12_jokes.pdf": "rec-1", "travel_policy.md": "rec-2"}
 
-    def test_a_link_to_a_published_file_links_its_artifact(self):
+    def test_a_link_to_a_published_file_links_its_artifact(self) -> None:
         text = "Created **[out/12_jokes.pdf](out/12_jokes.pdf)**, a PDF."
         assert link_workspace_files(text, self.FILES) == "Created **[12_jokes.pdf](/record/rec-1)**, a PDF."
 
-    def test_a_code_span_path_links_its_artifact(self):
+    def test_a_code_span_path_links_its_artifact(self) -> None:
         text = "I wrote **`out/travel_policy.md`**, which summarizes the rules."
         assert link_workspace_files(text, self.FILES) == (
             "I wrote **[travel_policy.md](/record/rec-2)**, which summarizes the rules."
         )
 
-    def test_a_bare_path_links_its_artifact(self):
+    def test_a_bare_path_links_its_artifact(self) -> None:
         assert link_workspace_files("Saved to out/travel_policy.md.", self.FILES) == (
             "Saved to [travel_policy.md](/record/rec-2)."
         )
 
-    def test_a_file_that_was_not_published_is_its_name_without_a_link(self):
+    def test_a_file_that_was_not_published_is_its_name_without_a_link(self) -> None:
         assert link_workspace_files("See `out/scratch.csv` and [notes](out/notes.txt).", {}) == (
             "See scratch.csv and notes."
         )
 
-    def test_prose_and_real_links_are_untouched(self):
+    def test_prose_and_real_links_are_untouched(self) -> None:
         text = "Log in/out first, then read [the guide](https://example.com/in/guide.pdf)."
         assert link_workspace_files(text, self.FILES) == text
 

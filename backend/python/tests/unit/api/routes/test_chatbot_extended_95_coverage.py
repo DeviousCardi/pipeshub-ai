@@ -383,7 +383,7 @@ async def test_get_artifact_record_ids_for_conversation_paginates_in_stable_orde
     assert first_kwargs["raise_on_error"] is True
 
 
-def _artifact_graph(edges):
+def _artifact_graph(edges) -> AsyncMock:
     """`_permission_graph` whose records are the conversation's two artifacts and one KB file."""
     from types import SimpleNamespace
 
@@ -408,7 +408,7 @@ def _artifact_graph(edges):
 
 
 @pytest.mark.asyncio
-async def test_grant_artifact_permissions_grants_nothing_without_provenance_and_revokes_old_grants():
+async def test_grant_artifact_permissions_grants_nothing_without_provenance_and_revokes_old_grants() -> None:
     """AV-9: no artifact records its sources yet, so sharing grants no READER, and
     a READER granted before the check existed is removed; OWNER is untouched."""
     from app.api.routes.chatbot import grant_artifact_permissions
@@ -428,13 +428,13 @@ async def test_grant_artifact_permissions_grants_nothing_without_provenance_and_
 
 
 @pytest.mark.asyncio
-async def test_grant_artifact_permissions_grants_what_provenance_allows_once():
+async def test_grant_artifact_permissions_grants_what_provenance_allows_once() -> None:
     """AV-10: READER only on the artifact whose sources the viewer can read; a reopen writes nothing."""
     from app.api.routes import chatbot
     from app.services.artifact_registry.viewer_access import ArtifactViewerAccess
 
     class Provenance:
-        async def sources_of(self, org_id, artifact_ids):
+        async def sources_of(self, org_id, artifact_ids) -> dict[str, frozenset[str] | None]:
             known = {"artifact-1": frozenset({"kb-1"}), "artifact-2": frozenset({"kb-secret"})}
             return {aid: known.get(aid) for aid in artifact_ids}
 

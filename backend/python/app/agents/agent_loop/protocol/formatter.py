@@ -197,7 +197,7 @@ class LegacyFormatter(ProtocolFormatter):
     def error(self, context, *, message, code):
         return [{"event": "error", "data": {"message": message, "type": code}}]
 
-    def provider_wait(self, context, *, retry_at, message):
+    def provider_wait(self, context: "AgentContext", *, retry_at: str, message: str) -> list[dict[str, Any]]:
         return [{"event": "status", "data": {"status": "retrying", "message": message}}]
     def tool_progress(
         self, context: "AgentContext", *, tool: str, progress: float, total: float | None, message: str | None,
@@ -296,7 +296,9 @@ class AGUIFormatter(ProtocolFormatter):
     def error(self, context, *, message, code):
         return [frame(AGUIEventType.RUN_ERROR, runId=context.run_id, message=message, code=code)]
 
-    def context_compacted(self, context, *, before_tokens, after_tokens, message):
+    def context_compacted(
+        self, context: "AgentContext", *, before_tokens: int, after_tokens: int, message: str,
+    ) -> list[dict[str, Any]]:
         # The frame Node projects from a durable run's `x.pipeshub.context.compacted`, so the chat's existing row
         # renders it in the reader's language. L4 folds older user messages into notes: they are not all kept.
         return [frame(
@@ -304,7 +306,7 @@ class AGUIFormatter(ProtocolFormatter):
             value={**compacted_view(before_tokens, after_tokens), "message": message},
         )]
 
-    def provider_wait(self, context, *, retry_at, message):
+    def provider_wait(self, context: "AgentContext", *, retry_at: str, message: str) -> list[dict[str, Any]]:
         # The durable projection's frame for `run.yielded{llm_backoff}` (contracts/harness/vectors/provider-wait.json):
         # the web app words the wait from `retry_at`, never from server text.
         return [frame(

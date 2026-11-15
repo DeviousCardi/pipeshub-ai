@@ -6,7 +6,7 @@ from harness_core.engines.events import PlanItem
 from harness_core.kernel.task_ledger import PLAN_SLOT, TaskLedger
 
 
-def _shape(events):
+def _shape(events) -> list[tuple[object, ...]]:
     return [(e.type, e.data["taskId"], e.data["title"], e.data["status"], e.critical) for e in events]
 
 

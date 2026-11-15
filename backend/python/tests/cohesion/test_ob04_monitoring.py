@@ -97,9 +97,11 @@ def _family(name: str) -> str:
 def _source_text() -> str:
     parts: list[str] = []
     for root in SOURCE_ROOTS:
-        for path in root.rglob("*"):
-            if path.suffix in (".py", ".ts") and "generated" not in path.parts:
-                parts.append(path.read_text(encoding="utf-8", errors="replace"))
+        parts.extend(
+            path.read_text(encoding="utf-8", errors="replace")
+            for path in root.rglob("*")
+            if path.suffix in (".py", ".ts") and "generated" not in path.parts
+        )
     return "\n".join(parts)
 
 

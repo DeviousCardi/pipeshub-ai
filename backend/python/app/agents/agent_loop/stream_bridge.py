@@ -80,6 +80,10 @@ if TYPE_CHECKING:
     from langchain_core.language_models.chat_models import BaseChatModel
 
     from app.agents.agent_loop.cancellation.registry import RunCancellationRegistry
+    from app.config.configuration_service import ConfigurationService
+    from app.modules.retrieval.retrieval_service import RetrievalService
+    from app.modules.transformers.entity_vectorstore import EntityVectorStore
+    from app.services.graph_db.interface.graph_db_provider import IGraphDBProvider
     from app.utils.stage_timer import StageTimer
 
 logger = logging.getLogger(__name__)
@@ -764,10 +768,11 @@ async def run_chat_stream(
     llm: "BaseChatModel",
     policy: ChatModePolicy | None,
     log: logging.Logger,
-    retrieval_service: Any,
-    graph_provider: Any,
-    reranker_service: Any,
-    config_service: Any,
+    *,
+    retrieval_service: RetrievalService,
+    graph_provider: IGraphDBProvider,
+    reranker_service: object | None,
+    config_service: ConfigurationService,
     org_info: dict[str, Any] | None = None,
     model_name: str | None = None,
     model_key: str | None = None,
@@ -780,7 +785,7 @@ async def run_chat_stream(
     client_name: str | None = None,
     cancellation_registry: "RunCancellationRegistry | None" = None,
     cancellation_owner: "RunOwner | None" = None,
-    entity_vector_store: Any = None,
+    entity_vector_store: EntityVectorStore | None = None,
 ) -> "AsyncGenerator[str, None]":
     """`/chat/stream` (the built-in assistant, every mode): the turn
     `chat_modes.setup` describes, streamed like an agent turn.

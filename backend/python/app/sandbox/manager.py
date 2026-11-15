@@ -65,32 +65,30 @@ def get_executor() -> BaseExecutor:
     environment and calling again works without a restart.
     """
     global _executor_instance
-    if _executor_instance is not None:
-        return _executor_instance
+    if _executor_instance is None:
+        _executor_instance = _new_executor(get_sandbox_mode())
+    return _executor_instance
 
-    mode = get_sandbox_mode()
 
+def _new_executor(mode: SandboxMode) -> BaseExecutor:
     if mode == SandboxMode.BROKER:
         from app.harness.sandbox.client import process_broker_client
         from app.sandbox.broker_executor import BrokerExecutor
 
         logger.info("Initializing BrokerExecutor for sandbox")
-        _executor_instance = BrokerExecutor(broker=process_broker_client.get)
-    elif mode == SandboxMode.DOCKER:
+        return BrokerExecutor(broker=process_broker_client.get)
+    if mode == SandboxMode.DOCKER:
         from app.sandbox.docker_executor import DockerExecutor
 
         logger.info("Initializing DockerExecutor for sandbox")
-        _executor_instance = DockerExecutor()
-    else:
-        from app.sandbox.local_executor import LocalExecutor
+        return DockerExecutor()
+    from app.sandbox.local_executor import LocalExecutor
 
-        logger.warning(
-            "Initializing LocalExecutor for sandbox: generated code runs as a "
-            "subprocess of this service"
-        )
-        _executor_instance = LocalExecutor()
-
-    return _executor_instance
+    logger.warning(
+        "Initializing LocalExecutor for sandbox: generated code runs as a "
+        "subprocess of this service"
+    )
+    return LocalExecutor()
 
 
 def reset_executor() -> None:

@@ -64,7 +64,7 @@ def _make_file_record(extension="txt", record_name="doc", mime_type="text/plain"
     return rec
 
 
-def _citations():
+def _citations() -> MagicMock:
     citations = MagicMock()
     citations.render = MagicMock(return_value=_LLM_CONTEXT)
     return citations
@@ -412,7 +412,6 @@ class TestParse:
         workbook.save(raw)
 
         parser = _make_parser()
-        citations = _citations()
         parser._config.get_config = AsyncMock(return_value={"embedding": [{"provider": "openAI"}]})
         rec = _make_file_record(
             extension="xlsx",

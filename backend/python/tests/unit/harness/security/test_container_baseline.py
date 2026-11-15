@@ -100,25 +100,26 @@ def holes(svc: dict[str, Any]) -> list[str]:
     found = []
     if svc.get("privileged") is True:
         found.append("privileged")
-    for key in ("network_mode", "pid", "ipc", "userns_mode", "uts", "cgroup"):
-        if str(svc.get(key) or "").lower() == "host":
-            found.append(f"{key}: host")
-    for opt in _opts(svc):
+    found.extend(
+        f"{key}: host"
+        for key in ("network_mode", "pid", "ipc", "userns_mode", "uts", "cgroup")
+        if str(svc.get(key) or "").lower() == "host"
+    )
+    found.extend(
+        f"security_opt {opt}"
+        for opt in _opts(svc)
         if opt in {"seccomp:unconfined", "apparmor:unconfined", "label:disable", "systempaths:unconfined",
-                   "no-new-privileges:false"}:
-            found.append(f"security_opt {opt}")
+                   "no-new-privileges:false"}
+    )
     if any(str(c).upper().removeprefix("CAP_") == "ALL" for c in svc.get("cap_add") or []):
         found.append("cap_add ALL")
     if "cap_drop" in svc and not isinstance(svc["cap_drop"], _Reset) \
             and [str(c).upper() for c in svc["cap_drop"] or []] != ["ALL"]:
         found.append("cap_drop narrowed")
-    for key in ("cap_drop", "security_opt", "read_only", "user"):
-        if isinstance(svc.get(key), _Reset):
-            found.append(f"{key} reset")
+    found.extend(f"{key} reset" for key in ("cap_drop", "security_opt", "read_only", "user") if isinstance(svc.get(key), _Reset))
     if svc.get("read_only") is False:
         found.append("read_only: false")
-    for vol in svc.get("devices") or []:
-        found.append(f"device {vol}")
+    found.extend(f"device {vol}" for vol in svc.get("devices") or [])
     return found
 
 
@@ -479,10 +480,10 @@ def contributor_gaps(path: Path, name: str, svc: dict[str, Any]) -> list[str]:
 def _same_image_services(rel: str) -> dict[str, dict[str, Any]]:
     path = COMPOSE_DIR / rel
     out = {}
-    for name, svc in _services(path).items():
-        if not (svc.get("image") or svc.get("extends") or svc.get("build")):
+    for name, declared in _services(path).items():
+        if not (declared.get("image") or declared.get("extends") or declared.get("build")):
             continue
-        svc = _resolved(path, svc)
+        svc = _resolved(path, declared)
         if same_image_as_the_base(path, name, svc) is not None:
             out[name] = svc
     return out

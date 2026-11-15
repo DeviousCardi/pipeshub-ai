@@ -73,7 +73,7 @@ class FakeSessions:
                 sessions.live.add(self)
                 sessions.opened += 1
 
-            async def call_tool_in_session(self, name: str, arguments: dict[str, Any], **_: Any) -> object:
+            async def call_tool_in_session(self, name: str, arguments: dict[str, Any], **_: object) -> object:
                 if sessions.on_call is not None:
                     await sessions.on_call()
                 return SimpleNamespace(is_error=False, data="pr-1")

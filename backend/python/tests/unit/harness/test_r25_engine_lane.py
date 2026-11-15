@@ -13,8 +13,12 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 REPO = Path(__file__).resolve().parents[5]
 E2E = REPO / "deployment" / "e2e"
@@ -24,7 +28,7 @@ SCRIPTED_MODEL_TS = REPO / "frontend" / "tests" / "e2e" / "harness" / "support" 
 
 
 @pytest.fixture(scope="module")
-def engines():
+def engines() -> ModuleType:
     # Loaded by its path: `import engines` found the test packages of that name (tests/unit/harness/engines,
     # tests/unit/harness_core/engines) whenever an earlier test in the worker had imported one (R26-FU).
     spec = importlib.util.spec_from_file_location("e2e_engines", E2E / "engines.py")

@@ -34,6 +34,7 @@ Security model:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import io
 import logging
 import os
@@ -415,10 +416,8 @@ class DockerExecutor(BaseExecutor):
                 )
             except asyncio.CancelledError:
                 # Stop the container, then let the cancellation through (it is not a timeout).
-                try:
+                with contextlib.suppress(Exception):
                     container.kill()
-                except Exception:
-                    pass
                 raise
             except asyncio.TimeoutError:
                 logger.warning("Container execution timed out after %ds, killing container", timeout)
