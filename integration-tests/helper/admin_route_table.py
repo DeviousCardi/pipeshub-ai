@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from helper import suite_extensions
+from helper.admin_route_conditional_table import HARNESS_OFF
 
 # A well-formed Mongo ObjectId that no document has.
 ABSENT_ID = "65f0c0ffee00000000000000"
@@ -391,6 +392,24 @@ PYTHON_CONDITIONAL_ADMIN = {
     # skill is theirs alone.
     "api/routes/skills.py::disable_skill": "built-in skills need admin",
     "api/routes/skills.py::enable_skill": "built-in skills need admin",
+    # A team or org /command is changed by those who govern it: an org command by an admin,
+    # a team command by its team's owners or an admin. A personal skill is its author's.
+    "api/routes/skills.py::update_skill": "a shared command is an admin's to change",
+    "api/routes/skills.py::patch_skill_body": "a shared command is an admin's to change",
+    "api/routes/skills.py::rename_skill": "a shared command is an admin's to change",
+    "api/routes/skills.py::deprecate_skill": "a shared command is an admin's to change",
+    "api/routes/skills.py::delete_skill": "a shared command is an admin's to change",
+    "api/routes/skills.py::rollback_skill": "a shared command is an admin's to change",
+    "api/routes/skills.py::write_resource": "a shared command is an admin's to change",
+    "api/routes/skills.py::remove_resource": "a shared command is an admin's to change",
+    "api/routes/skills.py::publish_command": "only an admin shares with the org",
+    "api/routes/skills.py::command_share_targets": "the org is offered to admins only",
+    "api/routes/skills.py::list_skills": "the editor lists what the caller may change",
+    # A learned proposal is decided by the person it was learned for, or an admin.
+    "api/routes/skills.py::approve_candidate": "the learner or an admin decides",
+    "api/routes/skills.py::reject_candidate": "the learner or an admin decides",
+    "api/routes/skills.py::get_pending_candidates": "an admin sees every proposal",
+    "api/routes/skills.py::finalize_import": "never asks; matched by name only",
     # Only instances that use the shared admin credential need an admin.
     "api/routes/mcp_servers.py::authenticate_instance": "shared admin credential needs admin",
     "api/routes/mcp_servers.py::update_credentials": "shared admin credential needs admin",
@@ -416,6 +435,8 @@ PYTHON_CONDITIONAL_ADMIN = {
     # because binding spends the access an administrator granted that account.
     "api/routes/agent.py::create_agent": "only a service-account binding needs admin",
     "api/routes/agent.py::update_agent": "only a service-account binding needs admin",
+    "api/routes/agent.py::import_agent": "an import never binds a service account",
+    "api/routes/agent.py::rollback_agent_version": "only a service agent's binding needs admin",
     # The directory of people. Everyone gets it; an administrator asking for
     # service accounts gets those too, and nobody else does.
     "api/routes/entity.py::get_users": "admin widens the directory",
@@ -430,6 +451,11 @@ PYTHON_CONDITIONAL_ADMIN = {
     # also change or delete any team in their org.
     "api/routes/entity.py::update_team": "owner or admin",
     "api/routes/entity.py::delete_team": "owner or admin",
+    # A knowledge base is published, and its publications listed or revoked, by an owner of it
+    # or an org admin. Served through the gateway's harness routes.
+    "api/routes/knowledge_publications.py::create_publication": "container owner or admin",
+    "api/routes/knowledge_publications.py::list_publications": "container owner or admin",
+    "api/routes/knowledge_publications.py::revoke_publication": "container owner or admin",
 }
 
 
@@ -463,7 +489,7 @@ class SwitchedOff:
 
 SWITCHED_OFF: tuple[SwitchedOff, ...] = (
     # agent-harness/transport/harness-switch.ts: off unless the install sets AGENT_HARNESS_WORKER_ENABLED.
-    SwitchedOff(_HARNESS, 404, "The agent harness is not enabled on this install.",
+    SwitchedOff(_HARNESS, 404, HARNESS_OFF,
                 "the agent harness is off on this stack"),
     # api/routes/mcp_hub.py: the manifest routes answer this before the admin check while MCP_HUB is off.
     SwitchedOff(f"{_MCP}/instances/", 404, "The MCP hub is off", "the MCP hub is off on this stack"),
