@@ -3,11 +3,31 @@
 // shapes 1:1 so the frontend never has to reshape payloads.
 // ========================================
 
+import type { CommandArgument } from '@/lib/commands/render';
+
 export type SkillStatus = 'active' | 'deprecated' | 'candidate' | 'disabled';
+/** SLASH1 S4: who a /command is shared with. */
+export type SkillScope = 'personal' | 'team' | 'org';
+
+/** A command's sharing: the editor's "Who can use it". */
+export interface CommandShare {
+  scope: SkillScope;
+  teamId: string | null;
+}
+
+/** Where the caller may share a command: the teams they own, and the org when they are its admin. */
+export interface CommandShareTargets {
+  org: boolean;
+  teams: { id: string; name: string }[];
+}
 export type SkillSourceType = 'builtin' | 'manual' | 'imported' | 'learned';
 
 export interface SkillMetadata {
   name: string;
+  /** UI-B4: the name people see; null shows `name`. */
+  displayName?: string | null;
+  /** UI-B4: the current version's change note. */
+  changeNote?: string | null;
   description: string;
   version: string;
   category: string | null;
@@ -27,6 +47,61 @@ export interface SkillMetadata {
   updatedAt: string | number | null;
   packName: string | null;
   packVersion: string | null;
+  /** SLASH1: `user` lists it in the chat composer's / menu; `model` lets the agent load it itself. */
+  invocation: { user: boolean; model: boolean };
+  /** A /command's declared arguments. */
+  arguments: CommandArgument[];
+  /** SLASH1 S4: who it is shared with; a team command's team, and a shared command's author. */
+  scope?: SkillScope;
+  teamId?: string | null;
+  team?: string | null;
+  author?: string | null;
+  /** The author's user id (S4), so a reader can tell their own shared command from someone else's. */
+  authorId?: string | null;
+  authorFormer?: boolean;
+  /** ADR-SEC-01: an imported skill's standing; absent for skills written in PipesHub or shipped with it. */
+  review?: SkillTrustStanding | null;
+}
+
+/** What the content scanner found in a skill (SK-06): a reason for an admin to read it, never proof of an attack. */
+export interface SkillFinding {
+  code: string;
+  path: string;
+  line: number;
+  excerpt: string;
+}
+
+/** Whether agents may use an imported skill's current content, and why not. */
+export interface SkillTrustStanding {
+  state: 'trusted' | 'pending' | 'denied' | 'untrusted';
+  reasonCode?: string;
+  /** How it is trusted: a publisher's signature or an admin's approval. */
+  route?: 'signature' | 'approval' | 'first_party';
+  digest: string;
+  findings: SkillFinding[];
+}
+
+export interface SkillDiffLine {
+  op: '+' | '-' | ' ' | '@';
+  text: string;
+}
+
+/** One file of a skill against the content an admin last approved. */
+export interface SkillFileChange {
+  path: string;
+  change: 'added' | 'removed' | 'changed' | 'binary';
+  lines: SkillDiffLine[];
+  hidden: number;
+}
+
+/** An imported skill waiting for an admin's decision, as the review panel shows it. */
+export interface SkillReview extends SkillTrustStanding {
+  name: string;
+  description?: string | null;
+  createdBy?: string | null;
+  updatedAt?: number | null;
+  approvedDigest: string | null;
+  changes: SkillFileChange[];
 }
 
 /** Full skill: metadata + Tiptap-edited markdown body + bundled resource paths. */
@@ -48,13 +123,22 @@ export interface SkillWritePayload {
   related?: string[];
   requires?: string[];
   concepts?: string[];
+  invocation?: { user: boolean; model: boolean };
+  arguments?: CommandArgument[];
+  /** UI-B4: what this save changed, kept on the version and shown in its history. */
+  changeNote?: string;
 }
 
 export interface SkillVersionSummary {
   version: string;
+  /** The author's stored id; show `updatedByName`. */
   updatedBy: string | null;
+  updatedByName?: string | null;
+  updatedByFormer?: boolean;
   createdAt: string | number | null;
   summary: string | null;
+  /** The live version, listed first. */
+  current?: boolean;
 }
 
 export interface SkillUsage {
@@ -80,6 +164,9 @@ export interface SkillCandidate {
   source?: string;
   created_at?: string | number | null;
   status?: string;
+  /** UI-B4: the agent whose run learned it (null: the assistant), and whether it was the caller's own run. */
+  source_agent_key?: string | null;
+  mine?: boolean;
   [key: string]: unknown;
 }
 
@@ -94,6 +181,8 @@ export interface ImportPreview {
   warnings: string[];
   skippedBinaryResources: string[];
   sourceLabel: string;
+  /** SEC-SC-04: the content scanner's findings, shown before the import. */
+  findings?: SkillFinding[];
 }
 
 // ── UI-only state ──
@@ -101,4 +190,4 @@ export interface ImportPreview {
 /** null = create mode, string = edit mode (skill name) */
 export type EditingSkillTarget = string | null;
 
-export type EditorTab = 'content' | 'metadata' | 'resources' | 'versions';
+export type EditorTab = 'content' | 'command' | 'metadata' | 'resources' | 'versions';

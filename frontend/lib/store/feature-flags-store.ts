@@ -6,10 +6,34 @@ import { immer } from 'zustand/middleware/immer';
 import { apiClient } from '@/lib/api/axios-instance';
 import { onSessionEnd } from '@/lib/api/session-cache';
 
+/** The server's harness rollout decision for this org; the UI never recomputes it. */
+export interface AgentHarnessRollout {
+  /** New turns may be submitted to the durable harness (the server may still route one to legacy). */
+  useHarness: boolean;
+  harnessMajor: number;
+  reason: string;
+  /** Durable runs already admitted can be reattached, even under the kill switch. */
+  resumeInFlightRuns: boolean;
+}
+
 interface FeatureFlagsState {
   /** null = not yet loaded. Opt-in selectors treat that as off; default-on selectors treat it as on. */
   flags: Record<string, boolean> | null;
+  agentHarness: AgentHarnessRollout | null;
+  /** The deployment flag `HARNESS_RECONCILE` (environment, not Labs): unknown effects are first checked by a read. */
+  harnessReconcile: boolean;
+  /** A worker that runs engine runs (coding agents) was seen lately: what personal AI accounts serve (UX3). */
+  engineRuns: boolean;
+  /** The server serves "Continue privately" (SS3): the durable harness infrastructure is ready. */
+  continuePrivately: boolean;
   loading: boolean;
+  /**
+   * The last read failed, so `flags` is a stand-in (`{}`, or the last good answer) and says nothing about what the
+   * org has on. Classic pages carry on with it; a route that would send the person away on an off flag waits.
+   */
+  readFailed: boolean;
+  /** A failed read is being tried again (backoff); false once a read answered or every retry failed. */
+  retrying: boolean;
 }
 
 interface FeatureFlagsActions {
@@ -22,6 +46,16 @@ const EFFECTIVE_FLAGS_URL =
   '/api/v1/configurationManager/platform/feature-flags/effective';
 
 let fetchPromise: Promise<void> | null = null;
+
+/**
+ * The waits before each retry of a failed read (UIADOPT1-FU-1): a transient network error on first load, such as
+ * `ERR_NETWORK_CHANGED`, must not read as "every opt-in flag is off".
+ */
+export const FLAG_RETRY_DELAYS_MS: ReadonlyArray<number> = [500, 1000, 2000, 4000];
+let attempt = 0;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+/** Bumped at session end, so a retry the last session scheduled never writes into the next one. */
+let generation = 0;
 
 function parseFeatureFlags(value: unknown): Record<string, boolean> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -36,11 +70,28 @@ function parseFeatureFlags(value: unknown): Record<string, boolean> {
   return flags;
 }
 
+function parseAgentHarnessRollout(value: unknown): AgentHarnessRollout | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const v = value as Record<string, unknown>;
+  return {
+    useHarness: v.useHarness === true,
+    harnessMajor: typeof v.harnessMajor === 'number' ? v.harnessMajor : 1,
+    reason: typeof v.reason === 'string' ? v.reason : 'unknown',
+    resumeInFlightRuns: v.resumeInFlightRuns === true,
+  };
+}
+
 export const useFeatureFlagsStore = create<FeatureFlagsStore>()(
   devtools(
     immer((set) => ({
       flags: null,
+      agentHarness: null,
+      harnessReconcile: false,
+      continuePrivately: false,
+      engineRuns: false,
       loading: false,
+      readFailed: false,
+      retrying: false,
 
       fetchFlags: async () => {
         // Every authenticated page mounts through `HealthGate` — dedupe so a
@@ -48,27 +99,54 @@ export const useFeatureFlagsStore = create<FeatureFlagsStore>()(
         if (fetchPromise) return fetchPromise;
 
         fetchPromise = (async () => {
+          const mine = generation;
           set((state) => {
             state.loading = true;
           });
           try {
-            const { data } = await apiClient.get<{ featureFlags?: unknown }>(
+            const { data } = await apiClient.get<{
+              featureFlags?: unknown;
+              agentHarness?: unknown;
+              harnessReconcile?: unknown;
+              continuePrivately?: unknown;
+              engineRuns?: unknown;
+            }>(
               EFFECTIVE_FLAGS_URL,
               { suppressErrorToast: true },
             );
             set((state) => {
               state.flags = parseFeatureFlags(data?.featureFlags);
+              state.agentHarness = parseAgentHarnessRollout(data?.agentHarness);
+              state.harnessReconcile = data?.harnessReconcile === true;
+              state.continuePrivately = data?.continuePrivately === true;
+              state.engineRuns = data?.engineRuns === true;
               state.loading = false;
+              state.readFailed = false;
+              state.retrying = false;
             });
+            attempt = 0;
           } catch {
             // Mark the load as finished rather than leaving `flags` null forever.
             // An indefinite `null` would permanently block pages that wait for
             // flags (MCP, Skills, Actions). An empty map keeps opt-in flags off
             // and leaves default-on flags on.
+            const delay = FLAG_RETRY_DELAYS_MS[attempt];
             set((state) => {
               state.flags = state.flags ?? {};
               state.loading = false;
+              state.readFailed = true;
+              state.retrying = delay !== undefined;
             });
+            if (delay !== undefined && mine === generation) {
+              attempt += 1;
+              if (retryTimer) clearTimeout(retryTimer);
+              retryTimer = setTimeout(() => {
+                retryTimer = null;
+                if (mine === generation) void useFeatureFlagsStore.getState().fetchFlags();
+              }, delay);
+            } else {
+              attempt = 0;
+            }
           }
         })();
 
@@ -87,11 +165,23 @@ export const useFeatureFlagsStore = create<FeatureFlagsStore>()(
 // own through HealthGate. A switch to another org keeps the app on screen, so it loads them here.
 onSessionEnd(({ refetch }) => {
   fetchPromise = null;
+  generation += 1;
+  attempt = 0;
+  if (retryTimer) clearTimeout(retryTimer);
+  retryTimer = null;
   useFeatureFlagsStore.setState(useFeatureFlagsStore.getInitialState(), true);
   if (refetch) void useFeatureFlagsStore.getState().fetchFlags();
 });
 
 export const selectFeatureFlagsLoaded = (s: FeatureFlagsStore) => s.flags !== null;
+/**
+ * The flags are the org's real answer: a read succeeded. Only then may a route send someone away because a flag is
+ * off; `selectFeatureFlagsLoaded` is also true after a failed read, so classic pages are never stuck.
+ */
+export const selectFeatureFlagsKnown = (s: Pick<FeatureFlagsState, 'flags' | 'readFailed'>) => s.flags !== null && !s.readFailed;
+/** Every retry of a failed read failed too: the person may ask for another. */
+export const selectFeatureFlagsReadFailed = (s: Pick<FeatureFlagsState, 'flags' | 'readFailed' | 'retrying'>) =>
+  s.flags !== null && s.readFailed && !s.retrying;
 /** MCP defaults to enabled, so an unloaded or absent flag must not read as disabled. */
 export const selectMcpEnabled = (s: FeatureFlagsStore) => s.flags?.ENABLE_MCP !== false;
 /** API Toolsets default to disabled (Labs); "not yet loaded" reads as disabled. */
@@ -115,5 +205,57 @@ export const selectSoftDeleteEnabled = (s: FeatureFlagsStore) =>
 /** User/org prompt context defaults to enabled; admins opt out from Labs. */
 export const selectUserContextEnabled = (s: FeatureFlagsStore) =>
   s.flags?.ENABLE_USER_CONTEXT !== false;
+/** Whether the org has the durable harness on: gates UI only; the server routes each turn. */
+export const selectAgentHarnessEnabled = (s: Pick<FeatureFlagsState, 'agentHarness'>) =>
+  s.agentHarness?.useHarness === true;
+/**
+ * Whether the install runs the agent harness at all (ADR-OPS-06): the server answers no rollout while its switch
+ * is off, nor while the flags could not be read. Gates what came with the harness but is not per-org Labs.
+ */
+export const selectAgentHarnessSwitchedOn = (s: Pick<FeatureFlagsState, 'agentHarness'>) =>
+  s.agentHarness !== null;
+/** Whether to look for and reattach to an in-flight durable run. */
+export const selectAgentHarnessResumeEnabled = (s: Pick<FeatureFlagsState, 'agentHarness'>) =>
+  s.agentHarness?.resumeInFlightRuns === true;
 
-export type FeatureFlagGate = 'mcp' | 'actions' | 'skills';
+/**
+ * Labs `ENABLE_SCHEDULED_RUNS` (P8a), and the durable harness on for the org:
+ * every firing is a durable run, so with the harness off a schedule would
+ * never run (UX3, R1 F14).
+ */
+export const selectScheduledRunsEnabled = (s: Pick<FeatureFlagsState, 'flags' | 'agentHarness'>) =>
+  s.flags?.ENABLE_SCHEDULED_RUNS === true && selectAgentHarnessEnabled(s);
+/** Labs `ENABLE_KNOWLEDGE_PUBLICATIONS` (P2.13): off unless an admin turned it on. */
+export const selectKnowledgePublicationsEnabled = (s: FeatureFlagsStore) =>
+  s.flags?.ENABLE_KNOWLEDGE_PUBLICATIONS === true;
+
+/**
+ * Whether the unknown-effects console is worth showing (UX3): wherever durable
+ * runs can exist, an unknown effect can wait for an admin, whatever
+ * `HARNESS_RECONCILE` says.
+ */
+export const selectUnknownEffectsConsoleEnabled = (s: Pick<FeatureFlagsState, 'agentHarness'>) =>
+  selectAgentHarnessResumeEnabled(s);
+
+/** Personal AI accounts are used by engine runs only (UX3, R1 F16). */
+export const selectEngineRunsEnabled = (s: Pick<FeatureFlagsState, 'engineRuns'>) => s.engineRuns === true;
+
+/** Whether this deployment serves "Continue privately" on shared conversations (SS3). */
+export const selectContinuePrivatelyEnabled = (s: Pick<FeatureFlagsState, 'continuePrivately'>) =>
+  s.continuePrivately === true;
+
+export type FeatureFlagGate =
+  | 'mcp'
+  | 'actions'
+  | 'skills'
+  | 'scheduledRuns'
+  | 'agentHarness'
+  | 'agentHarnessResume'
+  | 'engineRuns';
+
+/**
+ * Whether the default chat's Agent mode runs on the agent harness: it comes with
+ * the harness (CTL-5), so it is the org's harness on. The server decides each turn again.
+ */
+export const selectDurableAssistantAgentOffered = (s: Pick<FeatureFlagsState, 'flags' | 'agentHarness'>) =>
+  selectAgentHarnessEnabled(s);

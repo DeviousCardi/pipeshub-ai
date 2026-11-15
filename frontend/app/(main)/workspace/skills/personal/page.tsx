@@ -1,20 +1,23 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/store/toast-store';
 import { ServiceGate } from '@/app/components/ui/service-gate';
 import { useFeatureFlagGuard } from '@/lib/hooks/use-feature-flag-guard';
 import { selectSkillsEnabled } from '@/lib/store/feature-flags-store';
+import { useUserStore, selectIsAdmin } from '@/lib/store/user-store';
 import { useSkillsStore } from './store';
 import { SkillsApi } from './api';
-import type { SkillMetadata } from './types';
+import type { SkillMetadata, SkillReview } from './types';
 import {
   SkillPageLayout,
   SkillEditorPanel,
   SkillImportDialog,
   SkillCandidatesPanel,
+  SkillReviewsPanel,
 } from './components';
+import { ShadowedCommandsNotice } from './components/skill-command-tab';
 
 // ========================================
 // Page
@@ -23,6 +26,7 @@ import {
 export default function PersonalSkillsPage() {
   const { t } = useTranslation();
   const { ready } = useFeatureFlagGuard(selectSkillsEnabled);
+  const isAdmin = useUserStore(selectIsAdmin) === true;
   const {
     skills,
     candidates,
@@ -38,15 +42,21 @@ export default function PersonalSkillsPage() {
     openImportDialog,
     openCandidatesPanel,
   } = useSkillsStore();
+  // ADR-SEC-01: imported skills an admin has to review; a member's request is refused and the button stays hidden.
+  const [reviewCount, setReviewCount] = useState(0);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+  const onReviewsChanged = useCallback((reviews: SkillReview[]) => setReviewCount(reviews.length), []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [skillsResult, candidatesResult] = await Promise.allSettled([
+      const [skillsResult, candidatesResult, reviewsResult] = await Promise.allSettled([
         SkillsApi.listSkills(),
         SkillsApi.getPendingCandidates(),
+        isAdmin ? SkillsApi.getPendingReviews() : Promise.resolve([] as SkillReview[]),
       ]);
+      setReviewCount(reviewsResult.status === 'fulfilled' ? reviewsResult.value.length : 0);
 
       if (skillsResult.status === 'fulfilled') {
         setSkills(skillsResult.value);
@@ -61,7 +71,7 @@ export default function PersonalSkillsPage() {
     } finally {
       setLoading(false);
     }
-  }, [setSkills, setCandidates, setLoading, setError, t]);
+  }, [setSkills, setCandidates, setLoading, setError, isAdmin, t]);
 
   useEffect(() => {
     // Avoids a 403 toast if the flag was just disabled and this page is
@@ -100,6 +110,7 @@ export default function PersonalSkillsPage() {
 
   return (
     <ServiceGate services={['query']}>
+      <ShadowedCommandsNotice skills={skills} />
       <SkillPageLayout
         skills={skills}
         isLoading={isLoading}
@@ -108,6 +119,8 @@ export default function PersonalSkillsPage() {
         onCreateSkill={openCreateEditor}
         onImportSkill={openImportDialog}
         onOpenCandidates={openCandidatesPanel}
+        pendingReviewCount={reviewCount}
+        onOpenReviews={() => setReviewsOpen(true)}
         onRefresh={handleRefresh}
         onManage={openEditEditor}
         onToggleAvailability={handleToggleAvailability}
@@ -115,6 +128,14 @@ export default function PersonalSkillsPage() {
       <SkillEditorPanel />
       <SkillImportDialog />
       <SkillCandidatesPanel />
+      <SkillReviewsPanel
+        open={reviewsOpen}
+        onOpenChange={(open) => {
+          setReviewsOpen(open);
+          if (!open) void fetchData();
+        }}
+        onChanged={onReviewsChanged}
+      />
     </ServiceGate>
   );
 }

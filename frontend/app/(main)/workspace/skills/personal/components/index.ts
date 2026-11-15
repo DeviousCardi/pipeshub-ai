@@ -4,3 +4,4 @@ export { SkillEditorPanel } from './skill-editor-panel';
 export { SkillImportDialog } from './skill-import-dialog';
 export { SkillCandidatesPanel } from './skill-candidates-panel';
 export { MarkdownEditor } from './markdown-editor';
+export { SkillReviewsPanel, SkillFindings } from './skill-reviews-panel';

@@ -27,6 +27,9 @@ import {
 import { apiClient } from '@/lib/api';
 import { VectorDbMemoryWarning } from './vector-db-memory';
 import { getVectorDbMemoryReport, type VectorDbMemoryReport } from './api';
+import { AgentHarnessHealthRow, agentHarnessHealthOf, type AgentHarnessHealth } from './agent-harness-health';
+import { serviceRowExtras } from '@/config';
+import { ServiceReason } from './service-reason';
 import { SettingsPageContainer } from '@/app/(main)/workspace/components/settings-page-container';
 
 // ========================================
@@ -39,6 +42,8 @@ interface ServiceMeta {
   logoSlug?: string;
   label: string;
   description: string;
+  /** Why the service is not ready, shown in full under the description. */
+  reason?: string;
 }
 
 interface Deployment {
@@ -110,6 +115,10 @@ function buildAppServices(t: TFunction, appServices: AppServices | null): Servic
   if (appServices && 'extraction' in appServices) {
     services.push({ key: 'extraction', icon: 'data_object', label: t('workspace.services.app.extraction.label'), description: t('workspace.services.app.extraction.description') });
   }
+  for (const extra of serviceRowExtras) {
+    const row = extra(t, appServices);
+    if (row) services.push(row);
+  }
 
   return services;
 }
@@ -152,7 +161,7 @@ function ServiceRow({
 }) {
   return (
     <Flex
-      align="center"
+      align={meta.reason ? 'start' : 'center'}
       gap="3"
       style={{
         padding: '12px 14px',
@@ -199,7 +208,7 @@ function ServiceRow({
         <Text
           size="1"
           style={{
-            color: 'var(--slate-10)',
+            color: 'var(--slate-11)',
             display: 'block',
             marginTop: 2,
             fontWeight: 300,
@@ -210,6 +219,7 @@ function ServiceRow({
         >
           {meta.description}
         </Text>
+        <ServiceReason text={meta.reason} />
       </Box>
 
       {/* Status badge */}
@@ -241,6 +251,7 @@ export default function ServicesPage() {
   const [localServiceNames, setLocalServiceNames] = useState<Record<string, string> | null>(null);
   const [localDeployment, setLocalDeployment] = useState<Deployment | null>(null);
   const [localLastChecked, setLocalLastChecked] = useState(lastChecked);
+  const [agentHarness, setAgentHarness] = useState<AgentHarnessHealth | null>(null);
   const [vectorDbMemory, setVectorDbMemory] = useState<VectorDbMemoryReport | null>(null);
   // Each refresh starts a new memory request; only the latest may set the state.
   const memoryRequest = useRef(0);
@@ -277,6 +288,7 @@ export default function ServicesPage() {
       setLocalApp(servicesData?.services ?? null);
       setLocalServiceNames(infraData?.serviceNames ?? null);
       setLocalDeployment(infraData?.deployment ?? null);
+      setAgentHarness(agentHarnessHealthOf(infraData?.agentHarness));
       setLocalLastChecked(Date.now());
 
       if (showToast) {
@@ -331,14 +343,14 @@ export default function ServicesPage() {
             <Heading size="5" weight="medium" style={{ color: 'var(--slate-12)' }}>
               {t('workspace.services.pageTitle')}
             </Heading>
-            <Text size="2" style={{ color: 'var(--slate-10)', marginTop: 4, display: 'block' }}>
+            <Text size="2" style={{ color: 'var(--slate-11)', marginTop: 4, display: 'block' }}>
               {t('workspace.services.pageSubtitle')}
             </Text>
           </Box>
 
           <Flex align="center" gap="3">
             {lastCheckedLabel && (
-              <Text size="1" style={{ color: 'var(--slate-9)' }}>
+              <Text size="1" style={{ color: 'var(--slate-11)' }}>
                 {lastCheckedLabel}
               </Text>
             )}
@@ -382,7 +394,7 @@ export default function ServicesPage() {
             </Text>
             <Text
               size="1"
-              style={{ color: 'var(--slate-10)', display: 'block', marginTop: 2, fontWeight: 300 }}
+              style={{ color: 'var(--slate-11)', display: 'block', marginTop: 2, fontWeight: 300 }}
             >
               {t('workspace.services.infraSubtitle')}
             </Text>
@@ -420,7 +432,7 @@ export default function ServicesPage() {
             </Text>
             <Text
               size="1"
-              style={{ color: 'var(--slate-10)', display: 'block', marginTop: 2, fontWeight: 300 }}
+              style={{ color: 'var(--slate-11)', display: 'block', marginTop: 2, fontWeight: 300 }}
             >
               {t('workspace.services.appSubtitle')}
             </Text>
@@ -435,6 +447,7 @@ export default function ServicesPage() {
                 status={localApp?.[meta.key as keyof typeof localApp]}
               />
             ))}
+            <AgentHarnessHealthRow health={agentHarness} />
           </Flex>
         </Flex>
 
@@ -450,7 +463,7 @@ export default function ServicesPage() {
           }}
         >
           <Box style={{ flexShrink: 0, marginTop: 2 }}>
-            <MaterialIcon name="info" size={16} color="var(--accent-9)" />
+            <MaterialIcon name="info" size={16} color="var(--accent-11)" />
           </Box>
           <Flex direction="column" gap="1">
             <Text size="2" weight="medium" style={{ color: 'var(--slate-12)' }}>

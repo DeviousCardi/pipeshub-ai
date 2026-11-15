@@ -86,7 +86,7 @@ export function SkillCard({ skill, onManage, onToggleAvailability }: SkillCardPr
               flexShrink: 0,
             }}
           >
-            <MaterialIcon name={SOURCE_ICON[skill.source] ?? 'psychology'} size={16} color="var(--gray-10)" />
+            <MaterialIcon name={SOURCE_ICON[skill.source] ?? 'psychology'} size={16} color="var(--gray-11)" />
           </Flex>
           <Flex align="center" gap="2">
             {canToggleAvailability && (
@@ -149,10 +149,11 @@ export function SkillCard({ skill, onManage, onToggleAvailability }: SkillCardPr
           >
             {skill.description}
           </Text>
+          {skill.review && skill.review.state !== 'trusted' && <ReviewNotice state={skill.review.state} />}
           <Flex align="center" gap="2" style={{ marginTop: 4 }}>
-            <Text size="1" style={{ color: 'var(--gray-9)' }}>v{skill.version}</Text>
+            <Text size="1" style={{ color: 'var(--gray-11)' }}>v{skill.version}</Text>
             {skill.category && (
-              <Text size="1" style={{ color: 'var(--gray-9)' }}>· {skill.category}</Text>
+              <Text size="1" style={{ color: 'var(--gray-11)' }}>· {skill.category}</Text>
             )}
           </Flex>
         </Flex>
@@ -166,6 +167,17 @@ export function SkillCard({ skill, onManage, onToggleAvailability }: SkillCardPr
 // ========================================
 // Sub-components
 // ========================================
+
+/** Why agents cannot use an imported skill yet (ADR-SEC-01), in the reader's language. */
+function ReviewNotice({ state }: { state: 'pending' | 'denied' | 'untrusted' }) {
+  const { t } = useTranslation();
+  return (
+    <Flex align="start" gap="1" data-testid="skill-review-notice" style={{ marginTop: 4 }}>
+      <MaterialIcon name={state === 'denied' ? 'block' : 'hourglass_top'} size={14} color="var(--amber-11)" />
+      <Text size="1" style={{ color: 'var(--amber-11)' }}>{t(`workspace.skills.reviews.reason.${state}`)}</Text>
+    </Flex>
+  );
+}
 
 function ManageButton({ onClick, readOnly }: { onClick: () => void; readOnly: boolean }) {
   const { t } = useTranslation();

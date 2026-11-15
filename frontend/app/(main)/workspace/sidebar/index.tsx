@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Flex, Text } from '@radix-ui/themes';
@@ -17,6 +17,10 @@ import {
   selectMcpEnabled,
   selectActionsEnabled,
   selectSkillsEnabled,
+  selectScheduledRunsEnabled,
+  selectAgentHarnessEnabled,
+  selectAgentHarnessResumeEnabled,
+  selectEngineRunsEnabled,
   type FeatureFlagGate,
 } from '@/lib/store/feature-flags-store';
 import { YourConnectorsIcon } from '@/app/components/ui/your-connectors-icon';
@@ -24,28 +28,18 @@ import { BetaBadge } from '@/app/components/ui/beta-badge';
 import { useIsMobile } from '@/lib/hooks/use-is-mobile';
 import { useMobileSidebarStore } from '@/lib/store/mobile-sidebar-store';
 import { getApiBaseUrl } from '@/lib/utils/api-base-url';
+import { workspaceNavExtras } from '@/config';
+import { mergeWorkspaceNav, type NavItem } from './workspace-nav';
 
 // ========================================
 // Route constants (labels resolved at render via i18n)
 // ========================================
 
-interface NavItem {
-  icon: string;
-  labelKey: string;
-  route: string;
-  adminOnly?: boolean;
-  customIcon?: ReactNode;
-  /** Only rendered when the named feature flag is enabled. */
-  requiresFlag?: FeatureFlagGate;
-  /** Renders a Beta badge as the item's rightSlot. */
-  beta?: boolean;
-}
-
-const OVERVIEW_ITEMS: NavItem[] = [
+const BUILT_IN_OVERVIEW_ITEMS: NavItem[] = [
   { icon: 'business', labelKey: 'workspace.sidebar.nav.general', route: '/workspace/general' },
   { icon: 'science', labelKey: 'workspace.sidebar.nav.labs', route: '/workspace/labs', adminOnly: true },
 ];
-const DEVELOPER_SETTINGS_ITEMS: NavItem[] = [
+const BUILT_IN_DEVELOPER_SETTINGS_ITEMS: NavItem[] = [
   { icon: 'code', labelKey: 'workspace.sidebar.nav.oauth2', route: '/workspace/developer-settings/oauth2' },
   {
     icon: 'vpn_key',
@@ -66,8 +60,15 @@ const GROUPS_NAV_ITEM: NavItem = {
   adminOnly: true,
 };
 
-const WORKSPACE_ITEMS: NavItem[] = [
+/** "Security": admin screens that decide who may sign in and what may happen to the org's data. */
+const BUILT_IN_SECURITY_ITEMS: NavItem[] = [
   { icon: 'security', labelKey: 'workspace.sidebar.nav.authentication', route: '/workspace/authentication', adminOnly: true },
+  { icon: 'language', labelKey: 'workspace.sidebar.nav.allowedWebsites', route: '/workspace/allowed-websites', adminOnly: true, requiresFlag: 'agentHarness' },
+  { icon: 'source', labelKey: 'workspace.sidebar.nav.gitHosts', route: '/workspace/git-hosts', adminOnly: true, requiresFlag: 'agentHarness' },
+  { icon: 'manage_search', labelKey: 'workspace.sidebar.nav.auditSearch', route: '/workspace/audit-search', adminOnly: true, requiresFlag: 'agentHarness' },
+];
+
+const BUILT_IN_WORKSPACE_ITEMS: NavItem[] = [
   { icon: 'hub', labelKey: 'workspace.sidebar.nav.connectors', route: '/workspace/connectors/team', adminOnly: true },
   { icon: 'device_hub', labelKey: 'workspace.sidebar.nav.mcpServers', route: '/workspace/mcp-servers/team', adminOnly: true, requiresFlag: 'mcp' },
   { icon: 'admin_panel_settings', labelKey: 'workspace.sidebar.nav.mcpAccess', route: '/workspace/mcp-access', adminOnly: true },
@@ -76,13 +77,22 @@ const WORKSPACE_ITEMS: NavItem[] = [
   { icon: 'manage_accounts', labelKey: 'workspace.sidebar.nav.services', route: '/workspace/services', adminOnly: true },
   { icon: 'precision_manufacturing', labelKey: 'workspace.sidebar.nav.serviceAccounts', route: '/workspace/service-accounts', adminOnly: true },
   { icon: 'smart_toy', labelKey: 'workspace.sidebar.nav.aiModels', route: '/workspace/ai-models', adminOnly: true },
+  { icon: 'admin_panel_settings', labelKey: 'workspace.sidebar.nav.aiAccess', route: '/workspace/ai-access', adminOnly: true, requiresFlag: 'agentHarness' },
+  { icon: 'tune', labelKey: 'workspace.sidebar.nav.runSettings', route: '/workspace/run-settings', adminOnly: true, requiresFlag: 'agentHarness' },
+  { icon: 'gavel', labelKey: 'workspace.sidebar.nav.approvalPolicy', route: '/workspace/approval-policy', adminOnly: true, requiresFlag: 'agentHarness' },
+  { icon: 'memory', labelKey: 'workspace.sidebar.nav.memoryPolicy', route: '/workspace/memory-policy', adminOnly: true, requiresFlag: 'agentHarness' },
+  { icon: 'help_center', labelKey: 'workspace.sidebar.nav.unknownEffects', route: '/workspace/unknown-effects', adminOnly: true, requiresFlag: 'agentHarnessResume' },
+  { icon: 'download', labelKey: 'workspace.sidebar.nav.fileDownloads', route: '/workspace/file-downloads', adminOnly: true, requiresFlag: 'agentHarness' },
   { icon: 'mail', labelKey: 'workspace.sidebar.nav.mail', route: '/workspace/mail', adminOnly: true },
   { icon: 'edit_note', labelKey: 'workspace.sidebar.nav.prompts', route: '/workspace/prompts', adminOnly: true },
   { icon: 'travel_explore', labelKey: 'workspace.sidebar.nav.webSearch', route: '/workspace/web-search', adminOnly: true },
 ];
 
-const PERSONAL_ITEMS: NavItem[] = [
+const BUILT_IN_PERSONAL_ITEMS: NavItem[] = [
   { icon: 'person', labelKey: 'workspace.sidebar.nav.profile', route: '/workspace/profile' },
+  { icon: 'key', labelKey: 'workspace.sidebar.nav.aiAccounts', route: '/workspace/ai-accounts', requiresFlag: 'engineRuns' },
+  { icon: 'schedule', labelKey: 'workspace.sidebar.nav.schedules', route: '/workspace/schedules', requiresFlag: 'scheduledRuns' },
+  { icon: 'memory', labelKey: 'workspace.sidebar.nav.memories', route: '/workspace/memories', requiresFlag: 'agentHarnessResume' },
   { icon: '', labelKey: 'workspace.sidebar.nav.yourConnectors', route: '/workspace/connectors/personal', customIcon: <YourConnectorsIcon size={ICON_SIZE_DEFAULT} color="var(--slate-11)" /> },
   { icon: 'bolt', labelKey: 'workspace.sidebar.nav.yourActions', route: '/workspace/actions/personal', requiresFlag: 'actions' },
   { icon: 'device_hub', labelKey: 'workspace.sidebar.nav.yourMcpServers', route: '/workspace/mcp-servers/personal', requiresFlag: 'mcp' },
@@ -90,16 +100,25 @@ const PERSONAL_ITEMS: NavItem[] = [
   { icon: 'archive', labelKey: 'workspace.sidebar.nav.archivedChats', route: '/workspace/archived-chats' },
 ];
 
+// The built-in entries with an edition's (workspaceNavExtras in config.ts).
+const OVERVIEW_ITEMS = mergeWorkspaceNav('overview', BUILT_IN_OVERVIEW_ITEMS, workspaceNavExtras);
+const SECURITY_ITEMS = mergeWorkspaceNav('security', BUILT_IN_SECURITY_ITEMS, workspaceNavExtras);
+const WORKSPACE_ITEMS = mergeWorkspaceNav('workspace', BUILT_IN_WORKSPACE_ITEMS, workspaceNavExtras);
+const DEVELOPER_SETTINGS_ITEMS = mergeWorkspaceNav('developerSettings', BUILT_IN_DEVELOPER_SETTINGS_ITEMS, workspaceNavExtras);
+const PERSONAL_ITEMS = mergeWorkspaceNav('personal', BUILT_IN_PERSONAL_ITEMS, workspaceNavExtras);
+
 const PEOPLE_ROUTES = PEOPLE_SUB_ITEMS.map((item) => item.route);
+const SECURITY_ROUTES = SECURITY_ITEMS.map((item) => item.route);
 
 // ========================================
 // Component
 // ========================================
 
 /**
- * Workspace sidebar — settings navigation with collapsible "People" section.
+ * Workspace sidebar — settings navigation with collapsible "People" and "Security" sections.
  *
- * Uses `SidebarBase` shell (no header, no footer).
+ * Uses `SidebarBase` shell (no header, no footer); at phone width it is the drawer the
+ * app's menu button opens.
  * Active item determined from current pathname.
  */
 export default function WorkspaceSidebar() {
@@ -109,6 +128,10 @@ export default function WorkspaceSidebar() {
   const mcpEnabled = useFeatureFlagsStore(selectMcpEnabled);
   const actionsEnabled = useFeatureFlagsStore(selectActionsEnabled);
   const skillsEnabled = useFeatureFlagsStore(selectSkillsEnabled);
+  const scheduledRunsEnabled = useFeatureFlagsStore(selectScheduledRunsEnabled);
+  const agentHarnessEnabled = useFeatureFlagsStore(selectAgentHarnessEnabled);
+  const agentHarnessResumeEnabled = useFeatureFlagsStore(selectAgentHarnessResumeEnabled);
+  const engineRunsEnabled = useFeatureFlagsStore(selectEngineRunsEnabled);
   const isMobile = useIsMobile();
   const isMobileOpen = useMobileSidebarStore((s) => s.isOpen);
   const closeMobileSidebar = useMobileSidebarStore((s) => s.close);
@@ -122,10 +145,18 @@ export default function WorkspaceSidebar() {
     PEOPLE_ROUTES.some((route) => pathname.startsWith(route))
   );
 
+  const [isSecurityExpanded, setIsSecurityExpanded] = useState(
+    SECURITY_ROUTES.some((route) => pathname.startsWith(route))
+  );
+
   const flagEnabled: Record<FeatureFlagGate, boolean> = {
     mcp: mcpEnabled,
     actions: actionsEnabled,
     skills: skillsEnabled,
+    scheduledRuns: scheduledRunsEnabled,
+    agentHarness: agentHarnessEnabled,
+    agentHarnessResume: agentHarnessResumeEnabled,
+    engineRuns: engineRunsEnabled,
   };
   const isNavItemVisible = (item: NavItem) =>
     (isAdmin || !item.adminOnly) &&
@@ -134,6 +165,7 @@ export default function WorkspaceSidebar() {
   const allRoutes = [
     ...OVERVIEW_ITEMS.map((item) => item.route),
     ...(isAdmin ? WORKSPACE_ITEMS.filter(isNavItemVisible).map((item) => item.route) : []),
+    ...(isAdmin ? SECURITY_ITEMS.filter(isNavItemVisible).map((item) => item.route) : []),
     ...DEVELOPER_SETTINGS_ITEMS.map((item) => item.route),
     ...PERSONAL_ITEMS.filter(isNavItemVisible).map((item) => item.route),
     ...PEOPLE_SUB_ITEMS.map((item) => item.route),
@@ -156,6 +188,8 @@ export default function WorkspaceSidebar() {
 
   const visibleOverviewItems = OVERVIEW_ITEMS.filter(isNavItemVisible);
   const visibleWorkspaceItems = WORKSPACE_ITEMS.filter(isNavItemVisible);
+  const visibleSecurityItems = SECURITY_ITEMS.filter(isNavItemVisible);
+  const isSecurityChildActive = visibleSecurityItems.some((item) => isActive(item.route));
   const visiblePeopleItems = PEOPLE_SUB_ITEMS;
   const visiblePersonalItems = PERSONAL_ITEMS.filter(isNavItemVisible);
 
@@ -229,6 +263,25 @@ export default function WorkspaceSidebar() {
         {isAdmin && (
           <Flex direction="column" gap="1">
             <SectionHeader title={t('workspace.sidebar.sections.workspace')} />
+            {visibleSecurityItems.length > 0 && (
+              <CollapsibleSection
+                icon="shield"
+                label={t('workspace.sidebar.sections.security')}
+                isExpanded={isSecurityExpanded}
+                onToggle={() => setIsSecurityExpanded((prev) => !prev)}
+                hasActiveChild={isSecurityChildActive}
+              >
+                {visibleSecurityItems.map((item) => (
+                  <WorkspaceSidebarItem
+                    key={item.route}
+                    label={t(item.labelKey)}
+                    href={`${item.route}/`}
+                    isActive={isActive(item.route)}
+                    paddingLeft={36}
+                  />
+                ))}
+              </CollapsibleSection>
+            )}
             {visibleWorkspaceItems.map((item) => (
               <WorkspaceSidebarItem
                 key={item.route}
@@ -242,7 +295,7 @@ export default function WorkspaceSidebar() {
         )}
         <Flex direction="column" gap="1">
           <SectionHeader title={t('workspace.sidebar.sections.developerSettings')} />
-          {DEVELOPER_SETTINGS_ITEMS.map((item) => (
+          {DEVELOPER_SETTINGS_ITEMS.filter(isNavItemVisible).map((item) => (
             <WorkspaceSidebarItem
               key={item.route}
               icon={<MaterialIcon name={item.icon} size={ICON_SIZE_DEFAULT} color="var(--slate-11)" />}
@@ -256,7 +309,7 @@ export default function WorkspaceSidebar() {
             icon={<MaterialIcon name="menu_book" size={ICON_SIZE_DEFAULT} color="var(--slate-11)" />}
             label={t('workspace.sidebar.nav.apiDocumentation')}
             onClick={() => window.open(`${getApiBaseUrl().replace(/\/+$/, '')}/api/v1/docs`, '_blank', 'noopener,noreferrer')}
-            rightSlot={<MaterialIcon name="open_in_new" size={ICON_SIZE_DEFAULT} color="var(--slate-9)" />}
+            rightSlot={<MaterialIcon name="open_in_new" size={ICON_SIZE_DEFAULT} color="var(--slate-11)" />}
           />
         </Flex>
 
