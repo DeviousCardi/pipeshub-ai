@@ -23,7 +23,12 @@ from app.core.org_context import (
 )
 from app.models.entities import AppRole, AppUser, AppUserGroup, Person, User
 from app.schema.node_validator import SchemaValidationError
-from app.services.graph_db.common.utils import dedupe_agents_by_id, is_full_address
+from app.services.graph_db.common.utils import (
+    agent_update_document,
+    decode_agent_json_fields,
+    dedupe_agents_by_id,
+    is_full_address,
+)
 from app.services.graph_db.postgres.base import (
     _VALIDATOR,
     NotImplementedInPostgres,
@@ -1140,12 +1145,33 @@ class IdentityMixin(PgBase):
                 mcp, agent["mcpServersUnavailable"] = {}, True
             agent["mcpServers"] = mcp.get(agent_id, [])
             agent["shareWithOrg"] = bool(rows[0]["shared"])
-            return agent
+            return decode_agent_json_fields(agent)
         except (MissingOrgContext, SystemContextNotAllowed, OrgMismatch):
             raise
         except Exception as e:
             self.logger.error("Failed to get agent: %s", e)
             return None
+
+    async def update_agent(self, agent_id: str, agent_updates: dict[str, Any], user_id: str, org_id: str, transaction: str | None = None) -> bool | None:
+        """Saves the agent's own fields (the harness settings among them: engine profile, model account, owner team, role models, gates,
+        environment), for a user who may edit it; False otherwise. Tools, knowledge and MCP servers are edges, written elsewhere."""
+        if not self._mine(org_id):
+            return False
+        try:
+            perm = await self.check_agent_permission(agent_id, user_id, org_id)
+            if not perm or not perm.get("can_edit", False):
+                self.logger.warning("User %s may not edit agent %s", user_id, agent_id)
+                return False
+            document = agent_update_document(agent_updates, user_id, get_epoch_timestamp_in_ms())
+            if not await self.update_node(agent_id, CollectionNames.AGENT_INSTANCES.value, document, transaction=transaction):
+                self.logger.error("Failed to update agent %s", agent_id)
+                return False
+            return True
+        except (MissingOrgContext, SystemContextNotAllowed, OrgMismatch, SchemaValidationError):
+            raise
+        except Exception as e:
+            self.logger.error("Failed to update agent: %s", e)
+            return False
 
     async def get_agents_by_model_key(self, org_id: str, model_key: str) -> list[dict]:
         """The live agents of the org that use the model (its key, or a key that starts ``<key>_``): those a user of the org owns and those shared with the org."""
