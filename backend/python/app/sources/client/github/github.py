@@ -5,7 +5,8 @@ from typing import Any, cast
 
 from github import Auth, Github
 from pydantic import BaseModel, Field  # type: ignore
-from urllib3.util.retry import Retry
+
+from app.sources.client.http.send_safe_urllib3 import SendSafeRetry
 
 from app.config.constants.http_status_code import HttpStatusCode
 
@@ -13,8 +14,9 @@ from app.config.constants.http_status_code import HttpStatusCode
 # the rate-limit window resets — observed parking worker threads for 30+ min.
 # Rate limits are handled explicitly by the connector (probe + pause + backfill
 # floor), so the SDK should only retry transient server errors, briefly, and
-# let 403s surface immediately as failures.
-_TRANSIENT_RETRY = Retry(
+# let 403s surface immediately as failures. A write is never re-sent once it
+# may have reached GitHub.
+_TRANSIENT_RETRY = SendSafeRetry(
     total=3,
     backoff_factor=1.0,
     status_forcelist=(500, 502, 503, 504),

@@ -227,6 +227,10 @@ class MCPServerConfig(MCPCamelModel):
     args: list[str] = Field(default_factory=list)
     required_env: list[str] = Field(default_factory=list)
     optional_env: list[str] = Field(default_factory=list)
+    # STDIO in MCP runners (P5.10): the hosts the server may reach (`host` or `host:port`, plain HTTP through
+    # the egress proxy; none = no network) and its pinned runner image (default: the deployment's).
+    egress_hosts: list[str] = Field(default_factory=list)
+    runner_image: str | None = None
 
     url: Optional[str] = None
     header_name: Optional[str] = None

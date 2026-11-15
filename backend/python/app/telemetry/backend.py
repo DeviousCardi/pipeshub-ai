@@ -8,7 +8,8 @@ underlying metrics library can be swapped without touching call sites.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol
 
 from prometheus_client import (
     CollectorRegistry,
@@ -64,7 +65,8 @@ class _PromCounter:
         self._metric = metric
 
     def inc(self, *labels: str, value: float = 1.0) -> None:
-        self._metric.labels(*labels).inc(value)
+        # An unlabelled instrument (``labels=[]``) has no children: it is its own series.
+        (self._metric.labels(*labels) if labels else self._metric).inc(value)
 
 
 class _PromGauge:
@@ -72,7 +74,7 @@ class _PromGauge:
         self._metric = metric
 
     def set(self, *labels: str, value: float) -> None:
-        self._metric.labels(*labels).set(value)
+        (self._metric.labels(*labels) if labels else self._metric).set(value)
 
     def clear(self) -> None:
         self._metric.clear()
@@ -83,7 +85,7 @@ class _PromHistogram:
         self._metric = metric
 
     def observe(self, *labels: str, value: float) -> None:
-        self._metric.labels(*labels).observe(value)
+        (self._metric.labels(*labels) if labels else self._metric).observe(value)
 
 
 class PrometheusBackend(MetricsBackend):
