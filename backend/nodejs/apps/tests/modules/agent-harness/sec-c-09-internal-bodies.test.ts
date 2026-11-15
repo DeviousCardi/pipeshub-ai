@@ -139,7 +139,10 @@ describe('SEC-C-09: the internal listener verifies the caller before it reads a 
 describe('SEC-C-16: the global limiter skips only a verified service call', () => {
   const logger = { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} } as unknown as Logger;
   const SECRET = 'scoped-secret-for-tests';
-  const scoped = jwt.sign({ orgId: 'o1', scopes: ['conversation:create'] }, SECRET, { algorithm: 'HS256', expiresIn: 60 });
+  // Signed when a test runs, not when the file loads: a serial run reaches these tests minutes after loading, past
+  // the token's minute, and the limiter rightly counts an expired token.
+  const scoped = (): string =>
+    jwt.sign({ orgId: 'o1', scopes: ['conversation:create'] }, SECRET, { algorithm: 'HS256', expiresIn: 60 });
 
   const statuses = async (paths: string[], headers: Record<string, string> = {}): Promise<number[]> => {
     const app = express();
@@ -178,11 +181,11 @@ describe('SEC-C-16: the global limiter skips only a verified service call', () =
   });
 
   it('an internal route with a verified scoped token is not counted', async () => {
-    const got = await statuses(four('/api/v1/conversations/internal/create'), { authorization: `Bearer ${scoped}` });
+    const got = await statuses(four('/api/v1/conversations/internal/create'), { authorization: `Bearer ${scoped()}` });
     expect(got).to.deep.equal([200, 200, 200, 200]);
   });
 
   it('a verified scoped token on a path with no internal segment is still counted', async () => {
-    expect(await statuses(four('/api/v1/conversations/x/internalish'), { authorization: `Bearer ${scoped}` })).to.include(429);
+    expect(await statuses(four('/api/v1/conversations/x/internalish'), { authorization: `Bearer ${scoped()}` })).to.include(429);
   });
 });
