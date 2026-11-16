@@ -4,10 +4,7 @@ import { Container } from 'inversify';
 import { readStoreEpoch } from '../../../libs/db/boot';
 import { pgRuntime } from '../../../libs/db/uow';
 import { MongoService } from '../../../libs/services/mongo.service';
-import {
-  usesInProcessCache,
-  usesPostgresCache,
-} from '../../../libs/services/redis.service';
+import { defaultRedisMode } from '../../../libs/services/redis/connectionProviderFactory';
 import { ICacheService } from '../../../libs/services/cache/cacheService.interface';
 import { TokenEventProducer } from '../services/token-event.producer';
 import { Logger }  from '../../../libs/services/logger.service';
@@ -32,8 +29,8 @@ import { hardenedProfile } from '../../../libs/utils/security-profile';
 
 /** What the health page calls the session cache: PostgreSQL, this process's memory or the Redis server. */
 function cacheDisplayName(redisMode: string): string {
-  if (usesPostgresCache()) return 'PostgreSQL cache';
-  if (usesInProcessCache()) return 'In-process cache';
+  if (redisMode === 'postgres') return 'PostgreSQL cache';
+  if (redisMode === 'inprocess') return 'In-process cache';
   if (redisMode === 'cluster') return 'Redis (Cluster)';
   if (redisMode === 'memorydb') return 'Redis (MemoryDB)';
   return 'Redis';
@@ -71,9 +68,9 @@ export interface HealthStatus {
     messageBrokerType: string;
     graphDbType: string;
     vectorDbType: string;
-    // Not written to the KV deployment config -- REDIS_MODE is a
-    // process-env setting (R21/R22), so it is read directly rather than
-    // via getDeploymentConfig()'s KV-store fresh/fallback path.
+    // The cache mode this process runs (defaultRedisMode): REDIS_MODE, else
+    // `postgres` when KV_STORE_TYPE and MESSAGE_BROKER are both postgres.
+    // Read from the process env, not the KV deployment config.
     redisMode: string;
   };
   build: BuildInfo;
@@ -268,7 +265,8 @@ export function createHealthRouter(
       };
       const vectorDbName = vectorDbNames[deployment.vectorDbType || ''] || 'VectorDB';
 
-      const redisMode = process.env.REDIS_MODE || 'standalone';
+      // One value for the row name and the published mode the page draws its logo from.
+      const redisMode = defaultRedisMode().toLowerCase();
       const redisDisplayName = cacheDisplayName(redisMode);
 
       const serviceNames: Record<string, string> = {
@@ -440,7 +438,7 @@ export function createHealthRouter(
           messageBrokerType: deployment.messageBrokerType,
           graphDbType: deployment.dataStoreType || 'pending',
           vectorDbType: deployment.vectorDbType || 'pending',
-          redisMode: process.env.REDIS_MODE || 'standalone',
+          redisMode,
         },
         build,
         ...(warnings.length > 0 ? { warnings } : {}),

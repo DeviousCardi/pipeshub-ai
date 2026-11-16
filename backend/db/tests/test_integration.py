@@ -73,9 +73,9 @@ def write_probe(tmp_path, second_sql="CREATE TABLE probe.t2 (id int);\nSELECT ke
 DOCSTORE_BRANCHES = ("content", "conversation", "identity", "integrations", "oauth", "platform_data")
 MODULES = ("platform", *DOCSTORE_BRANCHES, "retrieval")
 HEADS = {"kernel": (17, 11), "platform": (5, 0), "content": (3, 0), "conversation": (4, 0), "identity": (6, 0), "integrations": (3, 0), "oauth": (4, 0), "platform_data": (8, 0),
-         "graph": (12, 0), "kg": (15, 14), "retrieval": (3, 0), "harness": (11, 0)}
+         "graph": (13, 0), "kg": (15, 14), "retrieval": (3, 0), "harness": (11, 0)}
 # platform_data_0002 depends on the last revision of most other document-store branches, so those are not heads
-REVISION_HEADS = {"platform_0005", "identity_0006", "content_0003", "oauth_0004", "platform_data_0008", "kg_0015", "retrieval_0003", "graph_0012", "conversation_0004"}      # kg depends on kernel_0017 and graph_0002, platform_data_0005 on integrations_0003, platform_data_0006 and 0007 on harness_0011: no longer heads (0008 is)
+REVISION_HEADS = {"platform_0005", "identity_0006", "content_0003", "oauth_0004", "platform_data_0008", "kg_0015", "retrieval_0003", "graph_0013", "conversation_0004"}      # kg depends on kernel_0017 and graph_0002, platform_data_0005 on integrations_0003, platform_data_0006 and 0007 on harness_0011: no longer heads (0008 is)
 
 
 def _edition_heads() -> tuple[dict[str, tuple[int, int]], set[str]]:
