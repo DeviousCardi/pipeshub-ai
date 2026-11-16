@@ -613,7 +613,10 @@ class TestBrowseHoldersNamingPeoplePerIssue:
 
     def test_a_deactivated_reporter_or_assignee_is_not_granted_whatever_their_email(self) -> None:
         gone = {"key": "k", "active": False, "emailAddress": "rep@ex.com"}
-        _, grants, _ = self._apply([{"type": "reporter"}, {"type": "assignee"}], {"reporter": gone, "assignee": {"active": True}})
+        # A person the payload names resolves through the directory, never by the payload's email.
+        _, grants, _ = self._apply([{"type": "reporter"}, {"type": "assignee"}],
+                                   {"reporter": gone, "assignee": {"accountId": "a-1", "active": True}},
+                                   user_by_account_id={"a-1": type("U", (), {"email": "asg@ex.com"})()})
         assert grants == {(EntityType.USER, "asg@ex.com")}
         record = _record()
         level, _ = apply_issue_access(
