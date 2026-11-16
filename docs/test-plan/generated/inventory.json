@@ -2,8 +2,8 @@
  "generatedBy": "scripts/harness_test_inventory.py",
  "componentMap": "docs/test-plan/data/components.json",
  "harnessTestFiles": 2063,
- "claimedTestFiles": 3898,
- "claimedTests": 41169,
+ "claimedTestFiles": 3899,
+ "claimedTests": 41174,
  "claimedFilesByLevel": {
   "cohesion": 64,
   "component": 48,
@@ -18,7 +18,7 @@
   "live": 6,
   "perf": 3,
   "replay": 16,
-  "unit": 3161
+  "unit": 3162
  },
  "components": [
   {
@@ -24914,15 +24914,15 @@
    "id": "FEA",
    "name": "Frontend workspace and admin surfaces",
    "status": "built",
-   "files": 310,
-   "tests": 2165,
+   "files": 311,
+   "tests": 2170,
    "filesByLevel": {
     "e2e-browser": 17,
-    "unit": 293
+    "unit": 294
    },
    "testsByLevel": {
     "e2e-browser": 62,
-    "unit": 2103
+    "unit": 2108
    },
    "markers": {},
    "unmatchedTestGlobs": [],
@@ -26463,6 +26463,12 @@
      "level": "unit",
      "markers": [],
      "tests": 2
+    },
+    {
+     "path": "frontend/app/(main)/workspace/services/__tests__/infra-services.test.ts",
+     "level": "unit",
+     "markers": [],
+     "tests": 5
     },
     {
      "path": "frontend/app/(main)/workspace/services/__tests__/vector-db-memory.test.tsx",
