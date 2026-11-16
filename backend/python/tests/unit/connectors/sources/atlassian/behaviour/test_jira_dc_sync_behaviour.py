@@ -1426,11 +1426,12 @@ class TestRoleActors:
         stub_site(jira, search)
         jira.on("GET", f"{API}/project/ENG/role/10002", {"name": "Developers", "actors": [
             {"type": "atlassian-user-role-actor", "actorUser": "not-a-dict", "key": "alice-key"},
-            {"type": "atlassian-user-role-actor", "actorUser": {"emailAddress": "BOB@example.com"}},
+            {"type": "atlassian-user-role-actor", "name": "Bob"},
             {"type": "atlassian-user-role-actor", "actorUser": {"key": "nobody"}},
             {"type": "atlassian-group-role-actor", "groupId": "grp-1", "name": "renamed"},
         ]})
         connector, _ = await make_connector(db, store)
+        connector._dc_name_to_source_id = {"bob": "bob-key"}
         users = [
             AppUser(app_name="JIRA DATA CENTER", connector_id=CONNECTOR_ID, source_user_id=k, org_id="org-1", email=e, full_name=k)
             for k, e in (("alice-key", "alice@example.com"), ("bob-key", "bob@example.com"), ("carol-key", "carol@example.com"))
@@ -1439,6 +1440,60 @@ class TestRoleActors:
         await connector._sync_project_roles(["ENG"], users, {"grp-1": [users[2]]})
 
         assert {m.email for m in db.app_roles["ENG_10002"]} == {"alice@example.com", "bob@example.com", "carol@example.com"}
+
+    async def test_an_actor_never_resolves_through_an_email_another_account_shares(
+        self, jira, db, store, search,
+    ) -> None:
+        """Bob has no product access and shares Alice's email: his role must not make Alice a member."""
+        stub_site(jira, search)
+        jira.on("GET", f"{API}/project/ENG/role/10002", {"name": "Developers", "actors": [
+            {"type": "atlassian-user-role-actor", "name": "bob", "actorUser": {"emailAddress": "shared@example.com"}},
+        ]})
+        connector, _ = await make_connector(db, store)
+        connector._dc_name_to_source_id = {"bob": "bob-key", "alice": "alice-key"}
+        alice = AppUser(app_name="JIRA DATA CENTER", connector_id=CONNECTOR_ID, source_user_id="alice-key",
+                        org_id="org-1", email="shared@example.com", full_name="Alice")
+
+        await connector._sync_project_roles(["ENG"], [alice], {})
+
+        assert db.app_roles["ENG_10002"] == []
+
+    async def test_a_username_resolves_to_its_own_account_not_to_a_key_equal_to_it(
+        self, jira, db, store, search,
+    ) -> None:
+        """A renamed account keeps its first username as its key; a new account may now hold that username."""
+        stub_site(jira, search)
+        jira.on("GET", f"{API}/project/ENG/role/10002", {"name": "Developers", "actors": [
+            {"type": "atlassian-user-role-actor", "name": "alice"},
+        ]})
+        connector, _ = await make_connector(db, store)
+        connector._dc_name_to_source_id = {"alice": "JIRAUSER10100", "alice.smith": "alice"}
+        renamed = AppUser(app_name="JIRA DATA CENTER", connector_id=CONNECTOR_ID, source_user_id="alice",
+                          org_id="org-1", email="alice.smith@example.com", full_name="Alice Smith")
+
+        await connector._sync_project_roles(["ENG"], [renamed], {})
+
+        assert db.app_roles["ENG_10002"] == []
+
+    @pytest.mark.parametrize("actor", [
+        {"type": "atlassian-user-role-actor", "name": "alice"},
+        {"type": "atlassian-user-role-actor", "actorUser": {"name": "alice"}},
+    ], ids=["name", "actorUser-name"])
+    async def test_a_username_the_user_list_did_not_show_is_never_taken_for_a_key(
+        self, jira, db, store, search, actor: dict,
+    ) -> None:
+        """A user list cut short (the search fallback stops at 100 on Jira 10+) did not show "alice": the synced account
+        whose key is "alice" (a renamed account keeps its first username as its key) is not that person."""
+        stub_site(jira, search)
+        jira.on("GET", f"{API}/project/ENG/role/10002", {"name": "Developers", "actors": [actor]})
+        connector, _ = await make_connector(db, store)
+        connector._dc_name_to_source_id = {"alice.smith": "alice"}
+        renamed = AppUser(app_name="JIRA DATA CENTER", connector_id=CONNECTOR_ID, source_user_id="alice",
+                          org_id="org-1", email="alice.smith@example.com", full_name="Alice Smith")
+
+        await connector._sync_project_roles(["ENG"], [renamed], {})
+
+        assert db.app_roles["ENG_10002"] == []
 
     async def test_unreadable_role_list_is_reported_not_fatal(self, jira, db, store, search) -> None:
         stub_site(jira, search)

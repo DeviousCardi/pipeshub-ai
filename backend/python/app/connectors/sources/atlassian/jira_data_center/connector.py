@@ -1659,6 +1659,7 @@ class JiraDataCenterConnector(BaseConnector):
         raw_jira_users = await self._fetch_all_jira_users_bulk()
 
         all_active_user_keys: set[str] = set()
+        # Keyed by account: two accounts may share an email, and only one of them may have product access.
         visible_email_map: dict[str, str] = {}
         key_to_display: dict[str, str] = {}
 
@@ -1676,7 +1677,7 @@ class JiraDataCenterConnector(BaseConnector):
                 self._dc_name_to_source_id[username.lower()] = user_key
             email = user.get("emailAddress")
             if email:
-                visible_email_map[email.lower()] = user_key
+                visible_email_map[user_key] = email.lower()
 
         self.logger.info(
             f"👥 Jira DC bulk: {len(all_active_user_keys)} active users, "
@@ -1686,7 +1687,7 @@ class JiraDataCenterConnector(BaseConnector):
         resolved: dict[str, AppUser] = {}
         org_id = self.data_entities_processor.org_id
 
-        for email_lower, user_key in visible_email_map.items():
+        for user_key, email_lower in visible_email_map.items():
             resolved[user_key] = AppUser(
                 app_name=self.connector_name,
                 connector_id=self.connector_id,
@@ -2873,48 +2874,32 @@ class JiraDataCenterConnector(BaseConnector):
         self,
         actor: dict[str, Any],
         user_by_account_id: dict[str, AppUser],
-        user_by_email: dict[str, AppUser],
         name_to_source_id: dict[str, str] | None = None,
     ) -> AppUser | None:
-        """Resolve a DC project-role user actor to a synced ``AppUser``.
+        """Resolve a DC project-role user actor to a synced ``AppUser``: by a key it carries, or by its username
+        through ``name_to_source_id``. A username is never looked up as a key.
 
-        DC often omits nested ``actorUser`` and exposes only top-level ``name``
-        (username). ``_fetch_users`` stores ``source_user_id`` as the immutable
-        ``key``, so fall back through ``name_to_source_id`` when needed.
+        A role actor names its user by username and carries no email ("actors": id, displayName, type, name,
+        avatarUrl; https://docs.atlassian.com/software/jira/docs/api/REST/9.12.0/#api/2/project/{projectIdOrKey}/role-getProjectRole),
+        and an email may be shared with another account. A key can equal another account's username: existing users
+        were given "a key that is equal to the lowercase of the username" and usernames can change
+        (https://developer.atlassian.com/server/jira/platform/renamable-users-in-jira-6-0/). Every synced account's
+        username is in ``name_to_source_id`` (``_fetch_users`` records it from each row it resolves), so a username
+        missing from it names no synced account, and resolves to none.
         """
         actor_user = actor.get("actorUser") or {}
         if not isinstance(actor_user, dict):
             actor_user = {}
 
-        for identifier in (
-            actor_user.get("accountId"),
-            actor_user.get("key"),
-            actor_user.get("name"),
-        ):
+        for identifier in (actor_user.get("accountId"), actor_user.get("key"), actor.get("key")):
             if identifier:
                 user = user_by_account_id.get(identifier)
                 if user:
                     return user
 
-        email = actor_user.get("emailAddress")
-        if email:
-            user = user_by_email.get(email.lower())
-            if user:
-                return user
-
-        for identifier in (actor.get("key"), actor.get("name")):
-            if identifier:
-                user = user_by_account_id.get(identifier)
-                if user:
-                    return user
-
-        actor_name = actor.get("name")
-        if actor_name and name_to_source_id:
-            source_id = name_to_source_id.get(actor_name.lower())
-            if source_id:
-                return user_by_account_id.get(source_id)
-
-        return None
+        actor_name = actor_user.get("name") or actor.get("name")
+        source_id = (name_to_source_id or {}).get(actor_name.lower()) if actor_name else None
+        return user_by_account_id.get(source_id) if source_id else None
 
     async def _sync_project_roles(
         self,
@@ -2941,14 +2926,7 @@ class JiraDataCenterConnector(BaseConnector):
 
         self.logger.info(f"🔐 Syncing project roles for {len(project_keys)} projects (DC GET /rest/api/2/project/.../role)...")
 
-        # Build email -> AppUser lookup for fast member resolution
-        user_by_email: dict[str, AppUser] = {
-            user.email.lower(): user
-            for user in jira_users
-            if user.email
-        }
-
-        # Also build accountId -> AppUser lookup
+        # accountId -> AppUser lookup
         user_by_account_id: dict[str, AppUser] = {
             user.source_user_id: user
             for user in jira_users
@@ -3038,7 +3016,6 @@ class JiraDataCenterConnector(BaseConnector):
                                 user = self._resolve_dc_app_user_from_role_actor(
                                     actor,
                                     user_by_account_id,
-                                    user_by_email,
                                     self._dc_name_to_source_id,
                                 )
 
