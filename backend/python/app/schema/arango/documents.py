@@ -387,6 +387,9 @@ record_schema = {
             "failedAt": {"type": ["number", "null"]},
             "indexingAttempts": {"type": ["integer", "null"], "minimum": 0},
             "pageCount": {"type": ["integer", "null"], "minimum": 1},
+            # The hex md5 of the bytes that were last fully indexed (internal; never returned by the API). Written only
+            # when an index completes from those bytes, so unlike md5Checksum a connector sync never overwrites it.
+            "indexedMd5": {"type": ["string", "null"]},
             # A record whose source rate-limited its content fetch: when it may
             # be sent again, and when this run of waits began (see
             # app/modules/indexing/rate_limit_deferral.py).
