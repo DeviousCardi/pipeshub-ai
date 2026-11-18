@@ -8,6 +8,8 @@ from app.modules.transformers.blob_storage import StorageLookupUnavailableError
 from app.modules.transformers.block_container_validator import BlockContainerValidator
 from app.modules.transformers.document_extraction import DocumentExtraction
 from app.modules.transformers.sink_orchestrator import SinkOrchestrator
+from app.modules.indexing import extension as indexing_extension
+from app.modules.indexing.extension import notify_terminal
 from app.modules.indexing.parse_now_marker import shape_status_write
 from app.modules.transformers.transformer import (
     ENRICHMENT_DEFERRED,
@@ -123,6 +125,9 @@ class IndexingPipeline:
         try:
             store_only = bool(ctx.settings.get(STORE_ONLY))
             record = ctx.record
+            await indexing_extension.current().lifecycle.after_parse(
+                record, self.document_extraction.graph_provider, self.logger
+            )
             block_containers = record.block_containers
 
             if block_containers is not None:
@@ -210,6 +215,8 @@ class IndexingPipeline:
                         "⚠️ Failed to update indexing status for record %s - record may not exist",
                         record_id,
                     )
+                    return
+                await notify_terminal(record, ProgressStatus.EMPTY)
                 return
 
             if ctx.reconciliation_context is None and not store_only:
@@ -241,8 +248,11 @@ class IndexingPipeline:
     async def _dispatch_stages(self, ctx: TransformContext) -> None:
         if self.stage_ingress is None:
             raise RuntimeError("the pipeline stage runtime is not wired into this IndexingPipeline")
+        deferred = indexing_extension.current().deferred_stages()
         _ = await self.stage_ingress.on_indexed(
             ctx.record,
             trigger=ctx.event_type,
             defer_classify=bool(ctx.settings.get(ENRICHMENT_DEFERRED)),
+            # Only named when something defers a stage: with none, the call is the one it always was.
+            **({"defer": deferred} if deferred else {}),
         )
